@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dassian App</title>
+
+    <!--link href="./assets/css/kendo.dataviz.default.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common-bootstrap.core.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common-bootstrap.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.bootstrap.min.css" rel="stylesheet">-->
+    <link href="./assets/css/kendo.dataviz.bootstrap.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common-fiori.core.min.css" rel="stylesheet">
+
+    <script src="./assets/js/jszip.min.js"></script>
+
+    <link href="./assets/css/default.css" rel="stylesheet">
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/kendo.common-fiori.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.fiori.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.dataviz.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.dataviz.fiori.min.css" />
+
+    <script src="./assets/js/jquery.min.js"></script>
+    <script src="./assets/js/kendo.all.js"></script>
+   <!-- <script src="./assets/js/moment.js"></script>-->
+</head>
+<body>
+<body>
+<!-- Fixed navbar -->
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="navbar-header">
+        <a class="navbar-brand" target="_blank" href="http://www.dassian.com"><img alt="Dassian UK" src="assets/img/dassian.png" width="100px"></a>
+    </div>
+    <p style="margin-right: 5px" class="navbar-text navbar-right">Signed in as <a href="#" class="navbar-link">Tom Lau</a></p>
+</nav>
+
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Project Analytics
+                <span class="pull-right dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">Action</a></li>
+                    <li><a href="#">Another action</a></li>
+                    <li><a href="#">Something else here</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Separated link</a></li>
+                </ul>
+                </span>
+            </h3>
+        </div>
+        <div class="panel-body" style="padding: 0px; margin: 0px">
+            <div id="vertical" class="row" style="border: none">
+                <div id="top-pane">
+                    <div id="horizontal" style="height: 100%; width: 100%;">
+                        <div >
+                            <div class="well bg-success" style="margin-bottom: 0px; min-height: 152px">
+                                <ul id="treeview">
+                                    <li data-expanded="true">
+                                        <span class="k-sprite folder"></span>
+                                        My Web Site
+                                        <ul>
+                                            <li data-expanded="false">
+                                                <span class="k-sprite folder"></span>images
+                                                <ul>
+                                                    <li><span class="k-sprite image"></span>logo.png</li>
+                                                    <li><span class="k-sprite image"></span>body-back.png</li>
+                                                    <li><span class="k-sprite image"></span>my-photo.jpg</li>
+                                                </ul>
+                                            </li>
+                                            <li><span class="k-sprite html"></span>about.html</li>
+                                            <li><span class="k-sprite html"></span>contacts.html</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="well bg-success" style="margin-bottom: 0px;">
+                                <div id="gauge-container" style="border: dotted">
+                                    <div id="leftgauge"></div>
+                                    <input id="gauge-value" value="65">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="well bg-success" id="chart"></div>
+                    <div class="options">
+                        <input id="typeArea" name="seriesType" type="radio" value="area" checked="checked" autocomplete="off" />
+                        <label for="typeArea">Area</label>
+
+                        <input id="typeColumn" name="seriesType" type="radio" value="column" autocomplete="off" />
+                        <label for="typeColumn">Columns</label>
+
+                        <input id="typeBar" name="seriesType" type="radio" value="bar" autocomplete="off" />
+                        <label for="typeBar">Bars</label>
+
+                        <input id="typeLine" name="seriesType" type="radio" value="line" autocomplete="off" />
+                        <label for="typeLine">Lines</label>
+
+                        <input id="stack" type="checkbox" autocomplete="off" checked="checked" />
+                        <label for="stack">Stacked</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navbar navbar-default navbar-fixed-bottom">
+    <div class="navbar-header">
+        <p class="navbar-text navbar-left"><span class="k-icon k-i-custom"></span></p>
+    </div>
+    <p style="margin-right: 10px" class="navbar-text navbar-right"><span class="export-pdf k-icon k-i-pdf"></span></p>
+</div>
+</div>
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="./assets/js/bootstrap.min.js"></script>
+<script>
+    function createGauge() {
+        $("#leftgauge").kendoRadialGauge({
+            pointer: {
+                value: $("#gauge-value").val()
+            },
+
+            scale: {
+                minorUnit: 5,
+                startAngle: -30,
+                endAngle: 210,
+                max: 100
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        createGauge();
+
+        function updateValue() {
+            $("#leftgauge").data("kendoRadialGauge").value($("#gauge-value").val());
+        }
+
+        if (kendo.ui.Slider) {
+            $("#gauge-value").kendoSlider({
+                min: 0,
+                max: 180,
+                showButtons: false,
+                change: updateValue
+            });
+        } else {
+            $("#gauge-value").change(updateValue);
+        }
+
+        $(document).bind("kendo:skinChange", function(e) {
+            createGauge();
+        });
+    });
+
+    $(document).ready(function() {
+        $("#treeview").kendoTreeView();
+    });
+
+    $(document).ready(function() {
+        $("#vertical").kendoSplitter({
+            orientation: "vertical",
+            panes: [
+                { collapsible: true },
+                { collapsible: true, size: "1000px" }
+            ]
+        });
+
+        $("#horizontal").kendoSplitter({
+            panes: [
+                { collapsible: true, size: "750px" },
+                { collapsible: true }
+            ]
+        });
+    });
+
+    $(".export-pdf").click(function() {
+        $("#chart").getKendoChart().saveAsPDF();
+    });
+
+    var series = [{
+        name: "BCWS",
+        field: "IntValProjCurr",
+        // Line chart marker type
+        markers: { type: "square" }
+    }];
+    var dataSource = new kendo.data.DataSource({
+        type: "odata",
+        transport: {
+            read: {
+                url: "http://localhost/SnapshotSet?$format=json",
+                dataType: "json"
+            }
+        },
+       /** group: {
+            field: "No"
+        },**/
+        sort: {
+            field: "Date",
+            dir: "asc"
+        },
+        schema: {
+             parse: function(response) {
+                 //console.log(response.d.results);
+                 var items = {};
+                 items.d = {};
+                 items.d.results = [];
+                $.each(response.d.results,function(index,value) {
+                    var item = {
+                        "ObjectNumber": value.ObjectNumber,
+                        "Version": value.Version,
+                        "ValueType": value.ValueType,
+                        "TransactionType": value.TransactionType,
+                        "ObjCurr": value.ObjCurr,
+                        "Date": value.Date,
+                        "IntValProjCurr": value.IntValProjCurr,
+                        "ExtValProjCurr": value.ExtValProjCurr,
+                        "IntValCOArCurr": value.IntValCOArCurr,
+                        "ExtValCoArCurr": value.ExtValCoArCurr,
+                        "Quantity": value.Quantity,
+                        "Project": value.Project
+                    };
+
+                    items.d.results.push(item);
+                });
+                // console.log(JSON.stringify(items));
+                return items;
+            },
+            model: {
+                fields: {
+                    Date: { type: "date" }
+                }
+            }
+        },
+        filter: {
+            logic: "and",
+            filters: [
+                { field: "Version", operator: "contains", value: "D02" },
+                { field: "ValueType", operator:"eq", value: "01"},
+                { field: "ObjectNumber", operator: "eq", value: "NV000000050200000001"}
+            ]
+        }
+
+    });
+     dataSource.fetch(function() {
+        var data = dataSource.data();
+        $.each(data,function(key,value){
+            console.log(value.Date);
+        });
+    }); 
+    function createChart(dataSource,series) {
+        $("#chart").kendoChart({
+            pdf: {
+                fileName: "Kendo UI Export.pdf"
+              //  proxyURL: "http://demos.telerik.com/kendo-ui/service/export"
+            },
+            dataSource: dataSource,
+            title: {
+                text: "SnapshotSet"
+            },
+            legend: {
+                position: "top"
+            },
+            seriesDefaults: {
+                type: "area",
+                markers: {
+                    size: 6
+                }
+            },
+            series: series,
+            categoryAxis: {
+                baseUnit: "fit",
+                title: {
+                    text: "Date"
+                },
+                field: "Date",
+                labels: {
+                    rotation: -60,
+                    dateFormats: {
+                        days: "M/YYYY"
+                    }
+                },
+                maxDateGroups:50,
+                crosshair: {
+                    visible: true
+                }
+            },
+            valueAxis: {
+                title: {
+                    text: String('&#163;')
+                },
+                baseUnit: "fit",
+                labels: {
+                    format: "N0"
+                },
+                majorUnit: 10000
+            },
+            tooltip: {
+                visible: true,
+                shared: true,
+                format: "N0"
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        createChart(dataSource,series);
+        $(document).bind("kendo:skinChange", createChart);
+        $(".options").bind("change", refresh);
+    });
+
+    function refresh() {
+        var chart = $("#chart").data("kendoChart"),
+                type = $("input[name=seriesType]:checked").val(),
+                stack = $("#stack").prop("checked");
+
+        for (var i = 0, length = series.length; i < length; i++) {
+            series[i].stack = stack;
+            series[i].type = type;
+        };
+
+        chart.setOptions({
+            series: series
+        });
+    }
+</script>
+</body>
+</html>

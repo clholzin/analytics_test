@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dassian App</title>
+
+    <!--link href="./assets/css/kendo.dataviz.default.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common-bootstrap.core.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common-bootstrap.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.bootstrap.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.dataviz.bootstrap.min.css" rel="stylesheet">
+    <link href="./assets/css/kendo.common-fiori.core.min.css" rel="stylesheet">
+
+    <script src="./assets/js/jszip.min.js"></script-->
+
+    <link href="./assets/css/default.css" rel="stylesheet">
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/kendo.common-fiori.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.fiori.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.dataviz.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.dataviz.fiori.min.css" />
+
+    <script src="./assets/js/jquery.min.js"></script>
+    <script src="./assets/js/kendo.all.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#"><img alt="Brand" src="assets/img/dassian.png" width="100px"></a>
+            </div>
+            <p style="margin-right: 5px" class="navbar-text navbar-right">Signed in as <a href="#" class="navbar-link">Tom Lau</a></p>
+        </div>
+    </nav>
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <h3>Project Analytics</h3>
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="vertical" class="row">
+        <div id="top-pane">
+            <div id="horizontal" style="height: 100%; width: 100%;">
+                <div class="border">
+                    <div class="well bg-success">Tree View</div>
+                </div>
+
+                <div class="border">
+                    <div class="well bg-warning">Gauges</div>
+                </div>
+            </div>
+        </div>
+        <div class="border">
+            <div class="well bg-warning" id="chart"></div>
+            <div class="options">
+                <input id="typeColumn" name="seriesType" type="radio" value="column" checked="checked" autocomplete="off" />
+                <label for="typeColumn">Columns</label>
+
+                <input id="typeBar" name="seriesType" type="radio" value="bar" autocomplete="off" />
+                <label for="typeBar">Bars</label>
+
+                <input id="typeLine" name="seriesType" type="radio" value="line" autocomplete="off" />
+                <label for="typeLine">Lines</label>
+
+                <input id="stack" type="checkbox" autocomplete="off" checked="checked" />
+                <label for="stack">Stacked</label>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <p class="navbar-text navbar-left"><span class="k-icon k-i-custom"></span></p>
+            <p style="margin-right: 5px" class="navbar-text navbar-right"><span class="export-pdf k-icon k-i-pdf"></span></p>
+        </div>
+    </nav>
+</div>
+
+<script>
+$(document).ready(function() {
+    $("#vertical").kendoSplitter({
+        orientation: "vertical",
+        panes: [
+            { collapsible: true },
+            { collapsible: true, size: "300px" }
+        ]
+    });
+
+    $("#horizontal").kendoSplitter({
+        panes: [
+            { collapsible: true, size: "300px" },
+            { collapsible: true }
+        ]
+    });
+});
+
+$(".export-pdf").click(function() {
+    $("#chart").getKendoChart().saveAsPDF();
+});
+
+var series = [{
+    name: "Total Visits",
+    data: [56000, 63000, 74000, 91000, 117000, 138000],
+
+    // Line chart marker type
+    markers: { type: "square" }
+}, {
+    name: "Unique visitors",
+    data: [52000, 34000, 23000, 48000, 67000, 83000]
+}];
+
+function createChart() {
+    $("#chart").kendoChart({
+        pdf: {
+            fileName: "Kendo UI Chart Export.pdf",
+            proxyURL: "http://demos.telerik.com/kendo-ui/service/export"
+        },
+        dataSource: {
+            transport: {
+                read: {
+                    url: ".assets/data/temp.json",
+                    dataType: "json"
+                }
+            },
+            schema: {
+                model: {
+                    fields: {
+                        Date: { type: "date" }
+                    }
+                }
+            }
+        },
+        title: {
+            text: "Site Visitors Stats /thousands/"
+        },
+        legend: {
+            position: "bottom"
+        },
+        seriesDefaults: {
+            type: "column",
+            stack: true
+        },
+        series: series,
+        valueAxis: {
+            line: {
+                visible: false
+            }
+        },
+        categoryAxis: {
+            categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+            majorGridLines: {
+                visible: false
+            }
+        },
+        tooltip: {
+            visible: true,
+            format: "{0}"
+        }
+    });
+}
+
+$(document).ready(function() {
+    createChart();
+    $(document).bind("kendo:skinChange", createChart);
+    $(".options").bind("change", refresh);
+});
+
+function refresh() {
+    var chart = $("#chart").data("kendoChart"),
+            type = $("input[name=seriesType]:checked").val(),
+            stack = $("#stack").prop("checked");
+
+    for (var i = 0, length = series.length; i < length; i++) {
+        series[i].stack = stack;
+        series[i].type = type;
+    };
+
+    chart.setOptions({
+        series: series
+    });
+}
+</script>
+</body>
+</html>

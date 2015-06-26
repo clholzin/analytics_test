@@ -1,0 +1,79 @@
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="icon" href="./favicon.ico">
+
+    <title>Dassian App</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="./assets/css/default.css">
+    <link rel="stylesheet" href="./assets/css/kendo.common-fiori.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.fiori.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.dataviz.min.css" />
+    <link rel="stylesheet" href="./assets/css/kendo.dataviz.fiori.min.css" />
+
+    <script src="./assets/js/jquery.min.js"></script>
+    <script src="./assets/js/kendo.all.min.js"></script>
+</head>
+<body>
+
+<div id="grid"></div>
+<script>
+    $(document).ready(function() {
+        var Categories = new kendo.data.DataSource({
+            type: "odata",
+            transport: {
+                read: {
+                    url: "http://localhost:8000/SnapshotSet",
+                    dataType: "json"
+                }
+            },
+            schema: {
+                model: {
+                    fields: {
+                        Date: { type: "date" }
+                    }
+                }
+            },
+            filter: {
+                logic: "and",
+                filters: [
+                    { field: "Version", operator: "contains", value: "D02" },
+                    { field: "ValueType", operator:"eq", value: "01"},
+                    { field: "Date", operator: "eq", value: "/Date(1306800000000)/"}
+                ]
+            }
+        });
+
+        $("#grid").kendoGrid({
+            dataSource: Categories,
+            columns: [
+                { field:"ObjectNumber",
+                    filterable: false },
+                { field:"Version",
+                    filterable: false },
+                { field:"ValueType",
+                    filterable: false },
+                { field:"Date",
+                    format: "{0:dd/MM/yyyy}",
+                    filterable: false },
+                { field:"IntValProjCurr",
+                    filterable: false },
+                { field:"ExtValProjCurr",
+                    filterable: false }
+            ]
+        });
+    });
+</script>
+</body>
+</html>
