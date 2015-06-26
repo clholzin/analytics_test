@@ -94,6 +94,11 @@
                         Charts
                         <span class="caret"></span>
                     </button>
+                    <button class="btn btn-default btn-lg total-bcws"></button>
+                    <button class="btn btn-default btn-lg total-bdwp"></button>
+                    <button class="btn btn-default btn-lg total-eac"></button>
+                    <button class="btn btn-default btn-lg total-acwp"></button>
+
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                         <li class="options">
                             <label for="typeArea">Area</label>
@@ -190,10 +195,18 @@
         //  console.log(data);
 
         var chartDataSource = filterChartData();
+        var chartTotals = chartDataSource.totals;
+        var chart = chartDataSource.graph;
 
-        /**console.log(_.flatten(master));**/
+        $('button.total-bcws').text(String(chartTotals[0].bcwsTotal));//'&#163;'+
+        $('button.total-bdwp').text(String(chartTotals[1].bdwpTotal));
+        $('button.total-eac').text(String(chartTotals[2].eacTotal));
+        $('button.total-acwp').text(String(chartTotals[3].acwpTotal));
+
+        console.log(JSON.stringify(chartTotals));
+       // console.log(JSON.stringify(chart));
         var dataSourceMixed = new kendo.data.DataSource({
-            data: chartDataSource,
+            data: _.flatten(chart),
             sort: {
                 field: "Date",
                 dir: "asc"
@@ -356,7 +369,7 @@
                     }
                 },
                 dataBound: function (e) {
-                    var tv = $("#treeview").data("kendoTreeView");
+                    var tv = $("#treelist").data("kendoTreeView");
                     if (tv != null) {
                         tv.expand(".k-item");
                     }
@@ -379,7 +392,9 @@
 
     function filterChartData() {
         var rawData = '';
-        var master = [];
+        var master = {};
+        master.graph = [];
+        master.totals = [];
         $.ajax({
             url: "http://localhost/SnapshotSet?$format=json",
             method: "GET",
@@ -417,27 +432,52 @@
         var BCWSdata = _.map(_.where(BCWS), function (value) {
             return {"BCWS": Number(value.IntValProjCurr), "Date": value.Date}
         });//convert IntValProjCurr key for Chart Series
-        master.push(BCWSdata);//add array to master array
+            var bcwsTotal = 0;
+            $.each(BCWSdata,function(key,value){
+                bcwsTotal += parseFloat(value.BCWS);
+            });
+        master.totals.push({"bcwsTotal" : bcwsTotal.toFixed(2)});
+        master.graph.push(BCWSdata);//add array to master array
+
         var BDWPdata = _.map(_.where(BDWP), function (value) {
             return {"BDWP": Number(value.IntValProjCurr), "Date": value.Date}
         });//convert IntValProjCurr key for Chart Series
-        master.push(BDWPdata);//add array to master array
+            var bdwpTotal = 0;
+            $.each(BCWSdata,function(key,value){
+                bdwpTotal += parseFloat(value.BDWP);
+            });
+        master.totals.push({"bdwpTotal" : bcwsTotal.toFixed(2)});
+        master.graph.push(BDWPdata);//add array to master array
+
         var EACdata = _.map(_.where(EAC), function (value) {
             return {"EAC": Number(value.IntValProjCurr), "Date": value.Date}
         });//convert IntValProjCurr key for Chart Series
-        master.push(EACdata);//add array to master array
+            var eacTotal = 0;
+            $.each(EACdata,function(key,value){
+                eacTotal += parseFloat(value.EAC);
+            });
+        master.totals.push({"eacTotal" : eacTotal.toFixed(2)});
+        master.graph.push(EACdata);//add array to master array
+
         var ACWPdata = _.map(_.where(ACWP), function (value) {
             return {"ACWP": Number(value.IntValProjCurr), "Date": value.Date}
         });//convert IntValProjCurr key for Chart Series
+            var acwpTotal = 0;
+            $.each(ACWPdata,function(key,value){
+                acwpTotal += parseFloat(value.ACWP);
+            });
+        master.totals.push({"acwpTotal" : acwpTotal.toFixed(2)});
+        master.graph.push(ACWPdata);//add array to master array
 
-        master.push(ACWPdata);//add array to master array
-        return _.flatten(master);
+        _.flatten(master.graph);
+        _.flatten(master.totals);
+        return master;
     }
 
     function createChart(dataSource, series) {
         $("#chart").kendoChart({
             pdf: {
-                fileName: "Kendo UI Export.pdf",
+                fileName: "SnapShot Costs Export.pdf",
                 proxyURL: "http://localhost/kendo-ui/service/export"
             },
             dataSource: dataSource,
@@ -489,11 +529,12 @@
             valueAxis: {
                 // name: "Currency",
                 title: {text: ' Total'},//String('&#163;') +
-                labels: {format: "{0}"},//String('&#163;') +
+                labels: {
+                    format: "{0}"
+                },//String('&#163;') +
                 majorUnit: 750000,
                 min: 0,
-                max: 11000000,
-                markers: {type: "square"}
+                max: 11000000
                 /**, {
                 name: "BDWP",
                 title: { text: "BDWP" },
