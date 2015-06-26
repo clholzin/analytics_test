@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Dassian App</title>
-
+    <meta charset="UTF-8">
     <!--link href="./assets/css/kendo.dataviz.default.min.css" rel="stylesheet">
     <link href="./assets/css/kendo.common.min.css" rel="stylesheet">
     <link href="./assets/css/kendo.common-bootstrap.core.min.css" rel="stylesheet">
@@ -28,15 +28,18 @@
 </head>
 
 <body>
+
 <!-- Fixed navbar -->
 <nav class="navbar navbar-default navbar-fixed-top">
-    <div class="navbar-header">
-        <a class="navbar-brand" target="_blank" href="http://www.dassian.com"><img alt="Dassian UK"
-                                                                                   src="assets/img/dassian.png"
-                                                                                   width="100px"></a>
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" target="_blank" href="http://www.dassian.com">
+                <img alt="Dassian UK" src="assets/img/dassian.png" width="100px"></a>
+        </div>
+        <p style="margin-right: 5px" class="navbar-text navbar-right">Signed in as
+            <a href="#" class="navbar-link">Tom Lau</a></p>
+
     </div>
-    <p style="margin-right: 5px" class="navbar-text navbar-right">Signed in as <a href="#" class="navbar-link">Tom
-        Lau</a></p>
 </nav>
 
 <div class="container dashboard">
@@ -61,7 +64,7 @@
             <div id="top-pane" class="row">
                 <!--   <div id="horizontal" style="height: 100%; width: 100%;">-->
                 <div class="col-lg-6 col-md-6 col-sm-6">
-                    <div class="well" style="margin-bottom: 0; min-height:510px">
+                    <div class="well" style="">
                         <div id="treelist"></div>
                     </div>
                 </div>
@@ -83,43 +86,197 @@
                 </div>
                 <!-- </div>-->
             </div>
-            <div>
-                <div class="options">
-                    <input id="typeArea" name="seriesType" type="radio" value="area" autocomplete="off"/>
-                    <label for="typeArea">Area</label>
-
-                    <input id="typeColumn" name="seriesType" type="radio" value="column" autocomplete="off"/>
-                    <label for="typeColumn">Columns</label>
-
-                    <input id="typeBar" name="seriesType" type="radio" value="bar" autocomplete="off"/>
-                    <label for="typeBar">Bars</label>
-
-                    <input id="typeLine" name="seriesType" type="radio" value="line" autocomplete="off"  checked="checked"/>
-                    <label for="typeLine">Lines</label>
-
-                    <input id="stack" type="checkbox" autocomplete="off"/>
-                    <label for="stack">Stacked</label>
+            <div class="row">
+                <div class="dropdown">
+                    <button class="btn btn-default"><span class="export-pdf k-icon k-i-pdf"></span></button>
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        Charts
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li class="options">
+                            <label for="typeArea">Area</label>
+                            <input id="typeArea" name="seriesType" type="radio" value="area" autocomplete="off"/>
+                        </li>
+                        <li class="options">
+                            <label for="typeColumn">Columns</label>
+                            <input id="typeColumn" name="seriesType" type="radio" value="column" autocomplete="off"/>
+                        </li>
+                        <!-- <li class="options">
+                             <label for="typeBar">Bars</label>
+                             <input id="typeBar" name="seriesType" type="radio" value="bar" autocomplete="off"/>
+                         </li>
+                        <li class="options">
+                            <label for="typeBubble">Bubble</label>
+                            <input id="typeBubble" name="seriesType" type="radio" value="bubble" autocomplete="off"/>
+                        </li>-->
+                        <li class="options">
+                            <label for="typeLine">Lines</label>
+                            <input id="typeLine" name="seriesType" type="radio" value="line" autocomplete="off"
+                                   checked="checked"/>
+                        </li>
+                        <li class="options">
+                            <label for="stack">Stacked</label>
+                            <input id="stack" type="checkbox" autocomplete="off"/>
+                        </li>
+                    </ul>
                 </div>
-
-                <div class="well bg-success" id="chart"></div>
-                <div class="chart-loading"></div>
+                <div class="well well-lg">
+                    <div  id="chart"> </div>
+                    <div class="chart-loading"></div>
+                </div>
             </div>
             <!--  </div>-->
         </div>
     </div>
 </div>
-    <div class="navbar navbar-default navbar-fixed-bottom">
-        <div class="navbar-header">
-            <p class="navbar-text navbar-left"><span class="k-icon k-i-custom"></span></p>
-        </div>
-        <p style="margin-right: 10px" class="navbar-text navbar-right"><span class="export-pdf k-icon k-i-pdf"></span>
-        </p>
+<div class="navbar navbar-default navbar-fixed-bottom">
+    <div class="navbar-header">
+        <p class="navbar-text navbar-left"><span class="k-icon k-i-custom"></span></p>
     </div>
+    <p style="margin-right: 10px" class="navbar-text navbar-right"><span class="export-pdf k-icon k-i-pdf"></span>
+    </p>
+</div>
 
 </body>
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="./assets/js/bootstrap.min.js"></script>
 <script>
+
+    $(document).ready(function () {
+        // var culture = kendo.culture();
+        //  console.log(culture.name);
+        kendo.culture('en-GB');
+        /** console currency check**/
+        console.log(kendo.toString(1234.567, "c0"));//$1,235
+
+        createGauge();
+
+        if (kendo.ui.Slider) {
+            $("#gauge-value").kendoSlider({
+                min: 0,
+                max: 2,
+                showButtons: true,
+                change: updateValueTop
+            });
+            $("#gauge-value-bottom").kendoSlider({
+                min: 0,
+                max: 2,
+                showButtons: true,
+                change: updateValueBottom
+            });
+        } else {
+            $("#gauge-value").change(updateValueTop);
+            $("#gauge-value-bottom").change(updateValueBottom);
+        }
+        function updateValueTop() {
+            $("#topgauge").data("kendoRadialGauge").value($("#gauge-value").val());
+        }
+
+        function updateValueBottom() {
+            $("#bottomgauge").data("kendoRadialGauge").value($("#gauge-value-bottom").val());
+        }
+
+        /** $(document).bind("kendo:skinChange", function (e) {
+            createGauge();
+        });**/
+
+
+        /** Begin Hierarchy Panel **/
+        hierListData();
+        // $('#treelist').find('tr.k-treelist-group').attr("aria-expanded",'true');
+        //  var data = hierData();
+        //  console.log(data);
+
+        var chartDataSource = filterChartData();
+
+        /**console.log(_.flatten(master));**/
+        var dataSourceMixed = new kendo.data.DataSource({
+            data: chartDataSource,
+            sort: {
+                field: "Date",
+                dir: "asc"
+            },
+            schema: {
+                model: {
+                    fields: {
+                        // IntValProjCurr: {type: "number"},
+                        Date: {type: "date"}
+                    }
+                }
+            }
+
+        });
+
+        var series = [
+            {
+                name: "BCWS",
+                type: "line",
+                field: "BCWS",
+                categoryField: "Date",
+                //data:BCWSdata,//_.pluck(BCWS, 'IntValProjCurr')
+                // Line chart marker type
+                color: "#3585ba",
+                markers: {type: "circle"}
+            },
+            {
+                name: "BDWP",
+                type: "line",
+                field: "BDWP",
+                categoryField: "Date",
+                //data:BDWPdata,
+                color: "#5e449b",
+                markers: {type: "circle"}
+            },
+            {
+                name: "EAC",
+                type: "line",
+                field: "EAC",
+                categoryField: "Date",
+                //data:EACdata,
+                color: "#1ba54a",
+                markers: {type: "circle"}
+            },
+            {
+                name: "ACWP",
+                type: "line",
+                field: "ACWP",
+                categoryField: "Date",
+                //data:ACWPdata,
+                color: "#981b1e",
+                markers: {type: "circle"}
+            }
+        ];
+
+        createChart(dataSourceMixed, series);
+        $(document).bind("kendo:skinChange", createChart);
+        $("li.options").bind("change", refresh);
+        //kendo.ui.progress($(".chart-loading"), true);
+
+        $(".export-pdf").click(function () {
+            $("#chart").getKendoChart().saveAsPDF();
+        });
+
+        function refresh() {
+            var chart = $("#chart").data("kendoChart"),
+                    type = $("input[name=seriesType]:checked").val(),
+                    stack = $("#stack").prop("checked");
+
+            for (var i = 0, length = series.length; i < length; i++) {
+                series[i].stack = stack;
+                series[i].type = type;
+            }
+
+            chart.setOptions({
+                series: series
+            });
+        }
+
+
+    });//end of Doc Ready
+
+
     function createGauge() {
         $("#topgauge").kendoRadialGauge({
             pointer: {
@@ -147,306 +304,147 @@
         });
     }
 
-    $(document).ready(function () {
-       // var culture = kendo.culture();
-      //  console.log(culture.name);
-        kendo.culture('en-GB');
-        console.log(kendo.toString(1234.567, "c0"));//$1,235
+    function hierListData() {
+        var hierSource = '';
+        $.ajax({
+            url: "http://localhost/HierarchySet?$format=json",
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            hierSource = response.d.results;
+            hierListInitialize(hierSource)
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function (response) {
+            console.log('HierarchySet complete ');
 
-        createGauge();
-
-        function updateValueTop() {
-            $("#topgauge").data("kendoRadialGauge").value($("#gauge-value").val());
-        }
-
-        function updateValueBottom() {
-            $("#bottomgauge").data("kendoRadialGauge").value($("#gauge-value-bottom").val());
-        }
-
-        if (kendo.ui.Slider) {
-            $("#gauge-value").kendoSlider({
-                min: 0,
-                max: 2,
-                showButtons: true,
-                change: updateValueTop
-            });
-            $("#gauge-value-bottom").kendoSlider({
-                min: 0,
-                max: 2,
-                showButtons: true,
-                change: updateValueBottom
-            });
-        } else {
-            $("#gauge-value").change(updateValueTop);
-            $("#gauge-value-bottom").change(updateValueBottom);
-        }
-
-        /** $(document).bind("kendo:skinChange", function (e) {
-            createGauge();
-        });**/
-
-        //  $("#treeview").kendoTreeView();
-        var serviceUrl = "http://localhost";
-
-        function hierData() {
-            var hierSource = '';
-            $.ajax({
-                url: "http://localhost/HierarchySet?$format=json",
-                method: "GET",
-                dataType: 'json',
-                async: false
-            }).success(function (response) {
-                //data = response.d.results;
-
-            }).error(function (err) {
-                alert('error ' + err);
-            }).done(function (response) {
-                console.log('HierarchySet complete ');
-                $(document).find("#treelist").kendoTreeList({
-                    dataSource: {
-                        data: response.d.results,
-                        schema: {
-                            parse: function (response) {
-                                //  console.log(response);
-                                var items = [];
-                                $.each(response, function (index, value) {
-                                    var item = {
-                                        "parentId": String(value.ParentObjNum).substr(2),
-                                        "ParentObjNum": String(value.ParentObjNum).substr(2),
-                                        "id": String(value.ObjectNumber).substr(2),
-                                        "ObjectNumber": String(value.ObjectNumber).substr(2),
-                                        "Type": value.Type,
-                                        "ExtID": value.ExtID,
-                                        "Description": value.Description,
-                                        "Project": value.Project,
-                                        "SortOrder": value.SortOrder
-                                    };
-                                    items.push(item);
-                                });
-                                // console.log(JSON.stringify(items));
-
-                                return items;
-                            },
-                            schema: {
-                                model: {
-                                    id: "id",
-                                    expanded: true
-                                },
-                                expanded: true
-                            }
-                        }
-                    },
-                    height: '450',
-                    filterable: true,
-                    sortable: true,
-                    resizable: true,
-                    columns: [
-                        {field: "ExtID", title: "ID", width: 160},
-                        //{ field: "ParentObjNum", title: "Parent", width: 120 },
-                        //  { field: "ObjectNumber", title: "Child", width: 120 },
-                        {field: "Project", width: 75, title: "Project"},
-                        {field: "Description", width: 160, title: "Description"}
-                        // { field: "ObjectNumber" }
-                    ]
-                });
-            });
-        }
-
-        hierData();
-       // $('#treelist').find('tr.k-treelist-group').attr("aria-expanded",'true');
-        //  var data = hierData();
-        //  console.log(data);
-
-
-        /**  $("#vertical").kendoSplitter({
-            orientation: "vertical",
-            panes: [
-                { collapsible: true },
-                { collapsible: true, size: "1000px" }
-            ]
         });
-
-         $("#horizontal").kendoSplitter({
-            panes: [
-                { collapsible: true, size: "750px" },
-                { collapsible: true }
-            ]
-        });**/
-
-
-        $(".export-pdf").click(function () {
-            $("#chart").getKendoChart().saveAsPDF();
-        });
-
-
-
-
-    /**dataSource.fetch(function() {
-        var data = dataSource.data();
-        $.each(data,function(key,value){
-            console.log(value.Date);
-        });
-    }); **/
-
-    var BCWS = '';
-    var BDWP = '';
-    var EAC = '';
-    var ACWP = '';
-    var dataChart = '';
-        var rawData = '';
-        var dataSource = '';
-    $.ajax({
-        url: "http://localhost/SnapshotSet?$format=json",
-        method: "GET",
-        dataType: 'json',
-        async: false
-    }).success(function (response) {
-         //dataChart = response.d.results;
-        rawData = response;
-
-        BCWS = $.grep(response.d.results,function(item){
-                if(item.Version === 'D02'){
-                    return item.ValueType === '01';
-                }
-        });
-        BDWP = $.grep(response.d.results,function(item){
-            if(item.Version === 'D02'){
-                return item.ValueType === 'P2';
-            }
-        });
-        EAC = $.grep(response.d.results,function(item){
-            if(item.Version === 'EA1'){
-                return item;
-            }
-        });
-        ACWP = $.grep(response.d.results,function(item){
-            if(item.Version === '000'){
-                return item;
-            }
-        });
-    }).error(function (err) {
-        alert('error ' + err);
-    }).done(function (response) {
-
-    });
-        var pluckMany = function() {
-            // get the property names to pluck
-            var source = arguments[0];
-            var propertiesToPluck = _.rest(arguments, 1);
-            return _.map(source, function(item) {
-                var obj = {};
-                _.each(propertiesToPluck, function(property) {
-                    obj[property] = item[property];
-                });
-                return obj;
-            });
-        };
-
-        /**
-      _.map(
-         _.where(people, {city : "ny"}),
-         function(person) {
-        return { firstName: person.firstName, qty: person.qty };
     }
-         );
-         * **/
-/**console.log(_.map(_.where(BDWP),function(value){
-  return {"BDWP":Number(value.IntValProjCurr),"Date":value.Date}
-})
-);**/
-//.pluck("IntValProjCurr", "Date")
-     var master = [];
-        var BCWSdata  = _.map(_.where(BCWS),function(value){
-            return {"BCWS":Number(value.IntValProjCurr),"Date":value.Date}
-        });
-        master.push(BCWSdata);
-        var BDWPdata  = _.map(_.where(BDWP),function(value){
-            return {"BDWP":Number(value.IntValProjCurr),"Date":value.Date}
-        });
-        master.push(BDWPdata);
-        var EACdata  =_.map(_.where(EAC),function(value){
-            return {"EAC":Number(value.IntValProjCurr),"Date":value.Date}
-        });
-        master.push(EACdata);
-        var ACWPdata  = _.map(_.where(ACWP),function(value){
-            return {"ACWP":Number(value.IntValProjCurr),"Date":value.Date}
-        });
-        master.push(ACWPdata);
-/**console.log(_.flatten(master));**/
 
-        var dataSourceMixed = new kendo.data.DataSource({
-            data:_.flatten(master),
-            sort: {
-                field: "Date",
-                dir: "asc"
-            },
-            schema: {
-                model: {
-                    fields: {
-                        // IntValProjCurr: {type: "number"},
-                        Date: {type: "date"}
+    function hierListInitialize(data) {
+        $(document).find("#treelist").kendoTreeList({
+            dataSource: {
+                data: data,
+                schema: {
+                    parse: function (response) {
+                        //  console.log(response);
+                        var items = [];
+                        $.each(response, function (index, value) {
+                            var item = {
+                                "parentId": String(value.ParentObjNum).substr(2),
+                                "ParentObjNum": String(value.ParentObjNum).substr(2),
+                                "id": String(value.ObjectNumber).substr(2),
+                                "ObjectNumber": String(value.ObjectNumber).substr(2),
+                                "Type": value.Type,
+                                "ExtID": value.ExtID,
+                                "Description": value.Description,
+                                "Project": value.Project,
+                                "SortOrder": value.SortOrder
+                            };
+                            items.push(item);
+                        });
+                        // console.log(JSON.stringify(items));
+
+                        return items;
+                    },
+                    schema: {
+                        model: {
+                            //id: "id"
+                            expanded: true
+                        }
+                    }
+                },
+                dataBound: function (e) {
+                    var tv = $("#treeview").data("kendoTreeView");
+                    if (tv != null) {
+                        tv.expand(".k-item");
                     }
                 }
-            }
-
+            },
+            height: '450',
+            //filterable: true,
+            //sortable: true,
+            resizable: true,
+            columns: [
+                {field: "ExtID", title: "ID", width: 160},
+                //{ field: "ParentObjNum", title: "Parent", width: 120 },
+                //  { field: "ObjectNumber", title: "Child", width: 120 },
+                {field: "Project", width: 75, title: "Project"},
+                {field: "Description", width: 160, title: "Description"}
+                // { field: "ObjectNumber" }
+            ]
         });
+    }
 
+    function filterChartData() {
+        var rawData = '';
+        var master = [];
+        $.ajax({
+            url: "http://localhost/SnapshotSet?$format=json",
+            method: "GET",
+            dataType: 'json',
+            async: false
+        }).success(function (response) {
+            //dataChart = response.d.results;
+            rawData = response;
 
-    var series = [
-        {
-            name: "BCWS",
-            type: "line",
-            field: "BCWS",
-            categoryField: "Date",
-            //data:BCWSdata,//_.pluck(BCWS, 'IntValProjCurr')
-            // Line chart marker type
-            aggregate: "sum",
-            color: "#3585ba",
-            markers: {type: "square"}
-        },
-        {
-            name: "BDWP",
-            type: "line",
-            field: "BDWP",
-            categoryField: "Date",
-            //data:BDWPdata,
-            aggregate: "sum",
-            color: "#5e449b",
-            // Line chart marker type
-            markers: {type: "square"}
-        },
-        {
-            name: "EAC",
-            type: "line",
-            field: "EAC",
-            categoryField: "Date",
-            //data:EACdata,
-             aggregate: "sum",
-            color: "#1ba54a",
-            // Line chart marker type
-            markers: {type: "square"}
-        },
-        {
-            name: "ACWP",
-            type: "line",
-            field: "ACWP",
-            categoryField: "Date",
-            //data:ACWPdata,
-            aggregate: "sum",
-            color: "#981b1e",
-            // Line chart marker type
-            markers: {type: "square"}
-        }
-    ];
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function (response) {
+            console.log('request complete: SnapShotData');
+        });
+        var BCWS = $.grep(rawData.d.results, function (item) {
+            if (item.Version === 'D02') {
+                return item.ValueType === '01';
+            }
+        });//filter data
+        var BDWP = $.grep(rawData.d.results, function (item) {
+            if (item.Version === 'D02') {
+                return item.ValueType === 'P2';
+            }
+        });//filter data
+        var EAC = $.grep(rawData.d.results, function (item) {
+            if (item.Version === 'EA1') {
+                return item;
+            }
+        });//filter data
+        var ACWP = $.grep(rawData.d.results, function (item) {
+            if (item.Version === '000') {
+                return item;
+            }
+        });//filter data
+        var BCWSdata = _.map(_.where(BCWS), function (value) {
+            return {"BCWS": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
+        master.push(BCWSdata);//add array to master array
+        var BDWPdata = _.map(_.where(BDWP), function (value) {
+            return {"BDWP": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
+        master.push(BDWPdata);//add array to master array
+        var EACdata = _.map(_.where(EAC), function (value) {
+            return {"EAC": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
+        master.push(EACdata);//add array to master array
+        var ACWPdata = _.map(_.where(ACWP), function (value) {
+            return {"ACWP": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
 
-    function createChart(dataSource,series) {
+        master.push(ACWPdata);//add array to master array
+        return _.flatten(master);
+    }
+
+    function createChart(dataSource, series) {
         $("#chart").kendoChart({
             pdf: {
                 fileName: "Kendo UI Export.pdf",
                 proxyURL: "http://localhost/kendo-ui/service/export"
             },
-            dataSource: dataSourceMixed,
-            height: 350,
+            dataSource: dataSource,
+            chartArea: {
+                // width: 200,
+                height: 550
+            },
             title: {
                 text: "SnapshotSet"
             },
@@ -454,13 +452,13 @@
                 position: "top"
             },
             seriesDefaults: {
-                type: "line"
-                /**markers: {
-                    size: 10
-                }**/
+                type: "line",
+                markers: {
+                    size: 5
+                }
             },
             series: series,
-            render: function(e) {
+            render: function (e) {
                 // Clear up the loading indicator for this chart
                 var loading = $(".chart-loading", e.sender.element.parent());
                 kendo.ui.progress(loading, false);
@@ -489,13 +487,14 @@
                 }
             },
             valueAxis: {
-               // name: "Currency",
-                title: {text: String('&#163;') + ' Currency'},
-                labels: { format: String('&#163;') + "{0}"},
-                majorUnit:2000000,
-                min:0,
-                max:40000000
-              /**, {
+                // name: "Currency",
+                title: {text: ' Total'},//String('&#163;') +
+                labels: {format: "{0}"},//String('&#163;') +
+                majorUnit: 750000,
+                min: 0,
+                max: 11000000,
+                markers: {type: "square"}
+                /**, {
                 name: "BDWP",
                 title: { text: "BDWP" },
                 min: 0,
@@ -514,35 +513,32 @@
             tooltip: {
                 visible: true,
                 shared: true,
-               // format: "{0}",//&#163; {0}
+                // format: "{0}",//&#163; {0}
                 template: "#= kendo.format('{0:C}',value) #"
             }
         });
     }
 
-        createChart(dataSource,series);
-        $(document).bind("kendo:skinChange", createChart);
-        kendo.ui.progress($(".chart-loading"), true);
-        $(".options").bind("change", refresh);
 
-
-
-    function refresh() {
-        var chart = $("#chart").data("kendoChart"),
-                type = $("input[name=seriesType]:checked").val(),
-                stack = $("#stack").prop("checked");
-
-        for (var i = 0, length = series.length; i < length; i++) {
-            series[i].stack = stack;
-            series[i].type = type;
-        }
-
-        chart.setOptions({
-            series: series
+    /**dataSource.fetch(function() {
+        var data = dataSource.data();
+        $.each(data,function(key,value){
+            console.log(value.Date);
         });
-    }
+    }); **/
 
-});//end of Doc Ready
+
+    /**
+     _.map(
+     _.where(people, {city : "ny"}),
+     function(person) {
+               return { firstName: person.firstName, qty: person.qty };
+            }
+     );
+     **/
+
+
+
 
     /**dataSource = new kendo.data.DataSource({
            // type: "odata",
