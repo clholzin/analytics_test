@@ -74,17 +74,15 @@
                     <div class="well">
                         <div id="gauge-container">
                             <div class="gauge-loading"></div>
-                            <div style="border: solid thin #3d3d3d;" class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                            <div style="border: solid thin #3d3d3d;">
                                 <div id="topgauge"></div>
-                                <input id="gauge-value" class="form-control" value="1.5">
                             </div>
+                            <input id="gauge-value" class="form-control" value="1.5">
 
-
-                            <div style="border: solid thin #3d3d3d;" class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                            <div style="border: solid thin #3d3d3d;">
                                 <div id="bottomgauge"></div>
-                                <input id="gauge-value-bottom" class="form-control" value=".5">
                             </div>
-
+                            <input id="gauge-value-bottom" class="form-control" value=".5">
                         </div>
                     </div>
                 </div>
@@ -167,7 +165,7 @@
         /** CH
          * Add Loading-Wheel to chart hierarchy and gauges
          * */
-        showProgress(true);
+        AddClearProgress(true);
       /**  _.debounce(
                 kendo.ui.progress($(".treelist-loading"),false)
                 ,500);
@@ -209,8 +207,7 @@
 
 
         /** Begin Hierarchy Panel **/
-       var hierData =  hierListData();
-        hierListInitialize(hierData);
+        hierListData();
         // $('#treelist').find('tr.k-treelist-group').attr("aria-expanded",'true');
         //  var data = hierData();
         //  console.log(data);
@@ -219,7 +216,7 @@
         var chartDataSource =  FilterChartData(chartData);
         var chartTotals = chartDataSource.totals;
         var chart = chartDataSource.graph;
-       // console.log(chartTotals);
+        console.log(bcwsTotalCost);
         displayTotals(chartTotals);
 
 
@@ -288,88 +285,43 @@
         $(document).bind("kendo:skinChange", createChart);
         $("li.options").bind("change", refreshChart);
         var hierarchyList = $("div#treelist");
-        var chartSelector = $("div#chart");
         //var dataTreeListSelected = treeList.dataItem(row);
       //  console.log(dataTreeListSelected);
 
-
-
-        function allNodes(currentNode,arr){
-            var compile = arr;
-            var next = currentNode.next();
-            var check = currentNode.hasClass('k-treelist-group');
-            if(!check){
-                compile.push(currentNode.index());
-               if(!next.hasClass('k-treelist-group')) {
-                  // compile.push(next.index());
-                   return allNodes(next, compile);
-               }
-            }else{
-                if(check) {//next.hasClass('k-treelist-group')
-                  // compile.push(next.index());
-                       return allNodes(next, compile);
-             }
-
-            }
-            return compile;
-        }
-
-
-        hierarchyList.on('click','tr button.js-hier',function(e){
+        hierarchyList.on('click','tr',function(e){
             e.preventDefault();
-            var chartdata = '',
-                filteredSnapByParentId = '',
-                    filteredSnapByIndex = [],
-                    collectIndexes = [],
-                    chartFiltered = '';
-                    console.log('hit selected row');
-            var target = $(e.currentTarget);
+            console.log('hit selected row');
             var treeList = hierarchyList.data("kendoTreeList");
-            var chartGraph = chartSelector.data("kendoChart");
-            var trParent = target.parent().parent();
-            var rowIndex = trParent.index();
-            var treedata = treeList.dataSource.options.data;
-            var objectNumber = target.data('objectNumber');//data-objectNumber='#=data.ObjectNumber#'
-            //console.log(treedataObj);
-                /**
-                 var id = treedataObj.ObjectNumber;
-                 var parentid = treedataObj.ParentObjNum;**/
-            var children = target.data('children');//data-children='#=data.hasChildren#'
-            if(children){
-                var allChildIndexes = allNodes($(trParent),collectIndexes);
-                console.log(JSON.stringify(allChildIndexes));
-              // var allChildIndexes =  trParent.nextSibling('tr').hasClass('').index();
-                $.each(allChildIndexes,function(key,value){//[data-children="false"]
-                    filteredSnapByIndex.push({'ObjectNumber':treeList.dataSource.options.data[value].ObjectNumber});
-                });
-                console.log('multiple '+JSON.stringify(filteredSnapByIndex));
-            }else{
-                console.log(rowIndex);
-                filteredSnapByIndex.push({'ObjectNumber':treeList.dataSource.options.data[rowIndex].ObjectNumber});
-                console.log('single '+JSON.stringify(filteredSnapByIndex));
-            }
+            var rowIndex = $(e.currentTarget).index();
+            console.log(rowIndex);
+            var data = treeList.dataSource.options.data[rowIndex];
+            console.log(data.ParentObjNum);
+            var id = data.ParentObjNum;
+            var chartData = ChartData();
+            var filteredSnapByParentId = FilterByHierList(id,chartData);
+            var chartDataSource =  FilterChartData(filteredSnapByParentId);
 
+            var chartTotalsFilteredBy = chartDataSource.totals;
+            displayTotals(chartTotalsFilteredBy);
 
-            //if(treedataObj.ParentObjNum === ''){
-            //     chartdata = ChartData();//fresh copy
-            //}else{
-                 chartdata = chartGraph.dataSource.options.data;
-            //}
-            //console.log(filteredSnapByParentId);
-            filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+            var chartFilteredByParentId = chartDataSource.graph;
+            var dataSourceFilteredParentId = new kendo.data.DataSource({
+                data: _.flatten(chartFilteredByParentId),
+                sort: {
+                    field: "Date",
+                    dir: "asc"
+                },
+                schema: {
+                    model: {
+                        fields: {
+                            // IntValProjCurr: {type: "number"},
+                            Date: {type: "date"}
+                        }
+                    }
+                }
 
-            chartFiltered =  FilterChartData(filteredSnapByParentId);
-            if(chartFiltered != undefined){
-                var chartTotalsFilteredBy =  _.flatten(chartFiltered.totals);
-                console.log(chartTotalsFilteredBy);
-                displayTotals(chartTotalsFilteredBy);
-
-                var chartFilteredByParentId =  _.flatten(chartFiltered.graph);
-                console.log(chartFilteredByParentId.length);
-               chartGraph.dataSource.data(chartFilteredByParentId);
-                refreshChart();
-            }
-
+            });
+            createChart(dataSourceFilteredParentId, series);
         });
 
         body.on('keypress',hierarchyList,function(e){
@@ -399,7 +351,7 @@
 
 
 
-        setTimeout(showProgress(false), 3500);
+        setTimeout(AddClearProgress(false), 3500);
 
     });//end of Doc Ready
 
@@ -415,7 +367,7 @@
     }
 
 
-    function showProgress(boolean){
+    function AddClearProgress(boolean){
         var loadingTree = $(document).find(".treelist-loading");
         var loadingGauges = $(document).find(".gauge-loading");
         var loadingChart = $(document).find(".chart-loading");
@@ -461,16 +413,16 @@
             url: "http://localhost/HierarchySet?$format=json",
             method: "GET",
             dataType: 'json',
-            async: false
+            async: true
         }).success(function (response) {
             hierSource = response.d.results;
+            hierListInitialize(hierSource)
         }).error(function (err) {
             alert('error ' + err);
         }).done(function () {
             console.log('HierarchySet complete ');
 
         });
-        return hierSource;
     }
 
     function hierListInitialize(data) {
@@ -516,18 +468,17 @@
                     }**/
                 }
             },
-            height: '250',
+            height: '450',
             selectable: true,
             //filterable: true,
             //sortable: true,
             resizable: true,
             columns: [
-                {field: "ExtID", title: "ID", width: 200},
+                {field: "ExtID", title: "ID", width: 160},
                 //{ field: "ParentObjNum", title: "Parent", width: 120 },
                 //  { field: "ObjectNumber", title: "Child", width: 120 },
-               // {field: "Project", width: 75, title: "Project"},
-                {field: "Description", width: 130, title: "Description"},
-                {field:"Action",width:80,"template":kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>View</button>")}
+                {field: "Project", width: 75, title: "Project"},
+                {field: "Description", width: 160, title: "Description"}
                 // { field: "ObjectNumber" }
             ]
         });
@@ -551,93 +502,27 @@
 
         return rawData;
     }
-    function FilterByHierList(hierArray,data){
-        var findParentIds = '';
-        var addValues = [];
-        var sendData = '';
-        //var id = objId;
-        //var parent = parentId;
-        /**if(parent === ''){
-            return data;
-        }**/
-
-      /**$.each(tree,function(key, value){
-          // for(var d = 0,d <= tree.length,d++){
-        //   addNew.push({"id": value.ObjectNumber});
-          if(value.ObjectNumber === id){
-              addNew.push({"ObjectNumber": value.ObjectNumber,"ParentObjNum": value.ParentObjNum});
-
-          }else{
-            if (value.ObjectNumber === parent) {
-                var child1 = value.ObjectNumber;
-                var parent1 = value.ParentObjNum;
-                if (child1 === value.ParentObjNum) {
-                    //  addNew.push({"ObjectNumber": value.ParentObjNum,"ParentObjNum": parent1});
-                    return FilterByHierList(parent1, child1, tree, data, addNew);
-                }
-
-            }
+    function FilterByHierList(parentId,data){
+        var findParentIds = [];
+        if(parentId != undefined){
+            var id = String(parentId).substr(2);
+             findParentIds = $.grep(data,function(item){
+                return String(item.ParentObjNum).substr(2) === id
+            });
+        }else{
+            alert('Try clicking on the list row again!');
         }
-      });**/
-      if(_.isArray(hierArray)){
-           /**   $.each(hierArray,function(key,value){
-                  addValues.push({"ObjectNumber": value.ObjectNumber,"ParentObjNum": value.ParentObjNum});
-          });   **/
-
-              $.each(hierArray,function(k,v){
-                  findParentIds = $.grep(data,function(item){
-                      return item.ObjectNumber === v.ObjectNumber;
-                  });
-              });
-          console.log('Pushed ids '+ JSON.stringify(_.flatten(findParentIds)));
-
-      }else{
-          return console.log('nothing in array');
-      }
-
-       // console.log('Final ids '+ JSON.stringify(findParentIds));
-            /**
-            if(id != undefined){
-                    addObjs = $.grep(tree,function(item){
-                            return item.ParentObjNum === id;
-                        //}
-                    });
-                $.each(_.uniq(addObjs),function(key,value){
-                    findParentIds = $.grep(data,function(item){
-                        return item.ObjectNumber === value.ObjectNumber
-                    });
-                });
-            **/
-              /**  $.each(addObjs,function(key,value){
-                   $.each(tree,function(k,v){
-                        if(v.ParentObjNum === value.ObjectNumber){
-                            return FilterByHierList(value.ObjectNumber,tree,data)
-                        }
-
-                            findParentIds = $.grep(data,function(item){
-                                return item.ObjectNumber === value.ObjectNumber
-                            });
-
-                    });
-
-                });**/
-           sendData = _(findParentIds).chain()
-                      .flatten(findParentIds)
-                       .uniq(findParentIds, function(item, key,Date) {
-                           return item.Date;
-                       })
-                      .value();
-        return sendData;
+        return _.flatten(findParentIds);
     }
 
     function FilterChartData(results){
         var master = {};
         master.graph = [];
         master.totals = [];
-        var data = _.flatten(results);
-        if(data.length === 0){
-            return alert('No Data to filter series.');
+        if(results.length === 0){
+            return alert('No Data');
         }
+        var data = results;
         var BCWS = $.grep(data, function (item) {
             if (item.Version === 'D02') {
                 return item.ValueType === '01';
@@ -658,50 +543,46 @@
                 return item;
             }
         });//filter data
-        if(BCWS != undefined || ''){
-            var BCWSdata = _.map(_.where(BCWS), function (value) {
-                return {"BCWS": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
-            });//convert IntValProjCurr key for Chart Series
-            var bcwsTotal = 0;
-            $.each(BCWSdata,function(key,value){
-                bcwsTotal += parseFloat(value.BCWS);
-            });
-            master.totals.push({"bcwsTotal" : bcwsTotal});//.toFixed(2)
-            master.graph.push(BCWSdata);//add array to master array
-        }
-        if(BCWP != undefined || '') {
-            var BCWPdata = _.map(_.where(BCWP), function (value) {
-                return {"BCWP": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
-            });//convert IntValProjCurr key for Chart Series
-            var bdwpTotal = 0;
-            $.each(BCWPdata, function (key, value) {
-                bdwpTotal += parseFloat(value.BCWP);
-            });
-            master.totals.push({"bdwpTotal": bdwpTotal});//.toFixed(2)
-            master.graph.push(BCWPdata);//add array to master array
-        }
-        if(EAC != undefined || '') {
-            var EACdata = _.map(_.where(EAC), function (value) {
-                return {"EAC": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
-            });//convert IntValProjCurr key for Chart Series
-            var eacTotal = 0;
-            $.each(EACdata, function (key, value) {
-                eacTotal += parseFloat(value.EAC);
-            });
-            master.totals.push({"eacTotal": eacTotal});//.toFixed(2)
-            master.graph.push(EACdata);//add array to master array
-        }
-        if(ACWP != undefined || '') {
-            var ACWPdata = _.map(_.where(ACWP), function (value) {
-                return {"ACWP": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
-            });//convert IntValProjCurr key for Chart Series
-            var acwpTotal = 0;
-            $.each(ACWPdata, function (key, value) {
-                acwpTotal += parseFloat(value.ACWP);
-            });
-            master.totals.push({"acwpTotal": acwpTotal});//.toFixed(2)
-            master.graph.push(ACWPdata);//add array to master array
-        }
+        var BCWSdata = _.map(_.where(BCWS), function (value) {
+            return {"BCWS": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
+        var bcwsTotal = 0;
+        $.each(BCWSdata,function(key,value){
+            bcwsTotal += parseFloat(value.BCWS);
+        });
+        master.totals.push({"bcwsTotal" : bcwsTotal});//.toFixed(2)
+        master.graph.push(BCWSdata);//add array to master array
+
+        var BCWPdata = _.map(_.where(BCWP), function (value) {
+            return {"BCWP": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
+        var bdwpTotal = 0;
+        $.each(BCWPdata,function(key,value){
+            bdwpTotal += parseFloat(value.BCWP);
+        });
+        master.totals.push({"bdwpTotal" : bdwpTotal});//.toFixed(2)
+        master.graph.push(BCWPdata);//add array to master array
+
+        var EACdata = _.map(_.where(EAC), function (value) {
+            return {"EAC": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
+        var eacTotal = 0;
+        $.each(EACdata,function(key,value){
+            eacTotal += parseFloat(value.EAC);
+        });
+        master.totals.push({"eacTotal" : eacTotal});//.toFixed(2)
+        master.graph.push(EACdata);//add array to master array
+
+        var ACWPdata = _.map(_.where(ACWP), function (value) {
+            return {"ACWP": Number(value.IntValProjCurr), "Date": value.Date}
+        });//convert IntValProjCurr key for Chart Series
+        var acwpTotal = 0;
+        $.each(ACWPdata,function(key,value){
+            acwpTotal += parseFloat(value.ACWP);
+        });
+        master.totals.push({"acwpTotal" : acwpTotal});//.toFixed(2)
+        master.graph.push(ACWPdata);//add array to master array
+
         _.flatten(master.graph);
         _.flatten(master.totals);
         return master;
@@ -718,7 +599,7 @@
             dataSource: dataSource,
             chartArea: {
                 //width: 500,
-                height: 400
+                height: 550
             },
             title: {
                 text: "SnapshotSet"
@@ -751,7 +632,7 @@
                         days: "M/YYYY"
                     }
                 },
-                maxDateGroups: 45,
+                maxDateGroups: 65,
                 crosshair: {
                     visible: false
                 },
@@ -769,8 +650,8 @@
                     format: "{0}"
                 },//String('&#163;') +
                 majorUnit: 750000,
-                min: 0
-               // max: 11000000
+                min: 0,
+                max: 11000000
                 /**, {
                 name: "BCWP",
                 title: { text: "BCWP" },
