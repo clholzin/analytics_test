@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="col-lg-6 col-md-6 col-sm-6">
-                    <div class="well">
+                    <div class="well col-lg-12 col-md-12 col-sm-12 col-xs-12" style="min-height:292px;">
                         <div id="gauge-container">
                             <div class="gauge-loading"></div>
                             <div style="border: solid thin #3d3d3d;" class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
@@ -90,7 +90,7 @@
                 </div>
                 <!-- </div>-->
             </div>
-            <div class="row">
+            <div class="well well-sm">
                 <div class="dropdown">
                     <button class="btn btn-default"><span class="export-pdf k-icon k-i-pdf"></span></button>
                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1"
@@ -131,7 +131,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="well well-lg">
+                <div class="container-fluid">
 
                     <div  id="chart">
                         <div class="chart-loading"></div>
@@ -296,20 +296,27 @@
 
         function allNodes(currentNode,arr){
             var compile = arr;
-            var next = currentNode.next();
-            var check = currentNode.hasClass('k-treelist-group');
-            if(!check){
+            var $next = currentNode.next();
+            var $check = currentNode.hasClass('k-treelist-group');
+            if(!$check){
                 compile.push(currentNode.index());
-               if(!next.hasClass('k-treelist-group')) {
-                  // compile.push(next.index());
-                   return allNodes(next, compile);
-               }
+                    if(currentNode.length == 0) {
+                    console.log('end');
+                    }else{
+                        if($next.length != 0) {
+                            if (!$next.hasClass('k-treelist-group')) {
+                                return allNodes($next, compile);
+                            }
+                        }
+                }
             }else{
-                if(check) {//next.hasClass('k-treelist-group')
-                  // compile.push(next.index());
-                       return allNodes(next, compile);
-             }
-
+                if($check) {
+                    console.log($next.length);
+                    if($next.length == 0){
+                    }else{
+                        return allNodes($next, compile);
+                    }
+                }
             }
             return compile;
         }
@@ -319,46 +326,50 @@
             e.preventDefault();
             var chartdata = '',
                 filteredSnapByParentId = '',
-                    filteredSnapByIndex = [],
-                    collectIndexes = [],
-                    chartFiltered = '';
-                    console.log('hit selected row');
-            var target = $(e.currentTarget);
-            var treeList = hierarchyList.data("kendoTreeList");
-            var chartGraph = chartSelector.data("kendoChart");
-            var trParent = target.parent().parent();
-            var rowIndex = trParent.index();
-            var treedata = treeList.dataSource.options.data;
-            var objectNumber = target.data('objectNumber');//data-objectNumber='#=data.ObjectNumber#'
+                filteredSnapByIndex = [],
+                collectIndexes = [],
+                chartFiltered = '';
+            console.log('hit selected row');
+            var $target = $(e.currentTarget),
+             $treeList = hierarchyList.data("kendoTreeList"),
+             $chartGraph = chartSelector.data("kendoChart"),
+             $trParent = $target.parent().parent(),
+             $rowIndex = $trParent.index(),
+             $objectNumber = $target.data('objectNumber'),//data-objectNumber='#=data.ObjectNumber#'
+             $children = $target.data('children');
+           // var treedata = treeList.dataSource.options.data;
             //console.log(treedataObj);
                 /**
                  var id = treedataObj.ObjectNumber;
                  var parentid = treedataObj.ParentObjNum;**/
-            var children = target.data('children');//data-children='#=data.hasChildren#'
-            if(children){
-                var allChildIndexes = allNodes($(trParent),collectIndexes);
-                console.log(JSON.stringify(allChildIndexes));
-              // var allChildIndexes =  trParent.nextSibling('tr').hasClass('').index();
-                $.each(allChildIndexes,function(key,value){//[data-children="false"]
-                    filteredSnapByIndex.push({'ObjectNumber':treeList.dataSource.options.data[value].ObjectNumber});
-                });
-                console.log('multiple '+JSON.stringify(filteredSnapByIndex));
-            }else{
-                console.log(rowIndex);
-                filteredSnapByIndex.push({'ObjectNumber':treeList.dataSource.options.data[rowIndex].ObjectNumber});
-                console.log('single '+JSON.stringify(filteredSnapByIndex));
+                console.log($rowIndex);
+            chartdata = $chartGraph.dataSource.options.data;
+            switch($rowIndex){
+                case 0:
+                case 1:
+                chartFiltered =  FilterChartData(chartdata);
+                break;
+                default:
+                    if($children){
+                        var allChildIndexes = allNodes($($trParent),collectIndexes);
+                        console.log(JSON.stringify(allChildIndexes));
+                        var Indexes = _.without(allChildIndexes,-1);
+                        console.log(JSON.stringify(Indexes));
+                        $.each(Indexes,function(key,value){//[data-children="false"]
+                            filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[value].ObjectNumber});
+                        });
+                        console.log('multiple '+JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                        chartFiltered =  FilterChartData(filteredSnapByParentId);
+                    }else{
+                        filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[$rowIndex].ObjectNumber});
+                        console.log('single '+JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                        chartFiltered =  FilterChartData(filteredSnapByParentId);
+                    }
+               break;
             }
 
-
-            //if(treedataObj.ParentObjNum === ''){
-            //     chartdata = ChartData();//fresh copy
-            //}else{
-                 chartdata = chartGraph.dataSource.options.data;
-            //}
-            //console.log(filteredSnapByParentId);
-            filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
-
-            chartFiltered =  FilterChartData(filteredSnapByParentId);
             if(chartFiltered != undefined){
                 var chartTotalsFilteredBy =  _.flatten(chartFiltered.totals);
                 console.log(chartTotalsFilteredBy);
@@ -366,7 +377,7 @@
 
                 var chartFilteredByParentId =  _.flatten(chartFiltered.graph);
                 console.log(chartFilteredByParentId.length);
-               chartGraph.dataSource.data(chartFilteredByParentId);
+               $chartGraph.dataSource.data(chartFilteredByParentId);
                 refreshChart();
             }
 
@@ -555,77 +566,22 @@
         var findParentIds = '';
         var addValues = [];
         var sendData = '';
-        //var id = objId;
-        //var parent = parentId;
-        /**if(parent === ''){
-            return data;
-        }**/
-
-      /**$.each(tree,function(key, value){
-          // for(var d = 0,d <= tree.length,d++){
-        //   addNew.push({"id": value.ObjectNumber});
-          if(value.ObjectNumber === id){
-              addNew.push({"ObjectNumber": value.ObjectNumber,"ParentObjNum": value.ParentObjNum});
-
-          }else{
-            if (value.ObjectNumber === parent) {
-                var child1 = value.ObjectNumber;
-                var parent1 = value.ParentObjNum;
-                if (child1 === value.ParentObjNum) {
-                    //  addNew.push({"ObjectNumber": value.ParentObjNum,"ParentObjNum": parent1});
-                    return FilterByHierList(parent1, child1, tree, data, addNew);
-                }
-
-            }
-        }
-      });**/
-      if(_.isArray(hierArray)){
-           /**   $.each(hierArray,function(key,value){
-                  addValues.push({"ObjectNumber": value.ObjectNumber,"ParentObjNum": value.ParentObjNum});
-          });   **/
-
+        if(_.isArray(hierArray)){
               $.each(hierArray,function(k,v){
                   findParentIds = $.grep(data,function(item){
                       return item.ObjectNumber === v.ObjectNumber;
                   });
               });
-          console.log('Pushed ids '+ JSON.stringify(_.flatten(findParentIds)));
+          console.log('Pushed ids '+ JSON.stringify(_.flatten(findParentIds).length));
 
-      }else{
-          return console.log('nothing in array');
-      }
-
-       // console.log('Final ids '+ JSON.stringify(findParentIds));
-            /**
-            if(id != undefined){
-                    addObjs = $.grep(tree,function(item){
-                            return item.ParentObjNum === id;
-                        //}
-                    });
-                $.each(_.uniq(addObjs),function(key,value){
-                    findParentIds = $.grep(data,function(item){
-                        return item.ObjectNumber === value.ObjectNumber
-                    });
-                });
-            **/
-              /**  $.each(addObjs,function(key,value){
-                   $.each(tree,function(k,v){
-                        if(v.ParentObjNum === value.ObjectNumber){
-                            return FilterByHierList(value.ObjectNumber,tree,data)
-                        }
-
-                            findParentIds = $.grep(data,function(item){
-                                return item.ObjectNumber === value.ObjectNumber
-                            });
-
-                    });
-
-                });**/
+          }else{
+              return console.log('nothing in array');
+          }
            sendData = _(findParentIds).chain()
                       .flatten(findParentIds)
-                       .uniq(findParentIds, function(item, key,Date) {
+                      /** .uniq(findParentIds, function(item, key,Date) {
                            return item.Date;
-                       })
+                       })**/
                       .value();
         return sendData;
     }
@@ -762,30 +718,15 @@
                     visible: false
                 }
             },
-            valueAxis: {
+          valueAxis: {
                 // name: "Currency",
-                title: {text: ' Total'},//String('&#163;') +
-                labels: {
+                title: {text: ' Total'}//String('&#163;') +
+                 /** labels: {
                     format: "{0}"
                 },//String('&#163;') +
-                majorUnit: 750000,
-                min: 0
-               // max: 11000000
-                /**, {
-                name: "BCWP",
-                title: { text: "BCWP" },
-                min: 0,
-                max: 161,
-                majorUnit: 32
-            }, {
-                name: "EAC",
-                title: { text: "EAC" },
-                color: "#ec5e0a"
-            }, {
-                name: "ACWP",
-                title: { text: "ACWP" },
-                color: "#4e4141"
-            }],**/
+                majorUnit: 500000,
+                min: 1000
+               // max: 11000000**/
             },
             tooltip: {
                 visible: true,
