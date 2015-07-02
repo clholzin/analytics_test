@@ -1,0 +1,18 @@
+body {
+    padding-top:55px;
+    width: auto;
+    height:100vh;
+    margin:0;
+    font-family: arial, helvetica, sans-serif;
+}
+.dashboard{
+    padding:0 0 75px 0;
+}
+.border{
+    border:thin solid #CCC;
+
+}
+.graph-border{
+    border:thin solid #CCC;
+    padding:15px;
+}

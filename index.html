@@ -3,6 +3,7 @@
 <head>
     <title>Dassian App</title>
     <meta charset="UTF-8">
+    <link rel="icon" href="./assets/img/favicons/favicon.ico">
     <!--link href="./assets/css/kendo.dataviz.default.min.css" rel="stylesheet">
     <link href="./assets/css/kendo.common.min.css" rel="stylesheet">
     <link href="./assets/css/kendo.common-bootstrap.core.min.css" rel="stylesheet">
@@ -22,7 +23,7 @@
 
     <script src="./assets/js/jquery.min.js"></script>
     <script src="./assets/js/underscore.js"></script>
-    <script src="./assets/js/kendo.culture.en-GB.min.js"></script>
+    <script src="assets/js/cultures/kendo.culture.en-GB.min.js"></script>
     <script src="./assets/js/kendo.all.js"></script>
     <!-- <script src="./assets/js/moment.js"></script>-->
 </head>
@@ -38,7 +39,6 @@
         </div>
         <p style="margin-right: 5px" class="navbar-text navbar-right">Signed in as
             <a href="#" class="navbar-link">Tom Lau</a></p>
-
     </div>
 </nav>
 
@@ -72,19 +72,19 @@
 
                 <div class="col-lg-6 col-md-6 col-sm-6">
                     <div class="well col-lg-12 col-md-12 col-sm-12 col-xs-12" style="min-height:292px;">
-                        <div id="gauge-container">
-                            <div class="gauge-loading"></div>
-                            <div style="border: solid thin #3d3d3d;" class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-                                <div id="topgauge"></div>
-                                <input id="gauge-value" class="form-control" value="1.5">
+                        <div class="gauge-loading"></div>
+
+                            <div  class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                <div class="gauge-container">
+                                <div id="lgauge"></div>
+                               <!-- <input id="gauge-value" class="form-control" value="1.5">-->
                             </div>
-
-
-                            <div style="border: solid thin #3d3d3d;" class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-                                <div id="bottomgauge"></div>
-                                <input id="gauge-value-bottom" class="form-control" value=".5">
+                        </div>
+                            <div  class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                <div class="gauge-container">
+                                <div id="rgauge"></div>
+                               <!-- <input id="gauge-value-bottom" class="form-control" value=".5">-->
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -98,10 +98,12 @@
                         Charts
                         <span class="caret"></span>
                     </button>
-                    <button class="btn btn-primary btn-sm total-bcws"></button>
-                    <button class="btn btn-info btn-sm total-bdwp"></button>
-                    <button class="btn btn-success btn-sm total-eac"></button>
-                    <button class="btn btn-warning btn-sm total-acwp"></button>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm total-bcws"></button>
+                        <button class="btn btn-info btn-sm total-bdwp"></button>
+                        <button class="btn btn-success btn-sm total-eac"></button>
+                        <button class="btn btn-warning btn-sm total-acwp"></button>
+                    </div>
 
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                         <li class="options">
@@ -133,7 +135,7 @@
                 </div>
                 <div class="container-fluid">
 
-                    <div  id="chart">
+                    <div id="chart">
                         <div class="chart-loading"></div>
                     </div>
 
@@ -168,15 +170,19 @@
          * Add Loading-Wheel to chart hierarchy and gauges
          * */
         showProgress(true);
-      /**  _.debounce(
-                kendo.ui.progress($(".treelist-loading"),false)
-                ,500);
-        _.debounce(kendo.ui.progress($(".gauge-loading"), false),750);
-        _.debounce(kendo.ui.progress($(".chart-loading"), false),1000);**/
+        /**  _.debounce(
+         kendo.ui.progress($(".treelist-loading"),false)
+         ,500);
+         _.debounce(kendo.ui.progress($(".gauge-loading"), false),750);
+         _.debounce(kendo.ui.progress($(".chart-loading"), false),1000);**/
 
-
-
-        createGauge();
+        var chartData = ChartData();
+        var chartDataSource = FilterChartData(chartData);
+        var chartTotals = chartDataSource.totals;
+        var chart = chartDataSource.graph;
+        var gaugesData = chartDataSource.gauges;
+        console.log(gaugesData);
+        createGauge(gaugesData);
 
         if (kendo.ui.Slider) {
             $("#gauge-value").kendoSlider({
@@ -196,11 +202,11 @@
             $("#gauge-value-bottom").change(updateValueBottom);
         }
         function updateValueTop() {
-            $("#topgauge").data("kendoRadialGauge").value($("#gauge-value").val());
+            $("#lgauge").data("kendoRadialGauge").value($("#gauge-value").val());
         }
 
         function updateValueBottom() {
-            $("#bottomgauge").data("kendoRadialGauge").value($("#gauge-value-bottom").val());
+            $("#rgauge").data("kendoRadialGauge").value($("#gauge-value-bottom").val());
         }
 
         /** $(document).bind("kendo:skinChange", function (e) {
@@ -209,23 +215,19 @@
 
 
         /** Begin Hierarchy Panel **/
-       var hierData =  hierListData();
+        var hierData = hierListData();
         hierListInitialize(hierData);
         // $('#treelist').find('tr.k-treelist-group').attr("aria-expanded",'true');
         //  var data = hierData();
         //  console.log(data);
 
-        var chartData = ChartData();
-        var chartDataSource =  FilterChartData(chartData);
-        var chartTotals = chartDataSource.totals;
-        var chart = chartDataSource.graph;
-       // console.log(chartTotals);
+
+        // console.log(chartTotals);
         displayTotals(chartTotals);
 
 
-
         console.log(JSON.stringify(chartTotals));
-       // console.log(JSON.stringify(chart));
+        // console.log(JSON.stringify(chart));
         var dataSourceMixed = new kendo.data.DataSource({
             data: _.flatten(chart),
             sort: {
@@ -290,103 +292,73 @@
         var hierarchyList = $("div#treelist");
         var chartSelector = $("div#chart");
         //var dataTreeListSelected = treeList.dataItem(row);
-      //  console.log(dataTreeListSelected);
+        //  console.log(dataTreeListSelected);
 
 
-
-        function allNodes(currentNode,arr){
-            var compile = arr;
-            var $next = currentNode.next();
-            var $check = currentNode.hasClass('k-treelist-group');
-            if(!$check){
-                compile.push(currentNode.index());
-                    if(currentNode.length == 0) {
-                    console.log('end');
-                    }else{
-                        if($next.length != 0) {
-                            if (!$next.hasClass('k-treelist-group')) {
-                                return allNodes($next, compile);
-                            }
-                        }
-                }
-            }else{
-                if($check) {
-                    console.log($next.length);
-                    if($next.length == 0){
-                    }else{
-                        return allNodes($next, compile);
-                    }
-                }
-            }
-            return compile;
-        }
-
-
-        hierarchyList.on('click','tr button.js-hier',function(e){
+        hierarchyList.on('click', 'tr button.js-hier', function (e) {
             e.preventDefault();
             var chartdata = '',
-                filteredSnapByParentId = '',
-                filteredSnapByIndex = [],
-                collectIndexes = [],
-                chartFiltered = '';
+                    filteredSnapByParentId = '',
+                    filteredSnapByIndex = [],
+                    collectIndexes = [],
+                    chartFiltered = '';
             console.log('hit selected row');
             var $target = $(e.currentTarget),
-             $treeList = hierarchyList.data("kendoTreeList"),
-             $chartGraph = chartSelector.data("kendoChart"),
-             $trParent = $target.parent().parent(),
-             $rowIndex = $trParent.index(),
-             $objectNumber = $target.data('objectNumber'),//data-objectNumber='#=data.ObjectNumber#'
-             $children = $target.data('children');
-           // var treedata = treeList.dataSource.options.data;
+                    $treeList = hierarchyList.data("kendoTreeList"),
+                    $chartGraph = chartSelector.data("kendoChart"),
+                    $trParent = $target.parent().parent(),
+                    $rowIndex = $trParent.index(),
+                    $objectNumber = $target.data('objectNumber'),//data-objectNumber='#=data.ObjectNumber#'
+                    $children = $target.data('children');
+            // var treedata = treeList.dataSource.options.data;
             //console.log(treedataObj);
-                /**
-                 var id = treedataObj.ObjectNumber;
-                 var parentid = treedataObj.ParentObjNum;**/
-                console.log($rowIndex);
+            /**
+             var id = treedataObj.ObjectNumber;
+             var parentid = treedataObj.ParentObjNum;**/
+            console.log($rowIndex);
             chartdata = $chartGraph.dataSource.options.data;
-            switch($rowIndex){
+            switch ($rowIndex) {
                 case 0:
                 case 1:
-                chartFiltered =  FilterChartData(chartdata);
-                break;
+                    chartFiltered = FilterChartData(chartdata);
+                    break;
                 default:
-                    if($children){
-                        var allChildIndexes = allNodes($($trParent),collectIndexes);
+                    if ($children) {
+                        var allChildIndexes = allNodes($($trParent), collectIndexes);
                         console.log(JSON.stringify(allChildIndexes));
-                        var Indexes = _.without(allChildIndexes,-1);
+                        var Indexes = _.without(allChildIndexes, -1);
                         console.log(JSON.stringify(Indexes));
-                        $.each(Indexes,function(key,value){//[data-children="false"]
-                            filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[value].ObjectNumber});
+                        $.each(Indexes, function (key, value) {//[data-children="false"]
+                            filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[value].ObjectNumber});
                         });
-                        console.log('multiple '+JSON.stringify(filteredSnapByIndex));
-                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
-                        chartFiltered =  FilterChartData(filteredSnapByParentId);
-                    }else{
-                        filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[$rowIndex].ObjectNumber});
-                        console.log('single '+JSON.stringify(filteredSnapByIndex));
-                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
-                        chartFiltered =  FilterChartData(filteredSnapByParentId);
+                        console.log('multiple ' + JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex, chartdata);
+                        chartFiltered = FilterChartData(filteredSnapByParentId);
+                    } else {
+                        filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[$rowIndex].ObjectNumber});
+                        console.log('single ' + JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex, chartdata);
+                        chartFiltered = FilterChartData(filteredSnapByParentId);
                     }
-               break;
+                    break;
             }
 
-            if(chartFiltered != undefined){
-                var chartTotalsFilteredBy =  _.flatten(chartFiltered.totals);
+            if (chartFiltered != undefined) {
+                var chartTotalsFilteredBy = _.flatten(chartFiltered.totals);
                 console.log(chartTotalsFilteredBy);
                 displayTotals(chartTotalsFilteredBy);
 
-                var chartFilteredByParentId =  _.flatten(chartFiltered.graph);
+                var chartFilteredByParentId = _.flatten(chartFiltered.graph);
                 console.log(chartFilteredByParentId.length);
-               $chartGraph.dataSource.data(chartFilteredByParentId);
+                $chartGraph.dataSource.data(chartFilteredByParentId);
                 refreshChart();
             }
 
         });
 
-        body.on('keypress',hierarchyList,function(e){
+        body.on('keypress', hierarchyList, function (e) {
             console.log('hit selected row');
         });
-
 
 
         $(".export-pdf").click(function () {
@@ -409,12 +381,11 @@
         }
 
 
-
         setTimeout(showProgress(false), 3500);
 
     });//end of Doc Ready
 
-    function displayTotals(data){
+    function displayTotals(data) {
         var bcwsTotalCost = kendo.toString(data[0].bcwsTotal, "c");
         var bdwpTotalCost = kendo.toString(data[1].bdwpTotal, "c");
         var eacTotalCost = kendo.toString(data[2].eacTotal, "c");
@@ -426,7 +397,7 @@
     }
 
 
-    function showProgress(boolean){
+    function showProgress(boolean) {
         var loadingTree = $(document).find(".treelist-loading");
         var loadingGauges = $(document).find(".gauge-loading");
         var loadingChart = $(document).find(".chart-loading");
@@ -437,32 +408,150 @@
     }
 
 
-    function createGauge() {
-      /**  var loadingGauges = $(document).find(".gauge-loading");
-        _.debounce(kendo.ui.progress(loadingGauges, false),1000);**/
-        $("#topgauge").kendoRadialGauge({
-            pointer: {
-                value: $("#gauge-value").val()
-            },
+    function allNodes(currentNode, arr) {
+        var compile = arr;
+        var $next = currentNode.next();
+        var $check = currentNode.hasClass('k-treelist-group');
+        if (!$check) {
+            compile.push(currentNode.index());
+            if (currentNode.length == 0) {
+                console.log('end');
+            } else {
+                if ($next.length != 0) {
+                    if (!$next.hasClass('k-treelist-group')) {
+                        return allNodes($next, compile);
+                    }
+                }
+            }
+        } else {
+            if ($check) {
+                console.log($next.length);
+                if ($next.length == 0) {
+                } else {
+                    return allNodes($next, compile);
+                }
+            }
+        }
+        return compile;
+    }
 
+    function createGauge(data) {
+        if (data.length === 0) {
+            return alert('Gauge Data error: No Data.');
+        }
+        var spi = Number(data[0].spi).toFixed(2);
+        var cpi = Number(data[1].cpi).toFixed(3);
+        if (!_.isNumber(spi)) {
+            spi = 0;
+        }
+        if (!_.isNumber(spi)) {
+            cpi = 0;
+        }
+        //master.gauges[0].spi master.gauges[1].cpi
+        $("#lgauge").kendoRadialGauge({
+            /**pointer: {
+                value: $("#gauge-value").val()
+            },**/
+            pointer: {
+                value: spi
+            },
             scale: {
                 minorUnit: 5,
                 startAngle: -30,
                 endAngle: 210,
-                max: 2
+                min: 0,
+                max: 2,
+                labels: {
+                    position:  "outside"
+                },
+                ranges: [
+                    {
+                        from: 0,
+                        to:.1,
+                        color: "#c20000"//red
+                    },
+                    {
+
+                        from:.1,
+                        to:.2,
+                        color: "#ff7a00"//orange
+                    },
+                    {
+                        from:.2,
+                        to:.5,
+                        color: "#ffc700"//yellow
+                    },
+                    {
+                        from: 1.5,
+                        to:1.8,
+                        color: "#ffc700"//yellow
+                    },
+                    {
+
+                        from:1.8,
+                        to:1.9,
+                        color: "#ff7a00"//orange
+                    },
+                    {
+                        from:1.9,
+                        to:2,
+                        color: "#c20000"//red
+                    }
+                ]
             }
         });
-        $("#bottomgauge").kendoRadialGauge({
-            pointer: {
+        $("#rgauge").kendoRadialGauge({
+            /**pointer: {
                 value: $("#gauge-value-bottom").val()
+            },**/
+            pointer: {
+                value: cpi
             },
-
             scale: {
-                minorUnit: 5,
+                minorUnit: 15,
                 startAngle: -30,
                 endAngle: 210,
-                max: 2
+                min: 0,
+                max: 5,
+                labels: {
+                    position: "outside"
+                },
+                ranges: [
+                    {
+                        from: 0,
+                        to:.2,
+                        color: "#c20000"//red
+                    },
+                    {
+
+                        from:.2,
+                        to:.5,
+                        color: "#ff7a00"//orange
+                    },
+                    {
+                        from:.5,
+                        to:1,
+                        color: "#ffc700"//yellow
+                    },
+                    {
+                        from:4,
+                        to:4.5,
+                        color: "#ffc700"//yellow
+                    },
+                    {
+
+                        from:4.5,
+                        to:4.8,
+                        color: "#ff7a00"//orange
+                    },
+                    {
+                        from:4.8,
+                        to:5,
+                        color: "#c20000"//red
+                    }
+                ]
             }
+
         });
     }
 
@@ -485,8 +574,8 @@
     }
 
     function hierListInitialize(data) {
-      /**  var loadingTree = $(document).find(".treelist-loading");
-        _.debounce(kendo.ui.progress(loadingTree, false), 1000);**/
+        /**  var loadingTree = $(document).find(".treelist-loading");
+         _.debounce(kendo.ui.progress(loadingTree, false), 1000);**/
 
         $(document).find("#treelist").kendoTreeList({
             dataSource: {
@@ -521,8 +610,8 @@
                     }
                 },
                 dataBound: function (e) {
-                  /**  var tv = $("#treelist").data("kendoTreeView");
-                    if (tv != null) {
+                    /**  var tv = $("#treelist").data("kendoTreeView");
+                     if (tv != null) {
                         tv.expand(".k-item");
                     }**/
                 }
@@ -536,16 +625,20 @@
                 {field: "ExtID", title: "ID", width: 200},
                 //{ field: "ParentObjNum", title: "Parent", width: 120 },
                 //  { field: "ObjectNumber", title: "Child", width: 120 },
-               // {field: "Project", width: 75, title: "Project"},
+                // {field: "Project", width: 75, title: "Project"},
                 {field: "Description", width: 130, title: "Description"},
-                {field:"Action",width:80,"template":kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>View</button>")}
+                {
+                    field: "Action",
+                    width: 80,
+                    "template": kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>View</button>")
+                }
                 // { field: "ObjectNumber" }
             ]
         });
     }
 
     function ChartData() {
-        var rawData ='';
+        var rawData = '';
         $.ajax({
             url: "http://localhost/SnapshotSet?$format=json",
             method: "GET",
@@ -562,36 +655,76 @@
 
         return rawData;
     }
-    function FilterByHierList(hierArray,data){
+    function FilterByHierList(hierArray, data) {
         var findParentIds = '';
         var addValues = [];
         var sendData = '';
-        if(_.isArray(hierArray)){
-              $.each(hierArray,function(k,v){
-                  findParentIds = $.grep(data,function(item){
-                      return item.ObjectNumber === v.ObjectNumber;
-                  });
-              });
-          console.log('Pushed ids '+ JSON.stringify(_.flatten(findParentIds).length));
+        if (_.isArray(hierArray)) {
+            $.each(hierArray, function (k, v) {
+                findParentIds = $.grep(data, function (item) {
+                    return item.ObjectNumber === v.ObjectNumber;
+                });
+            });
+            console.log('Pushed ids ' + JSON.stringify(_.flatten(findParentIds).length));
 
-          }else{
-              return console.log('nothing in array');
-          }
-           sendData = _(findParentIds).chain()
-                      .flatten(findParentIds)
-                      /** .uniq(findParentIds, function(item, key,Date) {
+        } else {
+            return console.log('nothing in array');
+        }
+        sendData = _(findParentIds).chain()
+                .flatten(findParentIds)
+        /** .uniq(findParentIds, function(item, key,Date) {
                            return item.Date;
                        })**/
-                      .value();
+                .value();
         return sendData;
     }
 
-    function FilterChartData(results){
+    function decimalAdjust(type, value, exp) {
+        // If the exp is undefined or zero...
+        if (typeof exp === 'undefined' || +exp === 0) {
+            return Math[type](value);
+        }
+        value = +value;
+        exp = +exp;
+        // If the value is not a number or the exp is not an integer...
+        if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+            return NaN;
+        }
+        // Shift
+        value = value.toString().split('e');
+        value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+        // Shift back
+        value = value.toString().split('e');
+        return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+    }
+
+    // Decimal round
+
+    Math.round10 = function(value, exp) {
+        return decimalAdjust('round', value, exp);
+    };
+
+    // Decimal floor
+
+    Math.floor10 = function(value, exp) {
+        return decimalAdjust('floor', value, exp);
+    };
+
+    // Decimal ceil
+
+    Math.ceil10 = function(value, exp) {
+        return decimalAdjust('ceil', value, exp);
+    };
+
+
+
+    function FilterChartData(results) {
         var master = {};
         master.graph = [];
         master.totals = [];
+        master.gauges = [];
         var data = _.flatten(results);
-        if(data.length === 0){
+        if (data.length === 0) {
             return alert('No Data to filter series.');
         }
         var BCWS = $.grep(data, function (item) {
@@ -614,20 +747,34 @@
                 return item;
             }
         });//filter data
-        if(BCWS != undefined || ''){
+        if (BCWS != undefined || '') {
             var BCWSdata = _.map(_.where(BCWS), function (value) {
-                return {"BCWS": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+                return {
+                    "BCWS": Number(value.IntValProjCurr),
+                    "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ObjectNumber": value.ObjectNumber,
+                    "Version": value.Version,
+                    "ValueType": value.ValueType,
+                    "Date": value.Date
+                }
             });//convert IntValProjCurr key for Chart Series
             var bcwsTotal = 0;
-            $.each(BCWSdata,function(key,value){
+            $.each(BCWSdata, function (key, value) {
                 bcwsTotal += parseFloat(value.BCWS);
             });
-            master.totals.push({"bcwsTotal" : bcwsTotal});//.toFixed(2)
+            master.totals.push({"bcwsTotal": bcwsTotal});//.toFixed(2)
             master.graph.push(BCWSdata);//add array to master array
         }
-        if(BCWP != undefined || '') {
+        if (BCWP != undefined || '') {
             var BCWPdata = _.map(_.where(BCWP), function (value) {
-                return {"BCWP": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+                return {
+                    "BCWP": Number(value.IntValProjCurr),
+                    "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ObjectNumber": value.ObjectNumber,
+                    "Version": value.Version,
+                    "ValueType": value.ValueType,
+                    "Date": value.Date
+                }
             });//convert IntValProjCurr key for Chart Series
             var bdwpTotal = 0;
             $.each(BCWPdata, function (key, value) {
@@ -636,9 +783,16 @@
             master.totals.push({"bdwpTotal": bdwpTotal});//.toFixed(2)
             master.graph.push(BCWPdata);//add array to master array
         }
-        if(EAC != undefined || '') {
+        if (EAC != undefined || '') {
             var EACdata = _.map(_.where(EAC), function (value) {
-                return {"EAC": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+                return {
+                    "EAC": Number(value.IntValProjCurr),
+                    "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ObjectNumber": value.ObjectNumber,
+                    "Version": value.Version,
+                    "ValueType": value.ValueType,
+                    "Date": value.Date
+                }
             });//convert IntValProjCurr key for Chart Series
             var eacTotal = 0;
             $.each(EACdata, function (key, value) {
@@ -647,9 +801,16 @@
             master.totals.push({"eacTotal": eacTotal});//.toFixed(2)
             master.graph.push(EACdata);//add array to master array
         }
-        if(ACWP != undefined || '') {
+        if (ACWP != undefined || '') {
             var ACWPdata = _.map(_.where(ACWP), function (value) {
-                return {"ACWP": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+                return {
+                    "ACWP": Number(value.IntValProjCurr),
+                    "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ObjectNumber": value.ObjectNumber,
+                    "Version": value.Version,
+                    "ValueType": value.ValueType,
+                    "Date": value.Date
+                }
             });//convert IntValProjCurr key for Chart Series
             var acwpTotal = 0;
             $.each(ACWPdata, function (key, value) {
@@ -658,14 +819,25 @@
             master.totals.push({"acwpTotal": acwpTotal});//.toFixed(2)
             master.graph.push(ACWPdata);//add array to master array
         }
-        _.flatten(master.graph);
         _.flatten(master.totals);
+
+        var spiTotal = (bdwpTotal / bcwsTotal);
+        var cpiTotal = (bdwpTotal / acwpTotal);
+        console.log(Math.floor10(spiTotal,-2) + '  ' + Math.floor10(cpiTotal,-3));
+        master.gauges.push({'spi': Math.floor10(spiTotal,-2)});//master.gauges[0].spi
+        master.gauges.push({'cpi': Math.floor10(cpiTotal,-3)});//master.gauges[1].cpi
+        _.flatten(master.graph);
+        _.flatten(master.gauges);
+
         return master;
     }
 
+
+
+
     function createChart(dataSource, series) {
-       /** var loadingChart = $(document).find(".chart-loading");
-        _.debounce(kendo.ui.progress(loadingChart, false),1000);**/
+        /** var loadingChart = $(document).find(".chart-loading");
+         _.debounce(kendo.ui.progress(loadingChart, false),1000);**/
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -674,7 +846,7 @@
             dataSource: dataSource,
             chartArea: {
                 //width: 500,
-                height: 400
+                height: 450
             },
             title: {
                 text: "SnapshotSet"
@@ -684,6 +856,7 @@
             },
             seriesDefaults: {
                 type: "line",
+                style: "smooth",
                 markers: {
                     size: 5
                 }
@@ -691,9 +864,9 @@
             series: series,
             render: function (e) {
                 // Clear up the loading indicator for this chart
-               // var loading = $(".chart-loading");//, e.sender.element.parent()
-              //  kendo.ui.progress($(".chart-loading"), false);
-              //  kendo.ui.progress(loading, false);
+                // var loading = $(".chart-loading");//, e.sender.element.parent()
+                //  kendo.ui.progress($(".chart-loading"), false);
+                //  kendo.ui.progress(loading, false);
             },
             categoryAxis: {
                 baseUnit: "fit",
@@ -718,15 +891,15 @@
                     visible: false
                 }
             },
-          valueAxis: {
+            valueAxis: {
                 // name: "Currency",
                 title: {text: ' Total'}//String('&#163;') +
-                 /** labels: {
+                /** labels: {
                     format: "{0}"
                 },//String('&#163;') +
-                majorUnit: 500000,
-                min: 1000
-               // max: 11000000**/
+                 majorUnit: 500000,
+                 min: 1000
+                 // max: 11000000**/
             },
             tooltip: {
                 visible: true,
