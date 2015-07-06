@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="icon" href="./favicon.ico">
+
+    <title>Dassian App</title>
+
+    <link rel="stylesheet" href="../assets/css/kendo.dataviz.bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/css/kendo.common-fiori.core.min.css" />
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="../assets/css/default.css">
+    <link rel="stylesheet" href="../assets/css/kendo.common-fiori.min.css" />
+    <link rel="stylesheet" href="../assets/css/kendo.fiori.min.css" />
+    <link rel="stylesheet" href="../assets/css/kendo.dataviz.min.css" />
+    <link rel="stylesheet" href="../assets/css/kendo.dataviz.fiori.min.css" />
+
+    <script src="../assets/js/jszip.min.js"></script>
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/kendo.all.js"></script>
+    <script src="../assets/js/underscore.js"></script>
+    <script src="../assets/js/kendo.culture.en-GB.min.js"></script>
+</head>
+<body>
+<!-- Fixed navbar -->
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="navbar-header">
+        <a class="navbar-brand" target="_blank" href="http://www.dassian.com"><img alt="Dassian UK" src="../assets/img/dassian.png" width="100px"></a>
+    </div>
+    <p style="margin-right: 5px" class="navbar-text navbar-right">Signed in as <a href="#" class="navbar-link">Tom Lau</a></p>
+</nav>
+
+<div class="container dashboard">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Project Analytics
+                <span class="pull-right dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">Action</a></li>
+                    <li><a href="#">Another action</a></li>
+                    <li><a href="#">Something else here</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Separated link</a></li>
+                </ul>
+                </span>
+            </h3>
+        </div>
+        <div class="panel-body" style="padding: 0px; margin: 0px">
+            <div id="vertical" class="row" style="border: none">
+                <div id="top-pane">
+                    <div id="horizontal" style="height: 100%; width: 100%;">
+                        <div style="background-color: rgb(245,245,245)">
+                            <div class="well" style="min-height: 228px; margin-bottom: 0; border: none">
+<!--Added Tree Loader --> <div class="treelist-loading"></div>
+                                <div id="treelist"></div>
+                            </div>
+                        </div>
+                        <div class="well" style="overflow: hidden">
+                            <p>Here is some text...</p>
+<!-- Added Gauge Loader --><div class="gauge-loading"></div>
+                            <div class="gauge-container" style="display: inline-block">
+                                <div id="lgauge" class="gauge"></div>
+                            </div>
+                            <div class="gauge-container" style="display: inline-block; position:relative; left: 10px;">
+                                <div id="rgauge" class="gauge"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="options">
+                        <input id="typeArea" name="seriesType" type="radio" value="area" checked="checked" autocomplete="off" />
+                        <label for="typeArea">Area</label>
+
+                        <input id="typeColumn" name="seriesType" type="radio" value="column" autocomplete="off" />
+                        <label for="typeColumn">Columns</label>
+
+                        <input id="typeBar" name="seriesType" type="radio" value="bar" autocomplete="off" />
+                        <label for="typeBar">Bars</label>
+
+                        <input id="typeLine" name="seriesType" type="radio" value="line" autocomplete="off" />
+                        <label for="typeLine">Lines</label>
+
+                        <input id="stack" type="checkbox" autocomplete="off" checked="checked" />
+                        <label for="stack">Stacked</label>
+
+<!-- Added Back in Totals for testing--> <div class="btn-group">
+                        <button class="btn btn-primary btn-sm total-bcws"></button>
+                        <button class="btn btn-info btn-sm total-bdwp"></button>
+                        <button class="btn btn-success btn-sm total-eac"></button>
+                        <button class="btn btn-warning btn-sm total-acwp"></button>
+                    </div>
+                    </div>
+                    <div id="chart">
+<!-- Moved Chart Loader--> <div class="chart-loading"></div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navbar navbar-default navbar-fixed-bottom">
+        <div class="navbar-header">
+            <p class="navbar-text navbar-left"><span class="k-icon k-i-custom"></span></p>
+        </div>
+        <p style="margin-right: 10px" class="navbar-text navbar-right"><span class="export-pdf k-icon k-i-pdf"></span></p>
+    </div>
+</div>
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="../assets/js/bootstrap.min.js"></script>
+<script>
+    var serviceRoot = "http://localhost:8000";//8000
+
+    $(document).ready(function() {
+        // var culture = kendo.culture();
+        //  console.log(culture.name);
+        /** Added Body Selector - this is needed**/
+        var body = $("body");
+        kendo.culture('en-GB');
+        /** console currency check**/
+        console.log(kendo.toString(1234.567, "c0"));//$1,235
+
+
+
+/************* CH
+ ************* Add Loading-Wheel to chart hierarchy and gauges
+ **/
+        showProgress(true);
+
+
+
+        createGauge();
+        createSplitters();
+
+/*************Updated Lines 144 to 153 ***************/
+        /** Begin Hierarchy Panel **/
+        var hierData =  hierListData();
+        hierListInitialize(hierData);
+        var chartData = ChartData();
+        var chartDataSource =  FilterChartData(chartData);
+        var chartTotals = chartDataSource.totals;
+        var chart = chartDataSource.graph;
+        displayTotals(chartTotals);
+        console.log(JSON.stringify(chartTotals));
+
+        var dataSourceMixed = new kendo.data.DataSource({
+            data: _.flatten(chart),
+            sort: {
+                field: "Date",
+                dir: "asc"
+            },
+            schema: {
+                model: {
+                    fields: {
+                        // IntValProjCurr: {type: "number"},
+                        Date: {type: "date"}
+                    }
+                }
+            }
+
+        });
+
+/************* Updated Series colors to match Total div for Testing *******/
+        var series = [
+            {
+                name: "BCWS",
+                type: "line",
+                field: "BCWS",
+                categoryField: "Date",
+                //data:BCWSdata,//_.pluck(BCWS, 'IntValProjCurr')
+                // Line chart marker type
+                color: "#428bca",
+                markers: {type: "circle"}
+            },
+            {
+                name: "BCWP",
+                type: "line",
+                field: "BCWP",
+                categoryField: "Date",
+                //data:BCWPdata,
+                color: "#5bc0de",
+                markers: {type: "circle"}
+            },
+            {
+                name: "EAC",
+                type: "line",
+                field: "EAC",
+                categoryField: "Date",
+                //data:EACdata,
+                color: "#5cb85c",
+                markers: {type: "circle"}
+            },
+            {
+                name: "ACWP",
+                type: "line",
+                field: "ACWP",
+                categoryField: "Date",
+                //data:ACWPdata,
+                color: "#f0ad4e",
+                markers: {type: "circle"}
+            }
+        ];
+
+        createChart(dataSourceMixed, series);
+
+        $(document).bind("kendo:skinChange", createChart);
+        $("li.options").bind("change", refreshChart);/** Changed Refresh Chart Name for clarity**/
+        var hierarchyList = $("div#treelist");
+        var chartSelector = $("div#chart");
+        //var dataTreeListSelected = treeList.dataItem(row);
+        //  console.log(dataTreeListSelected);
+
+
+/*********** New Hierarchy Button View Click Event ***************/
+        hierarchyList.on('click','tr button.js-hier',function(e){
+            e.preventDefault();
+            var chartdata = '',
+                    filteredSnapByParentId = '',
+                    filteredSnapByIndex = [],
+                    collectIndexes = [],
+                    chartFiltered = '';
+            console.log('hit selected row');
+            var $target = $(e.currentTarget),
+                    $treeList = hierarchyList.data("kendoTreeList"),
+                    $chartGraph = chartSelector.data("kendoChart"),
+                    $trParent = $target.parent().parent(),
+                    $rowIndex = $trParent.index(),
+                    $objectNumber = $target.data('objectNumber'),//data-objectNumber='#=data.ObjectNumber#'
+                    $children = $target.data('children');
+            // var treedata = treeList.dataSource.options.data;
+            //console.log(treedataObj);
+            /**
+             var id = treedataObj.ObjectNumber;
+             var parentid = treedataObj.ParentObjNum;**/
+            console.log($rowIndex);
+            chartdata = $chartGraph.dataSource.options.data;
+            switch($rowIndex){
+                case 0:
+                case 1:
+                    chartFiltered =  FilterChartData(chartdata);
+                    break;
+                default:
+                    if($children){
+                        var allChildIndexes = allNodes($($trParent),collectIndexes);
+                        console.log(JSON.stringify(allChildIndexes));
+                        var Indexes = _.without(allChildIndexes,-1);
+                        console.log(JSON.stringify(Indexes));
+                        $.each(Indexes,function(key,value){//[data-children="false"]
+                            filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[value].ObjectNumber});
+                        });
+                        console.log('multiple '+JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                        chartFiltered =  FilterChartData(filteredSnapByParentId);
+                    }else{
+                        filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[$rowIndex].ObjectNumber});
+                        console.log('single '+JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                        chartFiltered =  FilterChartData(filteredSnapByParentId);
+                    }
+                    break;
+            }
+
+            if(chartFiltered != undefined){
+                var chartTotalsFilteredBy =  _.flatten(chartFiltered.totals);
+                console.log(chartTotalsFilteredBy);
+                displayTotals(chartTotalsFilteredBy);
+
+                var chartFilteredByParentId =  _.flatten(chartFiltered.graph);
+                console.log(chartFilteredByParentId.length);
+                $chartGraph.dataSource.data(chartFilteredByParentId);
+                refreshChart();
+            }
+
+        });
+
+        $(".export-pdf").click(function () {
+            $("#chart").getKendoChart().saveAsPDF();
+        });
+
+/********** Changed Name of Chart Refresh Function **************/
+        function refreshChart() {
+            var chart = $("#chart").data("kendoChart"),
+                    type = $("input[name=seriesType]:checked").val(),
+                    stack = $("#stack").prop("checked");
+
+            for (var i = 0, length = series.length; i < length; i++) {
+                series[i].stack = stack;
+                series[i].type = type;
+            }
+            chart.setOptions({
+                series: series
+            });
+        }
+
+/******** Added Show Progress Spinners Time Out **************/
+        setTimeout(showProgress(false), 3500);
+
+    });//end of Doc Ready
+
+/******** Added Three funcitons from line 315 to 363 **************/
+    function displayTotals(data){
+        var bcwsTotalCost = kendo.toString(data[0].bcwsTotal, "c");
+        var bdwpTotalCost = kendo.toString(data[1].bdwpTotal, "c");
+        var eacTotalCost = kendo.toString(data[2].eacTotal, "c");
+        var acwpTotalCost = kendo.toString(data[3].acwpTotal, "c");
+        $('button.total-bcws').text(bcwsTotalCost);//'&#163;'+
+        $('button.total-bdwp').text(bdwpTotalCost);
+        $('button.total-eac').text(eacTotalCost);
+        $('button.total-acwp').text(acwpTotalCost);
+    }
+
+/******** New Function - I have also added these divs to the DOM ******/
+    function showProgress(boolean){
+        var loadingTree = $(document).find(".treelist-loading");
+        var loadingGauges = $(document).find(".gauge-loading");
+        var loadingChart = $(document).find(".chart-loading");
+        kendo.ui.progress(loadingTree, boolean);
+        kendo.ui.progress(loadingGauges, boolean);
+        kendo.ui.progress(loadingChart, boolean);
+
+    }
+
+/********* New Function ***********/
+    function allNodes(currentNode,arr){
+        var compile = arr;
+        var $next = currentNode.next();
+        var $check = currentNode.hasClass('k-treelist-group');
+        if(!$check){
+            compile.push(currentNode.index());
+            if(currentNode.length == 0) {
+                console.log('end');
+            }else{
+                if($next.length != 0) {
+                    if (!$next.hasClass('k-treelist-group')) {
+                        return allNodes($next, compile);
+                    }
+                }
+            }
+        }else{
+            if($check) {
+                console.log($next.length);
+                if($next.length == 0){
+                }else{
+                    return allNodes($next, compile);
+                }
+            }
+        }
+        return compile;
+    }
+
+    function createGauge() {
+        $("#lgauge").kendoRadialGauge({
+            pointer: {
+                value: 0.5
+            },
+            scale: {
+                minorUnit: 5,
+                startAngle: -30,
+                endAngle: 210,
+                min: 0,
+                max: 2
+            }
+        });
+        $("#rgauge").kendoRadialGauge({
+            pointer: {
+                value: 0.8
+            },
+            scale: {
+                minorUnit: 5,
+                startAngle: -30,
+                endAngle: 210,
+                min: 0,
+                max: 2
+            }
+        });
+    }
+
+    function createSplitters() {
+        $("#vertical").kendoSplitter({
+            orientation: "vertical",
+            panes: [
+                {collapsible: true},
+                {collapsible: true, size: "525px"}
+            ]
+        });
+
+        $("#horizontal").kendoSplitter({
+            panes: [
+                {collapsible: true, size: "350px"},
+                {collapsible: true}
+            ]
+        });
+    }
+
+
+/****** Updated Function ********/
+    function hierListData() {
+        var hierSource = '';
+        $.ajax({
+            url: "http://localhost/HierarchySet?$format=json",
+            method: "GET",
+            dataType: 'json',
+            async: false
+        }).success(function (response) {
+            hierSource = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('HierarchySet complete ');
+
+        });
+        return hierSource;
+    }
+    function hierListInitialize(data) {
+        $(document).find("#treelist").kendoTreeList({
+            dataSource: {
+                data: data,
+                schema: {
+                    parse: function (response) {
+                        //  console.log(response);
+                        var items = [];
+                        $.each(response, function (index, value) {
+                            var item = {
+                                "parentId": String(value.ParentObjNum).substr(2),
+                                "ParentObjNum": String(value.ParentObjNum).substr(2),
+                                "id": String(value.ObjectNumber).substr(2),
+                                "ObjectNumber": String(value.ObjectNumber).substr(2),
+                                "Type": value.Type,
+                                "ExtID": value.ExtID,
+                                "Description": value.Description,
+                                "Project": value.Project,
+                                "SortOrder": value.SortOrder
+                            };
+                            items.push(item);
+                        });
+                        // console.log(JSON.stringify(items));
+                        return items;
+                    },
+                    schema: {
+                        model: {
+                            //id: "id"
+                            expanded: true
+                        }
+                    }
+                },
+                dataBound: function (e) {
+                    /** Does Not work Yet ***
+                     var tv = $("#treelist").data("kendoTreeView");
+                     if (tv != null) {
+                    tv.expand(".k-item");
+                }**/
+                }
+            },
+            height: '250',
+            resizable: true,
+            //filterable: true,
+            //sortable: true,
+            header: false,
+            columns: [
+                {field: "ExtID", width: 160},
+            /** Added Action Button which can be changed as we need to **/
+                {field:"Action",width:80,"template":kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>View</button>")}
+            ]
+        });
+    }
+/** UPDATED  Functions from 486 to 604 **/
+    function ChartData() {
+        var rawData ='';
+        $.ajax({
+            url: "http://localhost/SnapshotSet?$format=json",
+            method: "GET",
+            dataType: 'json',
+            async: false
+        }).success(function (response) {
+            //dataChart = response.d.results;
+            rawData = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('request complete: SnapShotData');
+        });
+
+        return rawData;
+    }
+/** Updated Function **/
+    function FilterByHierList(hierArray,data){
+        var findParentIds = '';
+        var addValues = [];
+        var sendData = '';
+        if(_.isArray(hierArray)){
+            $.each(hierArray,function(k,v){
+                findParentIds = $.grep(data,function(item){
+                    return item.ObjectNumber === v.ObjectNumber;
+                });
+            });
+            console.log('Pushed ids '+ JSON.stringify(_.flatten(findParentIds).length));
+
+        }else{
+            return console.log('nothing in array');
+        }
+        sendData = _(findParentIds).chain()
+                .flatten(findParentIds)
+        /** .uniq(findParentIds, function(item, key,Date) {
+                           return item.Date;
+                       })**/
+                .value();
+        return sendData;
+    }
+/** Updated Function **/
+    function FilterChartData(results){
+        var master = {};
+        master.graph = [];
+        master.totals = [];
+        var data = _.flatten(results);
+        if(data.length === 0){
+            return alert('No Data to filter series.');
+        }
+        var BCWS = $.grep(data, function (item) {
+            if (item.Version === 'D02') {
+                return item.ValueType === '01';
+            }
+        });//filter data
+        var BCWP = $.grep(data, function (item) {
+            if (item.Version === 'D02') {
+                return item.ValueType === 'P2';
+            }
+        });//filter data
+        var EAC = $.grep(data, function (item) {
+            if (item.Version === 'EA1') {
+                return item;
+            }
+        });//filter data
+        var ACWP = $.grep(data, function (item) {
+            if (item.Version === '000') {
+                return item;
+            }
+        });//filter data
+        if(BCWS != undefined || ''){
+            var BCWSdata = _.map(_.where(BCWS), function (value) {
+                return {"BCWS": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+            });//convert IntValProjCurr key for Chart Series
+            var bcwsTotal = 0;
+            $.each(BCWSdata,function(key,value){
+                bcwsTotal += parseFloat(value.BCWS);
+            });
+            master.totals.push({"bcwsTotal" : bcwsTotal});//.toFixed(2)
+            master.graph.push(BCWSdata);//add array to master array
+        }
+        if(BCWP != undefined || '') {
+            var BCWPdata = _.map(_.where(BCWP), function (value) {
+                return {"BCWP": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+            });//convert IntValProjCurr key for Chart Series
+            var bdwpTotal = 0;
+            $.each(BCWPdata, function (key, value) {
+                bdwpTotal += parseFloat(value.BCWP);
+            });
+            master.totals.push({"bdwpTotal": bdwpTotal});//.toFixed(2)
+            master.graph.push(BCWPdata);//add array to master array
+        }
+        if(EAC != undefined || '') {
+            var EACdata = _.map(_.where(EAC), function (value) {
+                return {"EAC": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+            });//convert IntValProjCurr key for Chart Series
+            var eacTotal = 0;
+            $.each(EACdata, function (key, value) {
+                eacTotal += parseFloat(value.EAC);
+            });
+            master.totals.push({"eacTotal": eacTotal});//.toFixed(2)
+            master.graph.push(EACdata);//add array to master array
+        }
+        if(ACWP != undefined || '') {
+            var ACWPdata = _.map(_.where(ACWP), function (value) {
+                return {"ACWP": Number(value.IntValProjCurr),"IntValProjCurr": Number(value.IntValProjCurr),"ObjectNumber": value.ObjectNumber,"Version": value.Version,"ValueType":value.ValueType, "Date": value.Date}
+            });//convert IntValProjCurr key for Chart Series
+            var acwpTotal = 0;
+            $.each(ACWPdata, function (key, value) {
+                acwpTotal += parseFloat(value.ACWP);
+            });
+            master.totals.push({"acwpTotal": acwpTotal});//.toFixed(2)
+            master.graph.push(ACWPdata);//add array to master array
+        }
+        _.flatten(master.graph);
+        _.flatten(master.totals);
+        return master;
+    }
+
+
+    function createChart(dataSource, series) {
+        $("#chart").kendoChart({
+            pdf: {
+                fileName: "SnapShot Costs Export.pdf",
+                //proxyURL: "http://demos.telerik.com/kendo-ui/service/export"
+                proxyURL: serviceRoot + "/kendo-ui/service/export"
+            },
+            dataSource: dataSource,
+            chartArea: {
+                // width: 200,
+                height: 400
+            },
+            title: {
+                text: "SnapshotSet"
+            },
+            legend: {
+                position: "top"
+            },
+            seriesDefaults: {
+                type: "line",
+                markers: {
+                    size: 5
+                }
+            },
+            series: series,
+/**
+ * Unused function
+             render: function (e) {
+
+            var loading = $(".chart-loading", e.sender.element.parent());
+            kendo.ui.progress(loading, false);
+        },**/
+            categoryAxis: {
+                baseUnit: "fit",
+                title: {
+                    text: "Date"
+                },
+                field: "Date",
+                labels: {
+                    rotation: -60,
+                    dateFormats: {
+                        days: "M/YYYY"
+                    }
+                },
+/**Lowered Date Max for testing**/
+                maxDateGroups: 45,
+                crosshair: {
+                    visible: false
+                },
+                line: {
+                    visible: false
+                },
+                majorGridLines: {
+                    visible: false
+                }
+            },
+            valueAxis: {
+                // name: "Currency",
+                title: {text: ' Total'}//String('&#163;') +
+
+                /** Commented out This section as Kendo updates total values better with out it
+                 *  This is important for dynamically changing the data from the hierarchy selection
+                 *
+                 * **/
+                /**labels: {
+                format: "{0}"
+            },//String('&#163;') +
+                 majorUnit: 750000,
+                 min: 0**/
+            },
+            tooltip: {
+                visible: true,
+                shared: true,
+                // format: "{0}",//&#163; {0}
+                template: "#= kendo.format('{0:C}',value) #"
+            }
+        });
+    }
+</script>
+</body>
+</html>
