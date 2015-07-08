@@ -11,6 +11,7 @@
     <link href="./assets/css/kendo.bootstrap.min.css" rel="stylesheet">-->
     <link href="./assets/css/kendo.dataviz.bootstrap.min.css" rel="stylesheet">
     <link href="./assets/css/kendo.common-fiori.core.min.css" rel="stylesheet">
+    <link href="./assets/css/animate.css" rel="stylesheet">
 
     <script src="./assets/js/jszip.min.js"></script>
 
@@ -26,156 +27,146 @@
     <script src="assets/js/cultures/kendo.culture.en-GB.min.js"></script>
     <script src="./assets/js/kendo.all.js"></script>
     <!-- <script src="./assets/js/moment.js"></script>-->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
 </head>
-
 <body>
-
 <!-- Fixed navbar -->
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" target="_blank" href="http://www.dassian.com">
-                <img alt="Dassian UK" src="assets/img/dassian.png" width="100px"></a>
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="col-xs-6 navbar-header">
+        <a class="navbar-brand" target="_blank" href="http://www.dassian.com"><img alt="Dassian UK" src="assets/img/dassian.png" width="100px"></a>
+    </div>
+    <div class="col-xs-6 text-right" style="padding-top: 15px">
+        <p>Signed in as <a href="#" class="navbar-link">Tom Lau</a></p>
+    </div>
+</div>
+
+<div class="panel panel-default" style="height:100%;">
+    <div class="panel-heading">
+        <h3 class="panel-title">Project Analytics
+            <span class="pull-right dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>
+            <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+            </ul>
+            </span>
+        </h3>
+    </div>
+
+    <div id="vertical">
+        <div>
+            <div id="horizontal">
+                <div>
+                    <div class="treelist-loading"></div>
+                    <div id="treelist"></div>
+                </div>
+                <div>
+                    <p class="js-hier-title">Hierarch ExtId will show here now.</p>
+                    <div class="gauge-loading"></div>
+                    <div class="gauge-container" style="display: inline-block">
+                        <div id="lgauge" class="gauge"></div>
+                        <div id="lgaugeTitle" class="gaugeTitle">SPI</div>
+                    </div>
+                    <div class="gauge-container" style="display: inline-block; position:relative; left: 10px;">
+                        <div id="rgauge" class="gauge"></div>
+                        <div id="rgaugeTitle" class="gaugeTitle">CPI</div>
+                    </div>
+                    <!--div style="display: inline-block">
+                        <p>BAC = 123</p>
+                        <p>EAC = 234</p>
+                        <p>BAC = 123</p>
+                        <p>EAC = 234</p>
+                    </div-->
+                </div>
+            </div>
         </div>
-        <p style="margin-right: 5px" class="navbar-text navbar-right">Signed in as
-            <a href="#" class="navbar-link">Tom Lau</a></p>
+        <div>
+            <div class="chart-type-chooser">
+
+                <div class="btn-group pull-left">
+                <button class="btn btn-primary btn-sm total-bcws"></button>
+                <button class="btn btn-info btn-sm total-bcwp"></button>
+                <button class="btn btn-success btn-sm total-eac"></button>
+                <button class="btn btn-warning btn-sm total-acwp"></button>
+            </div>
+
+                <strong class="radio-group-label">Chart type</strong>
+                <ul class="radio-group">
+                    <li><input type="radio" name="seriesType" value="area" id="seriesType-combo"><label for="seriesType-combo">Area</label></li>
+                    <li><input type="radio" name="seriesType" value="column" id="seriesType-period"><label for="seriesType-period">Bar</label></li>
+                    <li><input type="radio" name="seriesType" value="line" id="seriesType-s-curve"checked><label for="seriesType-s-curve">Bullseye</label></li>
+                </ul>
+
+                <!--div class="btn-group">
+                    <button class="btn btn-primary btn-sm total-bcws"></button>
+                    <button class="btn btn-info btn-sm total-bdwp"></button>
+                    <button class="btn btn-success btn-sm total-eac"></button>
+                    <button class="btn btn-warning btn-sm total-acwp"></button>
+                </div-->
+            </div>
+            <div id="chart" ></div>
+            <div class="chart-loading"></div>
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-default navbar-fixed-bottom" style="padding :15px;">
+    <div class="col-xs-6 navbar-header">
+        <div class="dropup">
+            <a class=" dropdown-toggle" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="k-icon k-i-custom"></span>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                <li><a href="#">Ones</a></li>
+                <li><a href="#">Thousands</a></li>
+                <li><a href="#">Millions</a></li>
+                <li><a href="#">Billions</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="dropup" style="float:right;">
+        <a class="dropdown-toggle" id="dropdownMenu3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="navbar-link">Export to..</span></a>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu3" style="position: absolute; left: -130px">
+            <li><span class="export-pdf k-icon k-i-pdf"></span></li>
+            <!--li><span class="export-excel k-icon k-i-excel"></span></li-->
+        </ul>
     </div>
 </nav>
 
-<div class="container dashboard">
-    <div class="panel panel-default ">
-        <div class="panel-heading">
-            <h3 class="panel-title">Project Analytics
-                <span class="pull-right dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span
-                        class="k-icon k-i-hbars"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="#">Action</a></li>
-                    <li><a href="#">Another action</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Separated link</a></li>
-                </ul>
-                </span>
-            </h3>
-        </div>
-        <div class="panel-body" style="padding: 0; margin: 0;">
-            <!--   <div id="vertical" class="row" style="border: none">-->
-            <div id="top-pane" class="row">
-                <!--   <div id="horizontal" style="height: 100%; width: 100%;">-->
-                <div class="col-lg-6 col-md-6 col-sm-6">
-                    <div class="well" style="">
-                        <div class="treelist-loading"></div>
-                        <div id="treelist"></div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6 col-md-6 col-sm-6">
-                    <div class="well col-lg-12 col-md-12 col-sm-12 col-xs-12" style="min-height:292px;">
-                        <div class="gauge-loading"></div>
-
-                            <div  class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-                                <div class="gauge-container">
-                                <div id="lgauge"></div>
-                               <!-- <input id="gauge-value" class="form-control" value="1.5">-->
-                            </div>
-                        </div>
-                            <div  class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-                                <div class="gauge-container">
-                                <div id="rgauge"></div>
-                               <!-- <input id="gauge-value-bottom" class="form-control" value=".5">-->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- </div>-->
-            </div>
-            <div class="well well-sm">
-                <div class="dropdown">
-                    <button class="btn btn-default"><span class="export-pdf k-icon k-i-pdf"></span></button>
-                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        Charts
-                        <span class="caret"></span>
-                    </button>
-                    <div class="btn-group">
-                        <button class="btn btn-primary btn-sm total-bcws"></button>
-                        <button class="btn btn-info btn-sm total-bdwp"></button>
-                        <button class="btn btn-success btn-sm total-eac"></button>
-                        <button class="btn btn-warning btn-sm total-acwp"></button>
-                    </div>
-
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                        <li class="options">
-                            <label for="typeArea">Area</label>
-                            <input id="typeArea" name="seriesType" type="radio" value="area" autocomplete="off"/>
-                        </li>
-                        <li class="options">
-                            <label for="typeColumn">Columns</label>
-                            <input id="typeColumn" name="seriesType" type="radio" value="column" autocomplete="off"/>
-                        </li>
-                        <!-- <li class="options">
-                             <label for="typeBar">Bars</label>
-                             <input id="typeBar" name="seriesType" type="radio" value="bar" autocomplete="off"/>
-                         </li>
-                        <li class="options">
-                            <label for="typeBubble">Bubble</label>
-                            <input id="typeBubble" name="seriesType" type="radio" value="bubble" autocomplete="off"/>
-                        </li>-->
-                        <li class="options">
-                            <label for="typeLine">Lines</label>
-                            <input id="typeLine" name="seriesType" type="radio" value="line" autocomplete="off"
-                                   checked="checked"/>
-                        </li>
-                        <li class="options">
-                            <label for="stack">Stacked</label>
-                            <input id="stack" type="checkbox" autocomplete="off"/>
-                        </li>
-                    </ul>
-                </div>
-                <div class="container-fluid">
-
-                    <div id="chart">
-                        <div class="chart-loading"></div>
-                    </div>
-
-                </div>
-            </div>
-            <!--  </div>-->
-        </div>
-    </div>
-</div>
-<div class="navbar navbar-default navbar-fixed-bottom">
-    <div class="navbar-header">
-        <p class="navbar-text navbar-left"><span class="k-icon k-i-custom"></span></p>
-    </div>
-    <p style="margin-right: 10px" class="navbar-text navbar-right"><span class="export-pdf k-icon k-i-pdf"></span>
-    </p>
-</div>
-
-</body>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="./assets/js/bootstrap.min.js"></script>
+<script src="./assets/js/jszip.min.js"></script>
+<script src="./assets/js/jquery.min.js"></script>
+<script src="./assets/js/kendo.all.js"></script>
+<script src="./assets/js/underscore.js"></script>
+<script src="./assets/js/cultures/kendo.culture.en-GB.min.js"></script>
 <script>
+    var serviceRoot = "http://localhost";
 
-    $(document).ready(function () {
-        // var culture = kendo.culture();
-        //  console.log(culture.name);
+    $(document).ready(function() {
+        /** Added Body Selector - this is needed**/
         var body = $("body");
         kendo.culture('en-GB');
         /** console currency check**/
         console.log(kendo.toString(1234.567, "c0"));//$1,235
 
-        /** CH
-         * Add Loading-Wheel to chart hierarchy and gauges
-         * */
         showProgress(true);
-        /**  _.debounce(
-         kendo.ui.progress($(".treelist-loading"),false)
-         ,500);
-         _.debounce(kendo.ui.progress($(".gauge-loading"), false),750);
-         _.debounce(kendo.ui.progress($(".chart-loading"), false),1000);**/
+        createSplitters();
 
+        /** Begin Hierarchy Panel **/
+        var hierData = hierListData();
+        hierListInitialize(hierData);
         var chartData = ChartData();
         var chartDataSource = FilterChartData(chartData);
         var chartTotals = chartDataSource.totals;
@@ -184,50 +175,10 @@
         console.log(gaugesData);
         createGauge(gaugesData);
 
-        if (kendo.ui.Slider) {
-            $("#gauge-value").kendoSlider({
-                min: 0,
-                max: 2,
-                showButtons: true,
-                change: updateValueTop
-            });
-            $("#gauge-value-bottom").kendoSlider({
-                min: 0,
-                max: 2,
-                showButtons: true,
-                change: updateValueBottom
-            });
-        } else {
-            $("#gauge-value").change(updateValueTop);
-            $("#gauge-value-bottom").change(updateValueBottom);
-        }
-        function updateValueTop() {
-            $("#lgauge").data("kendoRadialGauge").value($("#gauge-value").val());
-        }
-
-        function updateValueBottom() {
-            $("#rgauge").data("kendoRadialGauge").value($("#gauge-value-bottom").val());
-        }
-
-        /** $(document).bind("kendo:skinChange", function (e) {
-            createGauge();
-        });**/
-
-
-        /** Begin Hierarchy Panel **/
-        var hierData = hierListData();
-        hierListInitialize(hierData);
-        // $('#treelist').find('tr.k-treelist-group').attr("aria-expanded",'true');
-        //  var data = hierData();
-        //  console.log(data);
-
-
-        // console.log(chartTotals);
         displayTotals(chartTotals);
-
-
         console.log(JSON.stringify(chartTotals));
         // console.log(JSON.stringify(chart));
+
         var dataSourceMixed = new kendo.data.DataSource({
             data: _.flatten(chart),
             sort: {
@@ -237,12 +188,10 @@
             schema: {
                 model: {
                     fields: {
-                        // IntValProjCurr: {type: "number"},
                         Date: {type: "date"}
                     }
                 }
             }
-
         });
 
         var series = [
@@ -251,8 +200,7 @@
                 type: "line",
                 field: "BCWS",
                 categoryField: "Date",
-                //data:BCWSdata,//_.pluck(BCWS, 'IntValProjCurr')
-                // Line chart marker type
+                //data:BCWSdata,
                 color: "#428bca",
                 markers: {type: "circle"}
             },
@@ -288,14 +236,26 @@
         createChart(dataSourceMixed, series);
 
         $(document).bind("kendo:skinChange", createChart);
-        $("li.options").bind("change", refreshChart);
+        $(".chart-type-chooser").bind("change", refreshChart);/** Changed Refresh Chart Name for clarity**/
         var hierarchyList = $("div#treelist");
+        _.debounce(expandTreeList(hierarchyList),500);
+
+       /** setTimeout(function(){
+            var $kGrid = hierarchyList.find('div.k-grid-content');
+            var $treeTr =  $kGrid.find('tr');
+          //  $treeTr.addClass('animated slideInRight');
+           // $treeTr.attr('aria-expanded','true');
+            $treeTr.eq(0).attr('aria-expanded','true').addClass('k-alt').removeAttr('style').find('td:first-child').find('span:nth-child(1)').toggleClass('k-i-expand k-i-collapse');
+            $treeTr.eq(1).attr('aria-expanded','true').addClass('k-alt').removeAttr('style').find('td:first-child').find('span:nth-child(2)').toggleClass('k-i-expand k-i-collapse');
+            $treeTr.eq(2).attr('aria-expanded','true').removeAttr('style');
+                    //.find('td:first-child').find('span:nth-child(3)').toggleClass('k-i-expand k-i-collapse');
+          //  $treeTr.eq(3).attr('aria-expanded','true');
+        },200);**/
+
         var chartSelector = $("div#chart");
-        //var dataTreeListSelected = treeList.dataItem(row);
-        //  console.log(dataTreeListSelected);
 
-
-        hierarchyList.on('click', 'tr button.js-hier', function (e) {
+        /*********** New Hierarchy Button View Click Event ***************/
+        hierarchyList.on('click','tr button.js-hier',function(e){
             e.preventDefault();
             var chartdata = '',
                     filteredSnapByParentId = '',
@@ -310,56 +270,54 @@
                     $rowIndex = $trParent.index(),
                     $objectNumber = $target.data('objectNumber'),//data-objectNumber='#=data.ObjectNumber#'
                     $children = $target.data('children');
-            // var treedata = treeList.dataSource.options.data;
-            //console.log(treedataObj);
-            /**
-             var id = treedataObj.ObjectNumber;
-             var parentid = treedataObj.ParentObjNum;**/
             console.log($rowIndex);
             chartdata = $chartGraph.dataSource.options.data;
-            switch ($rowIndex) {
+            /**Change Title**/
+            var extId = $treeList.dataSource.options.data[$rowIndex].ExtID;
+            var description = $treeList.dataSource.options.data[$rowIndex].Description;
+                $(document).find('.js-hier-title').text(extId+'  '+description);
+            /** end title change **/
+            switch($rowIndex){
                 case 0:
                 case 1:
-                    chartFiltered = FilterChartData(chartdata);
+                    chartFiltered =  FilterChartData(chartdata);
                     break;
                 default:
-                    if ($children) {
-                        var allChildIndexes = allNodes($($trParent), collectIndexes);
+                    if($children){
+                        var allChildIndexes = allNodes($($trParent),collectIndexes);
                         console.log(JSON.stringify(allChildIndexes));
-                        var Indexes = _.without(allChildIndexes, -1);
+                        var Indexes = _.without(allChildIndexes,-1);
                         console.log(JSON.stringify(Indexes));
-                        $.each(Indexes, function (key, value) {//[data-children="false"]
-                            filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[value].ObjectNumber});
+                        $.each(Indexes,function(key,value){//[data-children="false"]
+                            filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[value].ObjectNumber});
                         });
-                        console.log('multiple ' + JSON.stringify(filteredSnapByIndex));
-                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex, chartdata);
-                        chartFiltered = FilterChartData(filteredSnapByParentId);
-                    } else {
-                        filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[$rowIndex].ObjectNumber});
-                        console.log('single ' + JSON.stringify(filteredSnapByIndex));
-                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex, chartdata);
-                        chartFiltered = FilterChartData(filteredSnapByParentId);
+                        console.log('multiple '+JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                        chartFiltered =  FilterChartData(filteredSnapByParentId);
+                    }else{
+                        filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[$rowIndex].ObjectNumber});
+                        console.log('single '+JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                        chartFiltered =  FilterChartData(filteredSnapByParentId);
                     }
                     break;
             }
-
-            if (chartFiltered != undefined) {
-                var chartTotalsFilteredBy = _.flatten(chartFiltered.totals);
+            if(chartFiltered != undefined){
+                var chartTotalsFilteredBy =  _.flatten(chartFiltered.totals);
                 console.log(chartTotalsFilteredBy);
                 displayTotals(chartTotalsFilteredBy);
 
-                var chartFilteredByParentId = _.flatten(chartFiltered.graph);
+                var chartFilteredByParentId =  _.flatten(chartFiltered.graph);
                 console.log(chartFilteredByParentId.length);
                 $chartGraph.dataSource.data(chartFilteredByParentId);
                 refreshChart();
+
+
+                var gaugesData = _.flatten(chartFiltered.gauges);
+                createGauge(gaugesData);
             }
 
         });
-
-        body.on('keypress', hierarchyList, function (e) {
-            console.log('hit selected row');
-        });
-
 
         $(".export-pdf").click(function () {
             $("#chart").getKendoChart().saveAsPDF();
@@ -367,37 +325,40 @@
 
         function refreshChart() {
             var chart = $("#chart").data("kendoChart"),
-                    type = $("input[name=seriesType]:checked").val(),
-                    stack = $("#stack").prop("checked");
+                    type = $("input[name=seriesType]:checked").val()//,
+            //stack = $("#stack").prop("checked");
 
             for (var i = 0, length = series.length; i < length; i++) {
-                series[i].stack = stack;
+                //series[i].stack = stack;
                 series[i].type = type;
             }
-
             chart.setOptions({
                 series: series
             });
         }
 
-
+        /******** Added Show Progress Spinners Time Out **************/
         setTimeout(showProgress(false), 3500);
 
     });//end of Doc Ready
 
+    function expandTreeList(selector){
+        selector.data("kendoTreeList").expand(".k-treelist-group");
+        selector.data("kendoTreeList").expand(".k-alt");
+    }
+
     function displayTotals(data) {
         var bcwsTotalCost = kendo.toString(data[0].bcwsTotal, "c");
-        var bdwpTotalCost = kendo.toString(data[1].bdwpTotal, "c");
+        var bcwpTotalCost = kendo.toString(data[1].bcwpTotal, "c");
         var eacTotalCost = kendo.toString(data[2].eacTotal, "c");
         var acwpTotalCost = kendo.toString(data[3].acwpTotal, "c");
         $('button.total-bcws').text(bcwsTotalCost);//'&#163;'+
-        $('button.total-bdwp').text(bdwpTotalCost);
+        $('button.total-bcwp').text(bcwpTotalCost);
         $('button.total-eac').text(eacTotalCost);
         $('button.total-acwp').text(acwpTotalCost);
     }
 
-
-    function showProgress(boolean) {
+    function showProgress(boolean){
         var loadingTree = $(document).find(".treelist-loading");
         var loadingGauges = $(document).find(".gauge-loading");
         var loadingChart = $(document).find(".chart-loading");
@@ -407,27 +368,26 @@
 
     }
 
-
-    function allNodes(currentNode, arr) {
+    function allNodes(currentNode,arr){
         var compile = arr;
         var $next = currentNode.next();
         var $check = currentNode.hasClass('k-treelist-group');
-        if (!$check) {
+        if(!$check){
             compile.push(currentNode.index());
-            if (currentNode.length == 0) {
+            if(currentNode.length === 0) {
                 console.log('end');
-            } else {
-                if ($next.length != 0) {
+            }else{
+                if($next.length != 0) {
                     if (!$next.hasClass('k-treelist-group')) {
                         return allNodes($next, compile);
                     }
                 }
             }
         } else {
-            if ($check) {
+            if($check) {
                 console.log($next.length);
-                if ($next.length == 0) {
-                } else {
+                if($next.length === 0){
+                }else{
                     return allNodes($next, compile);
                 }
             }
@@ -439,8 +399,8 @@
         if (data.length === 0) {
             return alert('Gauge Data error: No Data.');
         }
-        var spi = Number(data[0].spi).toFixed(2);
-        var cpi = Number(data[1].cpi).toFixed(3);
+        var spi = Number(data[0].spi);
+        var cpi = Number(data[1].cpi);
         if (!_.isNumber(spi)) {
             spi = 0;
         }
@@ -450,8 +410,8 @@
         //master.gauges[0].spi master.gauges[1].cpi
         $("#lgauge").kendoRadialGauge({
             /**pointer: {
-                value: $("#gauge-value").val()
-            },**/
+        value: $("#gauge-value").val()
+    },**/
             pointer: {
                 value: spi
             },
@@ -502,8 +462,8 @@
         });
         $("#rgauge").kendoRadialGauge({
             /**pointer: {
-                value: $("#gauge-value-bottom").val()
-            },**/
+        value: $("#gauge-value-bottom").val()
+    },**/
             pointer: {
                 value: cpi
             },
@@ -555,10 +515,51 @@
         });
     }
 
+    function createSplitters() {
+        $("#vertical").kendoSplitter({
+            orientation: "vertical",
+            panes: [
+            /**Top**/
+                { collapsed: false,
+                    collapsible: true,
+                    collapsedSize: "10%",
+                    size: "35%",
+                    max: "40%"},
+            /**Bottom**/
+                { collapsed: false,
+                    collapsible: true,
+                    collapsedSize: "10%",
+                    size: "65%",
+                    max: "90%"
+                }
+            ]
+        });
+
+        $("#horizontal").kendoSplitter({
+            panes: [
+            /**Left**/
+                { collapsed: false,
+                    collapsible: true,
+                    collapsedSize: "25%",
+                    size: "40%",
+                    max: "65%"
+                },
+            /**Right**/
+                { collapsed: false,
+                    collapsible: true,
+                    scrollable: true,
+                    collapsedSize: "40%",
+                    max: "75%",
+                    size: "60%"
+                    }
+            ]
+        });
+    }
+
     function hierListData() {
         var hierSource = '';
         $.ajax({
-            url: "http://localhost/HierarchySet?$format=json",
+            url: serviceRoot + "/HierarchySet?$format=json",
             method: "GET",
             dataType: 'json',
             async: false
@@ -574,15 +575,11 @@
     }
 
     function hierListInitialize(data) {
-        /**  var loadingTree = $(document).find(".treelist-loading");
-         _.debounce(kendo.ui.progress(loadingTree, false), 1000);**/
-
         $(document).find("#treelist").kendoTreeList({
             dataSource: {
                 data: data,
                 schema: {
                     parse: function (response) {
-                        //  console.log(response);
                         var items = [];
                         $.each(response, function (index, value) {
                             var item = {
@@ -598,8 +595,6 @@
                             };
                             items.push(item);
                         });
-                        // console.log(JSON.stringify(items));
-
                         return items;
                     },
                     schema: {
@@ -610,42 +605,33 @@
                     }
                 },
                 dataBound: function (e) {
-                    /**  var tv = $("#treelist").data("kendoTreeView");
+                    /** Does Not work Yet ***
+                     var tv = $("#treelist").data("kendoTreeView");
                      if (tv != null) {
-                        tv.expand(".k-item");
-                    }**/
+            tv.expand(".k-item");
+        }**/
                 }
             },
-            height: '250',
-            selectable: true,
+            //height: '250',
+            resizable: true,
             //filterable: true,
             //sortable: true,
-            resizable: true,
+            header: false,
             columns: [
-                {field: "ExtID", title: "ID", width: 200},
-                //{ field: "ParentObjNum", title: "Parent", width: 120 },
-                //  { field: "ObjectNumber", title: "Child", width: 120 },
-                // {field: "Project", width: 75, title: "Project"},
-                {field: "Description", width: 130, title: "Description"},
-                {
-                    field: "Action",
-                    width: 80,
-                    "template": kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>View</button>")
-                }
-                // { field: "ObjectNumber" }
+                {field: "ExtID", width: 160},
+                {field:"Action",width:80,"template":kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>View</button>")}
             ]
         });
     }
 
     function ChartData() {
-        var rawData = '';
+        var rawData ='';
         $.ajax({
-            url: "http://localhost/SnapshotSet?$format=json",
+            url: serviceRoot + "/SnapshotSet?$format=json",
             method: "GET",
             dataType: 'json',
             async: false
         }).success(function (response) {
-            //dataChart = response.d.results;
             rawData = response.d.results;
         }).error(function (err) {
             alert('error ' + err);
@@ -655,26 +641,24 @@
 
         return rawData;
     }
-    function FilterByHierList(hierArray, data) {
+
+    function FilterByHierList(hierArray,data){
         var findParentIds = '';
         var addValues = [];
         var sendData = '';
-        if (_.isArray(hierArray)) {
-            $.each(hierArray, function (k, v) {
-                findParentIds = $.grep(data, function (item) {
+        if(_.isArray(hierArray)){
+            $.each(hierArray,function(k,v){
+                findParentIds = $.grep(data,function(item){
                     return item.ObjectNumber === v.ObjectNumber;
                 });
             });
-            console.log('Pushed ids ' + JSON.stringify(_.flatten(findParentIds).length));
+            console.log('Pushed ids '+ JSON.stringify(_.flatten(findParentIds).length));
 
-        } else {
+        }else{
             return console.log('nothing in array');
         }
         sendData = _(findParentIds).chain()
                 .flatten(findParentIds)
-        /** .uniq(findParentIds, function(item, key,Date) {
-                           return item.Date;
-                       })**/
                 .value();
         return sendData;
     }
@@ -699,26 +683,22 @@
     }
 
     // Decimal round
-
     Math.round10 = function(value, exp) {
         return decimalAdjust('round', value, exp);
     };
 
     // Decimal floor
-
     Math.floor10 = function(value, exp) {
         return decimalAdjust('floor', value, exp);
     };
 
     // Decimal ceil
-
     Math.ceil10 = function(value, exp) {
         return decimalAdjust('ceil', value, exp);
     };
 
-
-
     function FilterChartData(results) {
+      //  console.log('FilterChartData '+JSON.stringify(results));
         var master = {};
         master.graph = [];
         master.totals = [];
@@ -776,11 +756,11 @@
                     "Date": value.Date
                 }
             });//convert IntValProjCurr key for Chart Series
-            var bdwpTotal = 0;
+            var bcwpTotal = 0;
             $.each(BCWPdata, function (key, value) {
-                bdwpTotal += parseFloat(value.BCWP);
+                bcwpTotal += parseFloat(value.BCWP);
             });
-            master.totals.push({"bdwpTotal": bdwpTotal});//.toFixed(2)
+            master.totals.push({"bcwpTotal": bcwpTotal});//.toFixed(2)
             master.graph.push(BCWPdata);//add array to master array
         }
         if (EAC != undefined || '') {
@@ -821,35 +801,38 @@
         }
         _.flatten(master.totals);
 
-        var spiTotal = (bdwpTotal / bcwsTotal);
-        var cpiTotal = (bdwpTotal / acwpTotal);
-        console.log(Math.floor10(spiTotal,-2) + '  ' + Math.floor10(cpiTotal,-3));
-        master.gauges.push({'spi': Math.floor10(spiTotal,-2)});//master.gauges[0].spi
-        master.gauges.push({'cpi': Math.floor10(cpiTotal,-3)});//master.gauges[1].cpi
+        var roundbcwpTotal = Math.ceil10(bcwpTotal,-5);
+        var roundbcwsTotal = Math.ceil10(bcwsTotal,-5);
+        var roundacwpTotal = Math.ceil10(acwpTotal,-5);
+        console.log('Before Decimal Rounding '+roundbcwpTotal + '  ' + roundbcwsTotal + ' '+ roundacwpTotal);
+        var spiTotal = (roundbcwpTotal / roundbcwsTotal);
+        var cpiTotal = (roundbcwpTotal / roundacwpTotal);
+        console.log('Before Check '+Math.ceil10(spiTotal,-1) + '  ' + Math.ceil10(cpiTotal,-3));
+        if(isNaN(spiTotal)){
+            spiTotal = 0;
+        }
+        if(isNaN(cpiTotal)){
+            cpiTotal = 0;
+        }
+        console.log('After Check '+spiTotal + '  ' + cpiTotal);
+        master.gauges.push({'spi': Math.ceil10(spiTotal,-1)});//master.gauges[0].spi
+        master.gauges.push({'cpi': Math.ceil10(cpiTotal,-3)});//master.gauges[1].cpi
         _.flatten(master.graph);
         _.flatten(master.gauges);
 
         return master;
     }
 
-
-
-
     function createChart(dataSource, series) {
-        /** var loadingChart = $(document).find(".chart-loading");
-         _.debounce(kendo.ui.progress(loadingChart, false),1000);**/
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
-                proxyURL: "http://localhost/kendo-ui/service/export"
+                proxyURL: serviceRoot + "/kendo-ui/service/export"
             },
             dataSource: dataSource,
             chartArea: {
-                //width: 500,
-                height: 450
-            },
-            title: {
-                text: "SnapshotSet"
+                // width: 200,
+              //  height: 400
             },
             legend: {
                 position: "top"
@@ -862,12 +845,6 @@
                 }
             },
             series: series,
-            render: function (e) {
-                // Clear up the loading indicator for this chart
-                // var loading = $(".chart-loading");//, e.sender.element.parent()
-                //  kendo.ui.progress($(".chart-loading"), false);
-                //  kendo.ui.progress(loading, false);
-            },
             categoryAxis: {
                 baseUnit: "fit",
                 title: {
@@ -892,89 +869,15 @@
                 }
             },
             valueAxis: {
-                // name: "Currency",
-                title: {text: ' Total'}//String('&#163;') +
-                /** labels: {
-                    format: "{0}"
-                },//String('&#163;') +
-                 majorUnit: 500000,
-                 min: 1000
-                 // max: 11000000**/
+                title: {text: ' Total'}
             },
             tooltip: {
                 visible: true,
                 shared: true,
-                // format: "{0}",//&#163; {0}
                 template: "#= kendo.format('{0:C}',value) #"
             }
         });
     }
-
-
-    /**dataSource.fetch(function() {
-        var data = dataSource.data();
-        $.each(data,function(key,value){
-            console.log(value.Date);
-        });
-    }); **/
-
-
-    /**
-     _.map(
-     _.where(people, {city : "ny"}),
-     function(person) {
-               return { firstName: person.firstName, qty: person.qty };
-            }
-     );
-     **/
-
-
-
-
-    /**dataSource = new kendo.data.DataSource({
-           // type: "odata",
-            data:rawData,
-            sort: {
-                field: "Date",
-                dir: "asc"
-            },
-            schema: {
-                parse: function (response) {
-                    //console.log(response.d.results);
-                    var items = {};
-                    items.d = {};
-                    items.d.results = [];
-                    $.each(response.d.results, function (index, value) {
-                        var item = {
-                         "ObjectNumber": value.ObjectNumber,
-                            "Version": value.Version,
-                            "ValueType": value.ValueType,
-                            "TransactionType": value.TransactionType,
-                            "ObjCurr": value.ObjCurr,
-                            "Date": value.Date,
-                           // "IntValProjCurr": value.IntValProjCurr
-                            "ExtValProjCurr": value.ExtValProjCurr,
-                            "IntValCOArCurr": value.IntValCOArCurr,
-                            "ExtValCoArCurr": value.ExtValCoArCurr,
-                            "Quantity": value.Quantity,
-                            "Project": value.Project
-                        };
-
-                        items.d.results.push(item);
-                    });
-                    // console.log(JSON.stringify(items));
-                    return items.d.results;
-                },
-                model: {
-                    fields: {
-                       // IntValProjCurr: {type: "number"},
-                        Date: {type: "date"}
-                    }
-                }
-            }
-
-        });**/
-
 </script>
-
+</body>
 </html>
