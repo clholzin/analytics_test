@@ -97,6 +97,9 @@
                 <button class="btn btn-info btn-sm total-bcwp"></button>
                 <button class="btn btn-success btn-sm total-eac"></button>
                 <button class="btn btn-warning btn-sm total-acwp"></button>
+                    <button class="btn btn-default btn-sm">TCPIeac: <span class="total-tcpi"></span></button>
+                    <button class="btn btn-default btn-sm">BAC: <span class="total-bac"></span></button>
+                    <button class="btn btn-default btn-sm">EAC:<span class="total-eacCum"></span></button>
             </div>
 
                 <strong class="radio-group-label">Chart type</strong>
@@ -352,10 +355,16 @@
         var bcwpTotalCost = kendo.toString(data[1].bcwpTotal, "c");
         var eacTotalCost = kendo.toString(data[2].eacTotal, "c");
         var acwpTotalCost = kendo.toString(data[3].acwpTotal, "c");
+        var eacCum = kendo.toString(data[4].eacCum, "c");
+        var bac = kendo.toString(data[5].bac, "c");
+        var tcpi = kendo.toString(data[6].tcpi);
         $('button.total-bcws').text(bcwsTotalCost);//'&#163;'+
         $('button.total-bcwp').text(bcwpTotalCost);
         $('button.total-eac').text(eacTotalCost);
         $('button.total-acwp').text(acwpTotalCost);
+        $('span.total-tcpi').text(tcpi);
+        $('span.total-bac').text(bac);
+        $('span.total-eacCum').text(eacCum);
     }
 
     function showProgress(boolean){
@@ -388,7 +397,7 @@
                 console.log($next.length);
                 if($next.length === 0){
                 }else{
-                    return allNodes($next, compile);
+                        return allNodes($next, compile);
                 }
             }
         }
@@ -647,18 +656,20 @@
         var addValues = [];
         var sendData = '';
         if(_.isArray(hierArray)){
+          //  console.log('nodes used'+ hierArray);
             $.each(hierArray,function(k,v){
                 findParentIds = $.grep(data,function(item){
                     return item.ObjectNumber === v.ObjectNumber;
                 });
+                addValues.push(findParentIds);
             });
-            console.log('Pushed ids '+ JSON.stringify(_.flatten(findParentIds).length));
+            console.log('FilterByHierList length'+ JSON.stringify(_.flatten(addValues).length));
 
         }else{
             return console.log('nothing in array');
         }
-        sendData = _(findParentIds).chain()
-                .flatten(findParentIds)
+        sendData = _(addValues).chain()
+                .flatten(addValues)
                 .value();
         return sendData;
     }
@@ -727,6 +738,13 @@
                 return item;
             }
         });//filter data
+        var ETC = $.grep(data, function (item) {
+            if (item.Version === 'EA1') {
+                return item.ValueType === '01';
+            }
+        });//filter data
+
+
         if (BCWS != undefined || '') {
             var BCWSdata = _.map(_.where(BCWS), function (value) {
                 return {
@@ -799,11 +817,34 @@
             master.totals.push({"acwpTotal": acwpTotal});//.toFixed(2)
             master.graph.push(ACWPdata);//add array to master array
         }
-        _.flatten(master.totals);
-
+        if (ETC != undefined || '') {
+            var ETCdata = _.map(_.where(ETC), function (value) {
+                return {"ETC": Number(value.IntValProjCurr)}
+            });//convert IntValProjCurr key for Chart Series
+            var etcTotal = 0;
+            $.each(ETCdata, function (key, value) {
+                etcTotal += parseFloat(value.ETC);
+            });
+            console.log("etcTotal: "+ etcTotal);
+           // master.totals.push({"etcTotal": etcTotal});//.toFixed(2)
+            // master.graph.push(ETCdata);//add array to master array
+        }
+        var roundetcTotal = Math.ceil10(etcTotal,-5);
         var roundbcwpTotal = Math.ceil10(bcwpTotal,-5);
         var roundbcwsTotal = Math.ceil10(bcwsTotal,-5);
         var roundacwpTotal = Math.ceil10(acwpTotal,-5);
+
+        var eacCum = (roundetcTotal + roundacwpTotal);
+        master.totals.push({"eacCum": Math.ceil10(eacCum,-2)});
+
+        var bac = roundbcwsTotal;
+        master.totals.push({"bac": Math.ceil10(bac,-2)});
+
+        var tcpi = (bac - roundbcwpTotal)/(eacCum - roundacwpTotal);
+        master.totals.push({"tcpi": Math.ceil10(tcpi,-2)});
+
+        _.flatten(master.totals);
+
         console.log('Before Decimal Rounding '+roundbcwpTotal + '  ' + roundbcwsTotal + ' '+ roundacwpTotal);
         var spiTotal = (roundbcwpTotal / roundbcwsTotal);
         var cpiTotal = (roundbcwpTotal / roundacwpTotal);
