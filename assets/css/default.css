@@ -1,5 +1,5 @@
 body {
-   /** padding-top:35px;**/
+    /** padding-top:35px;**/
     padding:55px 0 0 1%;
     /**padding-bottom:35px;**/
     width: auto;
@@ -44,6 +44,7 @@ body {
     margin: -10px auto 0;
     color: #727f8e;
     font-weight: bold;
+    cursor:hand;
 }
 
 .details-container {
@@ -53,7 +54,7 @@ body {
 }
 .js-hier-title{
     padding:0 0 0 20%;
-   /** text-align: center;**/
+    /** text-align: center;**/
 }
 #chart {
     height:85%;

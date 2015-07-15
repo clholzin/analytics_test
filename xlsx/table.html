@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;">
+
+    <script type="text/javascript" src="../assets/js/jquery.min.js"></script>
+    <script type="text/javascript" src="../assets/js/underscore.js"></script>
+    <script type="text/javascript" src="./../assets/js/browser.js"></script>
+    <!-- <script type="text/javascript" src="../assets/js/jszip.min.js"></script>
+    <script type="text/javascript"  src="./table_files/ga.js"></script>
+        <script type="text/javascript" src="./table_files/xlsx.core.min.js"></script>
+    <script type="text/javascript" src="./table_files/xlsx_styles.js"></script>
+    <script type="text/javascript" src="./table_files/Blob.js"></script>
+    <script type="text/javascript" src="./table_files/FileSaver.js"></script>
+    <script type="text/javascript" src="./table_files/Export2Excel.js"></script>-->
+    <script type="text/javascript"  src="./table_files/ga.js"></script>
+    <script type="text/javascript" src="./../assets/js/base64.js"></script>
+    <script type="text/javascript" src="./table_files/Blob.js"></script>
+    <script type="text/javascript" src="./table_files/FileSaver.js"></script>
+    <script type="text/javascript" src="./../assets/js/jquery.table2excel.js"></script>
+    <script>
+        function doit() {
+            export_table_to_excel('table', 'WORK_BREAKDOWN_STRUCTURE');
+        }
+        function doitTemplate(name) {
+            create_template_excel(name);
+        }
+
+    </script>
+    <script>
+        $(document).ready(function () {
+            var html = '';
+            var none = '';
+            for (var i = 1; i <= 4; i++) {
+                html += '<td  style="border:1px solid #000;">' + i + '</td>';
+                none += '<td ></td>';
+            }
+            $('#table-conf1').html(html);
+            $('#table-conf2').html(html);
+        });
+    </script>
+    <script type="text/javascript">
+        var tableToExcel = (function () {
+            var uri = 'data:application/vnd.ms-excel;base64,'
+                    , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'
+                    , base64 = function (s) {
+                        return window.btoa(unescape(encodeURIComponent(s)))
+                    }
+                    , format = function (s, c) {
+                        return s.replace(/{(\w+)}/g, function (m, p) {
+                            return c[p];
+                        })
+                    }
+            return function (table, name) {
+                if (!table.nodeType) table = document.getElementById(table);
+                var ctx = {worksheet: name || 'Worksheet', table: table.innerHTML};
+                window.location.href = uri + base64(format(template, ctx))
+            }
+        })()
+    </script>
+    <script>
+        function ExportTable(selector, DocName, fileName) {
+            $(selector).table2excel({
+                // exclude: ".noExl",
+                exclude: "",
+                name: DocName,
+                filename: fileName
+            });
+        }
+
+    </script>
+</head>
+
+<body>
+<h2>Jquery table to Excel Export Demo</h2>
+<input type="button" onclick="ExportTable('#sampleTable', 'CPR4','Report_4')" style="padding:10px 15px;" value="First Table to Excel">
+
+<br>
+
+
+<table id="sampleTable" width="900" align="center" border='0' cellspacing='0' cellpadding='0'>
+    <tr>
+        <td valign='bottom' colspan='3' style='width:100px;font-size:13px;padding:2px;height:20px; border-top:thin solid black; border-left:thin solid black;  border-bottom:thin solid black;'>
+            CLASSIFICATION (when filled in)
+        </td>
+        <td  colspan='20' style='border-top:thin solid black; border-right:thin solid black;  border-bottom:thin solid black;font-size:13px;padding:2px;'></td>
+    </tr>
+
+
+    <tr>
+        <td style='font-size:13px;padding:2px; border-left:thin solid black;' colspan='2'></td>
+
+        <td valign='bottom' align="center" colspan='12' style='width:100px;border-top:none;border-bottom:none; font-size:13px;padding:2px;height:20px;'>
+            CONTRACT PERFORMANCE REPORT
+        </td>
+
+        <td style='font-size:13px;padding:2px; border-right:thin solid black;' colspan='7'></td>
+
+        <td valign='bottom'  colspan='2' style='width:49px;border-top:none;border-left:none;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            Form Approved
+        </td>
+    </tr>
+
+
+    <tr>
+        <td colspan='2' style='font-size:13px;padding:2px; border-left:thin solid black; border-bottom:solid black 1px;' ></td>
+        <td valign='bottom' align="center" colspan='12' style='width:100px;border-top:none;border-bottom:solid black 1px; font-size:13px;padding:2px;height:20px;'>
+            FORMAT 4 - STAFFING
+        </td>
+        <td colspan='7' style='font-size:13px;padding:2px;border-bottom:thin solid black; border-right:thin solid black;' ></td>
+
+        <td valign='bottom' colspan='2' style='width:49px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            OMB No. 0704-0188
+        </td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom'
+            style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:solid black 1px;border-right:none;font-size:13px;padding:2px;height:20px;'>
+            1. CONTRACTOR
+        </td>
+
+        <td valign='bottom' style='width:49px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom'
+            style='width:44px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td valign='bottom' style='width:63px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            2. CONTRACT
+        </td>
+
+        <td valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:95px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:74px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign="bottom" style="width:44px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;"></td>
+
+        <td colspan='2' valign='bottom' style='width:48px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            3. PROGRAM
+        </td>
+
+        <td colspan='2' valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:30px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign="bottom" style="width:44px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;"></td>
+        <td colspan='3' valign='bottom' style='width:58px;border-top:none;border-left:none;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            4. REPORT PERIOD
+        </td>
+
+        <td colspan='3' style='border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;'></td>
+    </tr>
+
+
+    <tr>
+        <td valign='middle' style='width:100px;border-left:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            a.NAME
+        </td>
+
+        <td valign='bottom' style='width:49px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td valign='middle' style='width:63px;font-size:13px;padding:2px;height:20px;'>
+            a. NAME
+        </td>
+
+        <td valign='bottom' style='width:54px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:95px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td colspan='2' valign='middle' style='width:38px;font-size:13px;padding:2px;height:20px;'>
+            a.NAME
+        </td>
+
+        <td colspan='2' valign='bottom' style='width:58px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:30px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:68px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td colspan='2' valign='middle' style='width:58px;border-right:none;font-size:13px;padding:2px;height:20px;'>
+            a. FROM (YYYYMMDD)
+        </td>
+
+        <td colspan='2' style='border-bottom:none;font-size:13px;padding:2px;'></td>
+        <td colspan='2' style='border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;'></td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:solid black 1px;border-right:none;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td valign='bottom' style='width:49px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td valign='middle' style='width:63px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            1234
+        </td>
+        <td valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:95px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:38px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:30px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:68px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;font-size:13px;padding:2px; height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;font-size:13px;padding:2px; height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+    </tr>
+
+
+    <tr>
+        <td valign='middle' style='width:100px;border-left:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            b.LOCATION (Address and ZIP code)
+        </td>
+        <td valign='bottom' style='width:49px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td valign='middle' style='width:63px;font-size:13px;padding:2px;height:20px;'>
+            b. NUMBER
+        </td>
+
+        <td valign='bottom' style='width:54px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:95px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td colspan='2' valign='middle' style='width:38px;font-size:13px;padding:2px;height:20px;'>
+            b. PHASE
+        </td>
+        <td colspan='2' valign='bottom' style='width:30px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:30px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:68px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+
+        <td colspan='4' valign='bottom' style='width:58px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' style='width:100px;border-left:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:49px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:63px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            No Mod Contract
+        </td>
+        <td valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:95px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:38px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:30px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='middle' style='width:68px;font-size:13px;padding:2px;height:20px;'>
+            b.TO (YYYYMMDD)
+        </td>
+        <td colspan='4' style='border-right:solid black 1px; font-size:13px;padding:2px;' ></td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' style='width:100px;border-left:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:49px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:44px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td valign='middle' style='width:63px;font-size:13px;padding:2px;height:20px;'>
+            c.TYPE
+        </td>
+
+        <td valign='bottom' style='width:54px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:95px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='middle' style='width:44px;font-size:13px;padding:2px;height:20px;'>
+            d.SHARE RATIO
+        </td>
+        <td colspan='2' valign='bottom' style=' border-right:solid black 1px; width:54px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;font-size:13px;padding:2px;height:20px;'>
+            c.EVMS ACCEPTANCE
+        </td>
+        <td colspan='2' valign='bottom' style='width:38px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:58px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:30px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td colspan='2' valign='bottom' style='width:30px;border-bottom:none;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:68px;border-top:none;border-left:none;border-bottom:none;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2'  style='width:68px;border-top:none;border-right:thin solid black;border-bottom:none;font-size:13px;padding:2px;height:20px;'></td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:solid black 1px;border-right:none;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:49px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom'
+            style='width:44px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:63px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:54px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:95px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td valign='middle' style='width:44px;border-top:none;border-left:none;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            000/100 000/100
+        </td>
+
+        <td colspan='2' valign='bottom' style='border-bottom:solid black 1px; width:58px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td colspan='2' valign='middle' style=' width:58px;border-bottom:solid black 1px;border-left:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            NO
+        </td>
+
+        <td colspan='2' valign='bottom' style='width:38px;border:solid black 1px;font-size:13px;padding:2px;height:20px;'> X</td>
+
+        <td colspan='2' valign='middle' style='width:58px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            YES (YYYYMMDD)
+        </td>
+
+        <td colspan='2' valign='bottom' style='width:30px;border:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+
+        <td colspan='2' valign='bottom' style='width:30px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+
+        <td colspan='2' valign='bottom' style='width:30px;border-bottom:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td colspan='2' valign='bottom' style='width:68px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td style='font-size:13px;padding:2px;' colspan='4'></td>
+    </tr>
+
+
+    <tr style='height:20px; '>
+        <td valign='bottom' colspan="21" style='width:100px;font-size:13px;padding:2px;height:20px; border-top:none;border-left:solid black 1px;border-bottom:solid black 1px;'>
+            5.
+            PERFORMANCE DATA
+        </td>
+        <td style='font-size:13px;padding:2px;border-bottom:solid black 1px; border-right:1px solid #000000;' colspan='2'></td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' colspan='2' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+
+        </td>
+        <td align="center" colspan='2'  valign='bottom' style=' border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            PLAN
+        </td>
+        <td align="center" colspan='2' valign='bottom' style=' border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            PLAN
+        </td>
+        <td valign='bottom' align="center" colspan='17' style=' border-right:solid black 1px;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            FORECAST (non-Cumulative)
+        </td>
+
+    </tr>
+
+
+    <tr>
+        <td align="center" colspan='2' valign='bottom' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            ORGANIZATIONAL
+        </td>
+        <td align="center" colspan='2' valign='top' style=' border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+             CURRENT PERIOD
+        </td>
+        <td align="center" colspan='2' valign='top' style=' border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            END OF CURRENT PERIOD   [cum]
+        </td>
+        <td align="center" valign='middle' colspan='6' style=' border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            SIX MONTH FORECAST (Enter Names of
+            Months)
+        </td>
+        <td align="center" valign='middle' colspan='5' style=' border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            ENTER SPECIFIED PERIODS
+        </td>
+        <td valign='middle' align="center" colspan='6' style=' border-right:solid black 1px; font-size:13px;padding:2px;height:20px;'>
+            AT COMPLETION
+        </td>
+
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' colspan='2' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            CATEGORY
+        </td>
+        <td valign='bottom' colspan='2' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+
+        </td>
+        <td valign='top' colspan='2' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            JAN
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            FEB
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            MAR
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            APR
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            MAY
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            JUN
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            1
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            2
+        </td>
+        <td align="center"  valign='bottom' style='width:30px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            3
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            4
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            TC
+        </td>
+        <td align="center" colspan='6' valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+
+        </td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' colspan='2' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' colspan='2' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' colspan='2' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+
+        </td>
+        <td valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' colspan='6' style='border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+
+        </td>
+    </tr>
+
+
+    <tr>
+        <td valign='bottom' colspan='2' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' colspan='2' style='width:49px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' colspan='2' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'> </td>
+        <td valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+        <td  valign='bottom' colspan='6' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'></td>
+    </tr>
+
+
+    <tr>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border:solid black 1px;border-top:none;font-size:13px;padding:2px;height:20px;'>
+            [1]
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:49px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [2]
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [3]
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [4]
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [5]
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [6]
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [7]
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [8]
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [9]
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [10]
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [11]
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [12]
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [13]
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [14]
+        </td>
+        <td align="center" colspan='6' valign='bottom' style='width:50px;border-top:none;border-left:none;border-bottom:solid black 1px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            [15]
+        </td>
+    </tr>
+
+
+    <tr>
+        <td align="center" colspan='2' valign='bottom' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            Pratt Test Web Object Creation 01
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            31
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            163
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            61
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            56
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            61
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            64
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            41
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            32
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            722
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center"  valign='bottom'
+            style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center" colspan='6' valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            1,200
+        </td>
+    </tr>
+
+
+    <tr>
+        <td align="center" colspan='2' valign='bottom' style='width:100px;border-top:none;border-left:solid black 1px;border-bottom:none;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            LEVEL
+            3-Level 3 Description 02
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            31
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            163
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            61
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            56
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            61
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            64
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            41
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            32
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            722
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center" colspan='6' valign='bottom' style='width:50px;border-right:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            1,200
+        </td>
+    </tr>
+
+    <tr>
+        <td valign='bottom' colspan='2' style='width:100px;border:solid black 1px;font-size:13px;padding:2px;height:20px;'>
+            6.
+            TOTAL DIRECT
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            31
+        </td>
+        <td align="center" colspan='2' valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            163
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            61
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            56
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            61
+        </td>
+        <td align="center" valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            64
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            41
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            32
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            722
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center"  valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            0
+        </td>
+        <td align="center" colspan='6' valign='bottom' style='width:50px;border:solid black 1px;border-left:none;font-size:13px;padding:2px;height:20px;'>
+            1,200
+        </td>
+    </tr>
+
+
+    <tr>
+        <td colspan='5' valign='middle' style='width:100px;font-size:13px;padding:2px;height:20px;'>
+            DD FORM 2734/4, APR 2005
+        </td>
+
+        <td colspan='13' valign='middle' style='width:58px;font-size:13px;padding:2px;height:20px;'>
+            PREVIOUS EDITION IS OBSOLETE.
+
+        </td>
+
+        <td colspan='5' valign='middle' style='width:68px;font-size:13px;padding:2px;height:20px;'>
+            LOCAL REPRODUCTION AUTHORIZED.
+        </td>
+
+    </tr>
+    <tr>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+        <td style='border:none'></td>
+    </tr>
+</table>
+<!--
+<table id="testTable" summary="Code page support in different versions of MS Windows." rules="groups" frame="hsides"
+       border="2">
+    <caption>CODE-PAGE SUPPORT IN MICROSOFT WINDOWS</caption>
+    <colgroup align="center"></colgroup>
+    <colgroup align="left"></colgroup>
+    <colgroup span="2" align="center"></colgroup>
+    <colgroup span="3" align="center"></colgroup>
+    <thead valign="top">
+    <tr>
+        <th>Code-Page<br>ID</th>
+        <th>Name</th>
+        <th>ACP</th>
+        <th>OEMCP</th>
+        <th>Windows<br>NT 3.1</th>
+        <th>Windows<br>NT 3.51</th>
+        <th>Windows<br>95</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td style="border:thin solid black;">1200</td>
+        <td style="background-color: #00f; color: #fff;border:thin solid black;">Unicode (BMP of ISO/IEC-10646)</td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+        <td>X</td>
+        <td>*</td>
+    </tr>
+    <tr>
+        <td>1250</td>
+        <td style="font-weight: bold">Windows 3.1 Eastern European</td>
+        <td>X</td>
+        <td></td>
+        <td>X</td>
+        <td>X</td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1251</td>
+        <td style="border:thin solid black;">Windows 3.1 Cyrillic</td>
+        <td>X</td>
+        <td></td>
+        <td>X</td>
+        <td>X</td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1252</td>
+        <td>Windows 3.1 US (ANSI)</td>
+        <td>X</td>
+        <td></td>
+        <td>X</td>
+        <td>X</td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1253</td>
+        <td>Windows 3.1 Greek</td>
+        <td>X</td>
+        <td></td>
+        <td>X</td>
+        <td>X</td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1254</td>
+        <td>Windows 3.1 Turkish</td>
+        <td>X</td>
+        <td></td>
+        <td>X</td>
+        <td>X</td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1255</td>
+        <td>Hebrew</td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1256</td>
+        <td>Arabic</td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1257</td>
+        <td>Baltic</td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>1361</td>
+        <td>Korean (Johab)</td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td>**</td>
+        <td>X</td>
+    </tr>
+    </tbody>
+    <tbody>
+    <tr>
+        <td>437</td>
+        <td>MS-DOS United States</td>
+        <td></td>
+        <td>X</td>
+        <td>X</td>
+        <td>X</td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>708</td>
+        <td>Arabic (ASMO 708)</td>
+        <td></td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>709</td>
+        <td>Arabic (ASMO 449+, BCON V4)</td>
+        <td></td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>710</td>
+        <td>Arabic (Transparent Arabic)</td>
+        <td></td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>720</td>
+        <td>Arabic (Transparent ASMO)</td>
+        <td></td>
+        <td>X</td>
+        <td></td>
+        <td></td>
+        <td>X</td>
+    </tr>
+    </tbody>
+</table>
+-->
+
+</body></html>
