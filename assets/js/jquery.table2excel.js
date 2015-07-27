@@ -43,6 +43,7 @@
                 foot: "</body></html>"
             };
 
+
             e.tableRows = [];
 
             // get contents of table except for exclude

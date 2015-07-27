@@ -1,7 +1,48 @@
 /**
- * Created by craig on 7/14/2015.
+ * Created by Craig on 7/14/2015.
+ * Update by Tom on 7/27/2015
  */
+var serviceRoot = window.location.protocol +'//'+ window.location.host;
+var projectID = "DV3-5";
 
+var series = [
+    {
+        name: "BCWS",
+        type: "line",
+        field: "BCWS",
+        categoryField: "Date",
+       // aggregate: "sum",
+        color: "#428bca",
+        markers: {type: "circle"}
+    },
+    {
+        name: "BCWP",
+        type: "line",
+        field: "BCWP",
+        categoryField: "Date",
+       // aggregate: "sum",
+        color: "#5bc0de",
+        markers: {type: "circle"}
+    },
+    {
+        name: "EAC",
+        type: "line",
+        field: "EAC",
+        categoryField: "Date",
+       // aggregate: "sum",
+        color: "#5cb85c",
+        markers: {type: "circle"}
+    },
+    {
+        name: "ACWP",
+        type: "line",
+        field: "ACWP",
+        categoryField: "Date",
+       // aggregate: "sum",
+        color: "#f0ad4e",
+        markers: {type: "circle"}
+    }
+];
 
 function displayTotals(data,name) {
     var bcwsTotalCost = kendo.toString(data[0].bcwsTotal, "c");
@@ -22,7 +63,6 @@ function displayTotals(data,name) {
         $('span.project').text(name);
         $('span.user-name').text('N/A');
     }
-
 }
 
 function showProgress(boolean){
@@ -32,7 +72,6 @@ function showProgress(boolean){
     kendo.ui.progress(loadingTree, boolean);
     kendo.ui.progress(loadingGauges, boolean);
     kendo.ui.progress(loadingChart, boolean);
-
 }
 
 function allNodes(currentNode,arr){
@@ -41,7 +80,7 @@ function allNodes(currentNode,arr){
     var $check = currentNode.hasClass('k-treelist-group');
     if(!$check){
         compile.push(currentNode.index());
-        if(currentNode.length === 0) {
+        if(currentNode.length == 0) {
             console.log('end');
         }else{
             if($next.length != 0) {
@@ -53,13 +92,21 @@ function allNodes(currentNode,arr){
     } else {
         if($check) {
             console.log($next.length);
-            if($next.length === 0){
+            if($next.length == 0){
             }else{
                 return allNodes($next, compile);
             }
         }
     }
     return compile;
+}
+
+function createTooltip(data) {
+    var spi = Number(data[0].spi);
+    var cpi = Number(data[1].cpi);
+
+    $("#rgauge").kendoTooltip({ content: 'CPI - ' + cpi });
+    $("#lgauge").kendoTooltip({ content: 'SPI - ' + spi });
 }
 
 function createGauge(data) {
@@ -127,6 +174,7 @@ function createGauge(data) {
             ]
         }
     });
+
     $("#rgauge").kendoRadialGauge({
         /**pointer: {
         value: $("#gauge-value-bottom").val()
@@ -186,47 +234,143 @@ function createSplitters() {
     $("#vertical").kendoSplitter({
         orientation: "vertical",
         panes: [
-        /**Top**/
-            { collapsed: false,
-                collapsible: true,
-                collapsedSize: "10%",
-                size: "35%",
-                max: "40%"},
-        /**Bottom**/
-            { collapsed: false,
-                collapsible: true,
-                collapsedSize: "10%",
-                size: "65%",
-                max: "90%"
-            }
+            { collapsible: true },
+            { collapsible: true, size: "70%" }
         ]
     });
 
     $("#horizontal").kendoSplitter({
         panes: [
-        /**Left**/
-            { collapsed: false,
-                collapsible: true,
-                collapsedSize: "25%",
-                size: "40%",
-                max: "65%"
-            },
-        /**Right**/
-            { collapsed: false,
-                collapsible: true,
-                scrollable: true,
-                collapsedSize: "40%",
-                max: "75%",
-                size: "60%"
-            }
+            { collapsible: true },
+            { collapsible: true, size: "70%" }
         ]
     });
 }
 
+function refreshChart() {
+    var chart = $("#chart").data("kendoChart"),
+        type = $("input[name=seriesType]:checked").val()//,
+    //stack = $("#stack").prop("checked");
+
+    for (var i = 0, length = series.length; i < length; i++) {
+        //series[i].stack = stack;
+        series[i].type = type;
+    }
+    chart.setOptions({
+        series: series
+    });
+}
+
+function tdHover (e){
+    /**nested inside getReport func**/
+    e.preventDefault();
+    if($(this).hasClass('no-paint')){
+        return;
+    }
+    if($(this).hasClass('over')) {
+        $(this).removeClass('over');
+    }else{
+        $(this).addClass('over');
+    }
+}
+
+function hierEvent(selector){
+    /*********** New Hierarchy Button View Click Event ***************/
+    selector.on('click','tr button.js-hier',function(e){
+        e.preventDefault();
+        var chartdata = '',
+            filteredSnapByParentId = '',
+            filteredSnapByIndex = [],
+            collectIndexes = [],
+            chartFiltered = '';
+        console.log('hit selected row');
+        var $target = $(e.currentTarget),
+            $treeList = $("div#treelist").data("kendoTreeList"),
+            $chartGraph = $("div#chart").data("kendoChart"),
+            $trParent = $target.parent().parent(),
+            $rowIndex = $trParent.index(),
+            $objectNumber = $target.data('objectNumber'),//data-objectNumber='#=data.ObjectNumber#'
+            $children = $target.data('children');
+        console.log($rowIndex);
+        chartdata = $chartGraph.dataSource.options.data;
+        /**Change Title**/
+        var extId = $treeList.dataSource.options.data[$rowIndex].ExtID;
+        var description = $treeList.dataSource.options.data[$rowIndex].Description;
+        //$(document).find('.gaugeHeading').text(extId+'  '+description);
+        $(document).find('.gaugeHeading').text(description);
+        /** end title change **/
+        switch($rowIndex){
+            case 0:
+            case 1:
+                chartFiltered =  FilterChartData(chartdata);
+                break;
+            default:
+                if($children){
+                    var allChildIndexes = allNodes($($trParent),collectIndexes);
+                    console.log(JSON.stringify(allChildIndexes));
+                    var Indexes = _.without(allChildIndexes,-1);
+                    console.log(JSON.stringify(Indexes));
+                    $.each(Indexes,function(key,value){//[data-children="false"]
+                        filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[value].ObjectNumber});
+                    });
+                    console.log('multiple '+JSON.stringify(filteredSnapByIndex));
+                    filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                    chartFiltered =  FilterChartData(filteredSnapByParentId);
+                }else{
+                    filteredSnapByIndex.push({'ObjectNumber':$treeList.dataSource.options.data[$rowIndex].ObjectNumber});
+                    console.log('single '+JSON.stringify(filteredSnapByIndex));
+                    filteredSnapByParentId = FilterByHierList(filteredSnapByIndex,chartdata);
+                    chartFiltered =  FilterChartData(filteredSnapByParentId);
+                }
+                break;
+        }
+        if(chartFiltered != undefined){
+            var chartTotalsFilteredBy =  _.flatten(chartFiltered.totals);
+            console.log(chartTotalsFilteredBy);
+            displayTotals(chartTotalsFilteredBy);
+
+            var chartFilteredByParentId =  _.flatten(chartFiltered.graph);
+            console.log(chartFilteredByParentId.length);
+            $chartGraph.dataSource.data(chartFilteredByParentId);
+            refreshChart();
+
+            var gaugesData = _.flatten(chartFiltered.gauges);
+            createGauge(gaugesData);
+            createTooltip(gaugesData);
+        }
+
+    });
+}
+
+/**********Added Initilized Hiearchy expaneded**********/
+function expandTreeList(selector){
+    selector.data("kendoTreeList").expand(".k-treelist-group");
+    selector.data("kendoTreeList").expand(".k-alt");
+}
+
+function projectData() {
+    var projectSource = '';
+    $.ajax({
+        url: serviceRoot + "/ProjectSet?$format=json",
+        method: "GET",
+        dataType: 'json',
+        async: false
+    }).success(function (response) {
+        projectSource = response.d.results[0];
+        console.log(projectSource);
+    }).error(function (err) {
+        alert('error ' + err);
+    }).done(function () {
+        console.log('projectData complete ');
+    });
+    return projectSource;
+}
+
+
 function hierListData() {
     var hierSource = '';
     $.ajax({
-        url: serviceRoot + "/HierarchySet?$format=json",
+        url: serviceRoot + "/HierarchySet?$filter=Project eq '" + projectID + "'&$format=json",
         method: "GET",
         dataType: 'json',
         async: false
@@ -239,6 +383,24 @@ function hierListData() {
 
     });
     return hierSource;
+}
+
+function ChartData() {
+    var rawData ='';
+    $.ajax({
+        url: serviceRoot + "/SnapshotSet?$format=json",
+        method: "GET",
+        dataType: 'json',
+        async: false
+    }).success(function (response) {
+        rawData = response.d.results;
+    }).error(function (err) {
+        alert('error ' + err);
+    }).done(function () {
+        console.log('request complete: SnapShotData');
+    });
+
+    return rawData;
 }
 
 function hierListInitialize(data) {
@@ -285,28 +447,10 @@ function hierListInitialize(data) {
         //sortable: true,
         header: false,
         columns: [
-            {field: "ExtID", width: 160},
-            {field:"Action",width:80,"template":kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>View</button>")}
+            {field: "Project Hierachy", width: 100,"template":kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>#=data.ExtID#</button>")},
+            {field:"",width:100,"template":kendo.template("<button data-children='#=data.hasChildren#' data-objectNumber='#=data.ObjectNumber#' class='btn btn-default js-hier'>#=data.Description#</button>")}
         ]
     });
-}
-
-function ChartData() {
-    var rawData ='';
-    $.ajax({
-        url: serviceRoot + "/SnapshotSet?$format=json",
-        method: "GET",
-        dataType: 'json',
-        async: false
-    }).success(function (response) {
-        rawData = response.d.results;
-    }).error(function (err) {
-        alert('error ' + err);
-    }).done(function () {
-        console.log('request complete: SnapShotData');
-    });
-
-    return rawData;
 }
 
 function FilterByHierList(hierArray,data){
@@ -374,7 +518,7 @@ function FilterChartData(results) {
     master.gauges = [];
     var data = _.flatten(results);
     if (data.length === 0) {
-        return alert('No Data to filter series.');
+        console.log('No Data to filter series.');
     }
     var BCWS = $.grep(data, function (item) {
         if (item.Version === 'D02') {
@@ -533,10 +677,10 @@ function createChart(dataSource, series) {
         dataSource: dataSource,
         chartArea: {
             // width: 200,
-            //  height: 400
+            //height: 475
         },
         legend: {
-            position: "top"
+            position: "bottom"
         },
         seriesDefaults: {
             type: "line",

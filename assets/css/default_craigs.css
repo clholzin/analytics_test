@@ -1,18 +1,147 @@
 body {
-    padding-top:55px;
+    /** padding-top:35px;**/
+    padding:55px 0 0 0;
+    /**padding-bottom:35px;**/
     width: auto;
-    height:100vh;
-    margin:0;
-    font-family: arial, helvetica, sans-serif;
+    /** margin: 0 0 150px 0;**/
+    height:87vh;
+    overflow-y:hidden;
 }
-.dashboard{
-    padding:0 0 75px 0;
-}
-.border{
-    border:thin solid #CCC;
 
+
+
+
+
+/**color picker stuff**/
+.over{
+    background:url('./textures/dots1.png') repeat 2%;
+    cursor:pointer;
 }
-.graph-border{
-    border:thin solid #CCC;
-    padding:15px;
+
+.k-colorpicker {
+
+    margin: 5px;
+}
+
+
+
+
+
+/**Splitters**/
+#vertical
+{
+    height:95.333%;
+    /**width:auto;**/
+    border-width: 0;
+}
+#horizontal
+{
+    height:100%;
+    width:auto;
+}
+
+.pane-content {
+    padding: 0 10px;
+}
+
+
+
+/**Gauges**/
+.gauge-container {
+    background: transparent url("../examples/content/dataviz/gauge/gauge-container.png") no-repeat 50% 50%;
+    background-size: 200px 200px;
+    width: 200px;
+    height: 200px;
+    text-align: center;
+    margin: 0 auto 30px auto;
+}
+
+.gauge {
+    width: 170px;
+    height: 170px;
+    margin: 0 auto 0;
+}
+
+.gaugeTitle {
+    width: 100px;
+    margin: -10px auto 0;
+    color: #727f8e;
+    font-weight: bold;
+    cursor:hand;
+}
+
+.details-container {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 30px auto;
+}
+.js-hier-title{
+    padding:0 0 0 20%;
+    /** text-align: center;**/
+}
+#chart {
+    height:85%;
+    width:97%;
+    padding:5px;
+}
+
+.chart-type-chooser {
+    text-align: right;
+    width: 96%;
+    line-height: 32px;
+    margin: 10px;
+}
+
+.radio-group-label {
+    margin-right: 12px;
+    color: #727f8e;
+}
+
+.radio-group {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    display: inline-block;
+    vertical-align: top;
+    height: 32px !important;
+}
+
+.radio-group > li {
+    display: inline-block;
+    *display: inline;
+    zoom: 1;
+}
+
+.radio-group label {
+    width: 32px;
+    height: 32px;
+    background: #b3bbc5 no-repeat center center;
+    display: inline-block;
+    border-radius: 16px;
+    overflow: hidden;
+    /**font: 0/0;**/
+    color: transparent;
+}
+
+.radio-group input {
+    display: none;
+}
+
+.radio-group input:checked+label {
+    background-color: #2b8abe;
+}
+
+.radio-group label[for="seriesType-combo"],
+.radio-group label[htmlFor="seriesType-combo"] {
+    background-image: url("../img/combo.png");
+}
+
+.radio-group label[for="seriesType-period"],
+.radio-group label[htmlFor="seriesType-period"] {
+    background-image: url("../img/period.png");
+}
+
+.radio-group label[for="seriesType-s-curve"],
+.radio-group label[htmlFor="seriesType-s-curve"] {
+    background-image: url("../img/s-curve.png");
 }
