@@ -44,6 +44,24 @@ var series = [
     }
 ];
 
+var addSpinner = function(selector){
+    $(selector).children().eq(0).wrap('<div></div>').parent().addClass('spinnerAdded');
+};
+
+/** New Function Spinner 072815**/
+var SpinnerTpl = function(selector,boolean){
+    var placeOnDom = $('#loadSpinner');
+    if(boolean){
+        var loadingTpl = _.template($(selector).html());
+        placeOnDom.removeClass('displayNone').html(loadingTpl).fadeIn('slow');
+        return;
+    }else{
+           setTimeout(function () {
+        placeOnDom.addClass('displayNone').fadeOut('slow').empty();
+          }, 1000);
+    }
+};
+
 function displayTotals(data,name) {
     var bcwsTotalCost = kendo.toString(data[0].bcwsTotal, "c");
     var bcwpTotalCost = kendo.toString(data[1].bcwpTotal, "c");
@@ -348,52 +366,49 @@ function expandTreeList(selector){
     selector.data("kendoTreeList").expand(".k-alt");
 }
 
+/** New Function projectData 072815**/
 function projectData() {
-    var projectSource = '';
-    $.ajax({
+    var projectSource = $.ajax({
         url: serviceRoot + "/ProjectSet?$format=json",
         method: "GET",
         dataType: 'json',
-        async: false
+        async: true
     }).success(function (response) {
-        projectSource = response.d.results[0];
-        console.log(projectSource);
+     //   projectSource = response.d.results[0];
+     //   console.log(projectSource);
     }).error(function (err) {
         alert('error ' + err);
     }).done(function () {
         console.log('projectData complete ');
     });
+
     return projectSource;
 }
-
-
+/** New Function hierListData 072815**/
 function hierListData() {
-    var hierSource = '';
-    $.ajax({
+    var Source = $.ajax({
         url: serviceRoot + "/HierarchySet?$filter=Project eq '" + projectID + "'&$format=json",
         method: "GET",
         dataType: 'json',
-        async: false
+        async: true
     }).success(function (response) {
-        hierSource = response.d.results;
+      // hierSource = response.d.results;
     }).error(function (err) {
         alert('error ' + err);
     }).done(function () {
         console.log('HierarchySet complete ');
-
     });
-    return hierSource;
+    return Source;
 }
-
+/** New Function ChartData 072815**/
 function ChartData() {
-    var rawData ='';
-    $.ajax({
+    var rawData = $.ajax({
         url: serviceRoot + "/SnapshotSet?$format=json",
         method: "GET",
         dataType: 'json',
-        async: false
+        async: true
     }).success(function (response) {
-        rawData = response.d.results;
+       // rawData = response.d.results;
     }).error(function (err) {
         alert('error ' + err);
     }).done(function () {
@@ -402,6 +417,7 @@ function ChartData() {
 
     return rawData;
 }
+
 
 function hierListInitialize(data) {
     $(document).find("#treelist").kendoTreeList({
