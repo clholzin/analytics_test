@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="icon" href="./favicon.ico">
+
+    <title>Analytics Dashboard</title>
+
+    <script src="./assets/build/browser.js"></script>
+    <!--development>-->
+    <script data-main="./assets/require_main" src="./assets/js/require.js"></script>
+    <link rel="stylesheet" href="./assets/css/CssBuild.css">
+    <!--production
+    <script src="./assets/build/require.main.built.js"></script>
+    <link rel="stylesheet" href="./assets/css/main-built.css">-->
+</head>
+<body id="indexBG" class="bkgChange"><!-- onload="setCookie()">
+<!-- Fixed navbar -->
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="col-xs-6 navbar-header">
+        <a class="navbar-brand" target="_blank" href="http://www.dassian.com"><img alt="Dassian UK" src="./assets/img/dassian.png" width="100px"></a>
+    </div>
+    <div class="col-xs-6 text-right" style="padding-top: 15px" id="userName">
+    </div>
+</nav>
+
+<div class="mainBody"></div>
+
+<div class="footer"></div>
+
+<div id="loadSpinner" class="displayNone"></div>
+<!-- Testing Use
+<script>
+function setCookie() {
+    var d = new Date();
+    d.setTime(d.getTime() + (30*24*60*60*1000));
+    var expires = "expires=" + d.toGMTString();
+    document.cookie = "DassianUser=Tom Lau; "+expires;
+}
+</script-->
+</body>
+</html>

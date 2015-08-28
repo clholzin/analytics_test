@@ -1,0 +1,79 @@
+<div class="panel panel-default" style="background-color: transparent; margin-bottom: 56px; box-shadow: none; border: none">
+    <div class="panel-heading">
+        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">Analytics Dashboard</h1>
+    </div>
+
+    <div class="panel-body animated fadeIn" style="margin-left: 10px; margin-right: 10px">
+        <div class="row">
+            <div class="col-sm-6 col-sm-push-6 col-md-3 col-md-push-8">
+                <form>
+                    <label class="col-md-12" style="padding-top: 8px">My CAM Assigned Projects</label>
+                    <select class="col-md-12 form-control" id="hierarchySets">
+                        <option value="">Please Select a Hierarchy</option>
+                        <!-- FOR EACH ITEM -->
+                        <% $.each(combineData[0],function(key,value){ %>
+                        <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
+                        <%});%>
+                        <!-- END OF FOR EACH -->
+                    </select>
+                    <!--label class="col-md-12" style="padding-top: 8px">My Analyst Assigned Projects</label>
+                    <select class="form-control">
+                        <option>TA1</option>
+                        <option>TA2</option>
+                        <option>TA3</option>
+                        <option>TA4</option>
+                        <option>TA5</option>
+                    </select-->
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <h3 style="color: #fff">Analytics</h3>
+            <!--div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getAnalytics" data-id="projectAnalytics" data-temp="projectAnalytics" data-name="projectAnalytics" role="button"><h4 class="menuTitle">Project Analytics</h4><img class="menuItemImg" src="./assets/img/projectLPT.png"></div></a>
+            </div-->
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getAnalytics" data-id="projectAnalyticsFT" data-temp="projectAnalyticsFT" data-name="projectAnalyticsFT" role="button"><h4 class="menuTitle">Project Analytics</h4><img class="menuItemImg" src="./assets/img/projectLPT.png"></div></a>
+            </div>
+            <!--div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getAnalytics" data-id="projectAnalyticsFC" data-temp="projectAnalyticsFC" data-name="projectAnalyticsFC" role="button"><h4 class="menuTitle">Project Analytics Full Chart</h4><img class="menuItemImg" src="./assets/img/projectLPT.png"></div></a>
+            </div-->
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getAnalytics" data-id="spa" data-temp="spa" data-name="spa" role="button"><h4 class="menuTitle">SPA Chart</h4><img class="menuItemImg" src="./assets/img/spa.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getAnalytics" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI" role="button"><h4 class="menuTitle">SPI CPI Chart</h4><img class="menuItemImg" src="./assets/img/spiCPI.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getAnalytics" data-id="scheduleVAR" data-temp="scheduleVAR" data-name="scheduleVAR" role="button"><h4 class="menuTitle">Schedule Variance</h4><img class="menuItemImg" src="./assets/img/scheduleVAR.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getAnalytics" data-id="earnedSchedule" data-temp="earnedSchedule" data-name="earnedSchedule" role="button"><h4 class="menuTitle">Earned Schedule</h4><img class="menuItemImg" src="./assets/img/earnedSchedule.png"></div></a>
+            </div>
+        </div>
+        <div class="row">
+            <h3 style="color: #fff">Reports</h3>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getReport" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1" role="button"><h4 class="menuTitle">CPR1 - WBS</h4><img class="menuItemImg" src="./assets/img/wbsTree%20Structure.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getReport" data-id="orgCatTable" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2" role="button"><h4 class="menuTitle">CPR2 - OBS</h4><img class="menuItemImg" src="./assets/img/orgOBSHierarchy.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getReport" data-id="baselineTable" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3" role="button"><h4 class="menuTitle">CPR3 - Baseline</h4><img class="menuItemImg" src="./assets/img/planning.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getReport" data-id="staffingTable" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4" role="button"><h4 class="menuTitle">CPR4 - Staffing/Forecast</h4><img class="menuItemImg" src="./assets/img/labourResources.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getReport" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5" role="button"><h4 class="menuTitle">CPR5 - VAR</h4><img class="menuItemImg" src="./assets/img/answers.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getReport" data-id="trendTable" data-temp="cprTWBS" data-name="CPR_TrendWBS" data-sheet="CPR-TWBS" role="button"><h4 class="menuTitle">CPRT - WBS</h4><img class="menuItemImg" src="./assets/img/trend.png"></div></a>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <a href="#"><div class="menuItem getReport" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-sheet="CPR-TOBS" role="button"><h4 class="menuTitle">CPRT - OBS</h4><img class="menuItemImg" src="./assets/img/trend.png"></div></a>
+            </div>
+        </div>
+    </div>
+</div>
