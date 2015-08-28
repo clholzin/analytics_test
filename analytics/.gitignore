@@ -1,2 +1,4 @@
 compare/
-.idea/workplace.xml
+.idea/
+!index.html
+!favicon.html
