@@ -1,8 +1,8 @@
 ##DP10_Analytics_BAE
-# Version 0.1
-**BAE specific project repo**
+###**Version 0.1**
+####**BAE specific project repo**
 -
-#Project includes:
+###Project includes:
 * Require.js
 * JQuery.js
 * Underscore
