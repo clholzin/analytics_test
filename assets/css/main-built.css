@@ -3005,11 +3005,9 @@ html, body {
     background-color:#CCC;
 }
 .menuItemImg {
-    position: absolute;
+    position: relative;
     display: block;
-    bottom: 65px;
-    left:0;
-    right:0;
+    padding:10px 0 15px 0;
     margin-left:auto;
     margin-right:auto;
 }

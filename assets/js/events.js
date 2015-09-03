@@ -129,7 +129,7 @@ define(['jquery','underscore','domReady','app',
             /**GET REPORT TPL ON THE FLY**/
             var retrieveTpl = 'tpl!templates/analytics/'+id+'.html';
             requirejs([retrieveTpl],function(tempTpl){
-                    tplId = tempTpl;
+                    var tplId = tempTpl;
                     switch(name) {
                         case 'projectAnalyticsFT':
                             tplFooter = analyticsFooterATpl;
@@ -138,29 +138,16 @@ define(['jquery','underscore','domReady','app',
                             tplFooter = analyticsFooterBTpl;
                             break;
                     }
-                    App.Project(tplId, tplFooter, combineData);
+                App.Project(tplId, tplFooter, combineData);
 
                     switch(name){
                         /*case 'projectAnalytics':
+                         App.createSplitters();
                             $.when(hData, cData).done(function(hierData,chartData) {
-                                App.createSplitters();
                                 if(!_.isEmpty(chartData)){
                                     chartDataSource = App.FilterChartData(chartData[0].d.results);
                                     App.DataStore.rawChartdata = chartData[0].d.results;
-                                    App.DataStore.chart = new kendo.data.DataSource({
-                                        data: _.flatten(chartDataSource.graph),
-                                        sort: {
-                                            field: "Date",
-                                            dir: "asc"
-                                        },
-                                        schema: {
-                                            model: {
-                                                fields: {
-                                                    Date: {type: "date"}
-                                                }
-                                            }
-                                        }
-                                    });
+                                    App.DataStore.chart = App.AssignStore(chartDataSource.graph);
                                     App.DataStore.chartTotals  = chartDataSource.totals;
                                     App.DataStore.gaugesData   = chartDataSource.gauges;
                                     App.DataStore.hierarchy = _.sortBy(hierData[0].d.results,'SortOrder');
@@ -175,8 +162,9 @@ define(['jquery','underscore','domReady','app',
                                 App.createGauge(App.DataStore.gaugesData);
                                 App.createTooltip(App.DataStore.gaugesData);
 
-                                var projectName = App.DataStore.hierarchy[0].ExtID;
-                                var WBSDesc = App.DataStore.hierarchy[0].Description;
+
+                                 var projectName = _.first(App.DataStore.hierarchy).ExtID;
+                                 var WBSDesc = _.first(App.DataStore.hierarchy).Description;
                                 App.displayTotals(App.DataStore.chartTotals, projectName);
 
                                 $(document).find('.gaugeHeading').text(WBSDesc);
@@ -194,25 +182,12 @@ define(['jquery','underscore','domReady','app',
                             });
                             break;
                         case 'projectAnalyticsFC':
+                         App.createSplittersFC();
                             $.when(hData, cData).done(function(hierData,chartData) {
-                                App.createSplittersFC();
                                 if(!_.isEmpty(chartData)){
                                     chartDataSource = App.FilterChartData(chartData[0].d.results);
                                     App.DataStore.rawChartdata = chartData[0].d.results;
-                                    App.DataStore.chart = new kendo.data.DataSource({
-                                        data: _.flatten(chartDataSource.graph),
-                                        sort: {
-                                            field: "Date",
-                                            dir: "asc"
-                                        },
-                                        schema: {
-                                            model: {
-                                                fields: {
-                                                    Date: {type: "date"}
-                                                }
-                                            }
-                                        }
-                                    });
+                                    App.DataStore.chart = App.AssignStore(chartDataSource.graph);
                                     App.DataStore.chartTotals  = chartDataSource.totals;
                                     App.DataStore.gaugesData   = chartDataSource.gauges;
                                     App.DataStore.hierarchy = _.sortBy(hierData[0].d.results,'SortOrder');
@@ -227,8 +202,9 @@ define(['jquery','underscore','domReady','app',
                                 App.createGauge(App.DataStore.gaugesData);
                                 App.createTooltip(App.DataStore.gaugesData);
 
-                                var projectName = App.DataStore.hierarchy[0].ExtID;
-                                var WBSDesc = App.DataStore.hierarchy[0].Description;
+
+                                var projectName = _.first(App.DataStore.hierarchy).ExtID;
+                                var WBSDesc = _.first(App.DataStore.hierarchy).Description;
                                 App.displayTotals(App.DataStore.chartTotals, projectName);
 
                                 $(document).find('.gaugeHeading').text(WBSDesc);
@@ -246,41 +222,28 @@ define(['jquery','underscore','domReady','app',
                             });
                             break;*/
                         case 'projectAnalyticsFT':
+                            App.createSplittersFT();
                             $.when(hData, cData).done(function(hierData,chartData) {
-                                App.createSplittersFT();
+
                                 if(!_.isEmpty(chartData)){
                                     chartDataSource = App.FilterChartData(chartData[0].d.results);
                                     App.DataStore.rawChartdata = chartData[0].d.results;
-                                    App.DataStore.chart = new kendo.data.DataSource({
-                                        data: _.flatten(chartDataSource.graph),
-                                        sort: {
-                                            field: "Date",
-                                            dir: "asc"
-                                        },
-                                        schema: {
-                                            model: {
-                                                fields: {
-                                                    Date: {type: "date"}
-                                                }
-                                            }
-                                        }
-                                    });
+                                     App.DataStore.chart = App.AssignStore(chartDataSource.graph);
                                     App.DataStore.chartTotals  = chartDataSource.totals;
                                     App.DataStore.gaugesData   = chartDataSource.gauges;
-                                    App.DataStore.hierarchy = _.sortBy(hierData[0].d.results,'SortOrder');
+                                    App.DataStore.hierarchy = hierData[0].d.results;
                                 }
-                                //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
-                                //console.log(App.DataStore.gaugesData);
-                                //console.log(JSON.stringify(App.DataStore.chartTotals));
-
+                                //console.log( App.DataStore.chart);
+                               /** //resets previous selections from chart
+                                chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
+                                App.DataStore.chart  = App.AssignStore(chartDataSource.graph);**/
                                 App.createChart(App.DataStore.chart, App.series);
-
                                 App.createGauge(App.DataStore.gaugesData);
                                 App.createTooltip(App.DataStore.gaugesData);
 
-                                var projectName = App.DataStore.hierarchy[0].ExtID;
-                                var WBSDesc = App.DataStore.hierarchy[0].Description;
+                                var projectName = _.first(App.DataStore.hierarchy).ExtID;
+                                var WBSDesc = _.first(App.DataStore.hierarchy).Description;
                                 App.displayTotals(App.DataStore.chartTotals, projectName);
 
                                 $(document).find('.gaugeHeading').text(WBSDesc);
@@ -328,8 +291,17 @@ define(['jquery','underscore','domReady','app',
               });
         });
 
-        doc.on('click', '.getReport',function(e) {
+        doc.on('click', 'div.card',function(e) {
             e.preventDefault();
+            console.log('hit');
+            if (App.CheckProdId()) {
+                return;
+            }
+        });
+
+        doc.on('click', 'div.card a.getReport',function(e) {
+            e.preventDefault();
+            console.log('hit');
             if(App.CheckProdId()){
                 return;
             }
@@ -339,8 +311,9 @@ define(['jquery','underscore','domReady','app',
                 self = $(this),
                 id = self.data('temp'),
                 sheet = self.data('sheet'),//Worksheet Name
+                filter = self.data('filter'),//Worksheet Name
                 pData = '',hData = '',hier = '',costs = '',cData = '',
-                totals = '',gauges = '',
+                totals = '',gauges = '',chartDataSource = '',
                 retrieveTpl = 'tpl!templates/reports/'+id+'.html';
             console.log(id);
             requirejs([retrieveTpl],function(tempTpl){
@@ -351,31 +324,18 @@ define(['jquery','underscore','domReady','app',
                 pData = App.projectData();//get project Data
                 hData = App.hierListData();//get hierarchy Data
             }
-                $.when(pData, hData,cData).done(function(p, h,c) {//holds on for async data calls
-                      if(!_.isEmpty(p)){
-                          App.DataStore.project = p[0].d.results[0];
-                          App.DataStore.hierarchy = h[0].d.results;
-                          var chartDataSource = App.FilterChartData(c[0].d.results);
-                          App.DataStore.rawChartdata = c[0].d.results;
-                          App.DataStore.chart = new kendo.data.DataSource({
-                              data: _.flatten(chartDataSource.graph),
-                              sort: {
-                                  field: "Date",
-                                  dir: "asc"
-                              },
-                              schema: {
-                                  model: {
-                                      fields: {
-                                          Date: {type: "date"}
-                                      }
-                                  }
-                              }
-                          });
-                          App.DataStore.chartTotals = chartDataSource.totals;
-                          App.DataStore.gaugesData = chartDataSource.gauges;
-                      }
-                        hier = App.DataStore.hierarchy;
-                        costs = App.DataStore.rawChartdata;
+            $.when(pData, hData,cData).done(function(p, h,c) {//holds on for async data calls
+                  if(!_.isEmpty(p)){
+                      App.DataStore.project = p[0].d.results[0];
+                      App.DataStore.hierarchy = h[0].d.results;
+                      chartDataSource = App.FilterChartData(c[0].d.results);
+                      App.DataStore.rawChartdata = c[0].d.results;
+                      App.DataStore.chart = App.AssignStore(chartDataSource.graph);
+                      App.DataStore.chartTotals = chartDataSource.totals;
+                      App.DataStore.gaugesData = chartDataSource.gauges;
+                  }
+                    hier = App.DataStore.hierarchy;
+                    costs = App.DataStore.rawChartdata;
 
             switch(sheet){
                 case 'CPR-1':
@@ -453,7 +413,7 @@ define(['jquery','underscore','domReady','app',
 
                     break;
                 case 'CPR-TWBS':
-                    console.log('hit T');
+                    console.log('hit TW');
                     /*********   Template Processing  *********/
                     tplId = tempTpl;
                     tplFooter = reportFooterTpl;
@@ -466,7 +426,7 @@ define(['jquery','underscore','domReady','app',
 
                     break;
                 case 'CPR-TOBS':
-                    console.log('hit T');
+                    console.log('hit TO');
                     /*********   Template Processing  *********/
                     tplId = tempTpl;
                     tplFooter = reportFooterTpl;
@@ -502,6 +462,25 @@ define(['jquery','underscore','domReady','app',
             kendo.drawing.drawDOM($('.panel')).then(function(group){
                 kendo.drawing.pdf.saveAs(group, fileName+".pdf");
             });
+        });
+
+        doc.on('click', 'a#clearRAG', function (e){
+            e.preventDefault();
+            doc.find('.rag').each(function(key,value) {
+                $(this).css('background-color', '');
+            });
+            $('#applyRAGButton').show();
+            $('#clearRAGButton').hide();
+        });
+
+        doc.on('click', 'a#applyRAG', function (e){
+            e.preventDefault();
+            doc.find('.rag').each(function(key,value) {
+                var ragColour = $(this).data('colour');
+                $(this).css('background-color', ragColour);
+            });
+            $('#applyRAGButton').hide();
+            $('#clearRAGButton').show();
         });
 
         doc.on('click','a#clearPicker',function(e){

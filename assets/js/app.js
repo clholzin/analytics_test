@@ -129,13 +129,22 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             axis: "Cumulative"
         }
     ];
+
     App.DataStore = {
-        "chart":{},
-        "chartTotals":[],
-        "rawChartdata":[],
-        "gaugesData":[],
-        "project":{},
-        "hierarchy":[]
+        chart:{},
+        chartTotals:[],
+        rawChartdata:[],
+        gaugesData:[],
+        project:{},
+        hierarchy:[],
+         empty: function(){
+             this.chart = {};
+             this.chartTotals = [];
+             this.rawChartdata = [];
+             this.gaugesData = [];
+             this.project = {};
+             this.hierarchy = [];
+        }
     };
 
     /**App.unit = {"months":[]};
@@ -184,19 +193,12 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     };
 
     App.ClearDataStore = function(){
-        this.DataStore = {
-            "chart":{},
-            "chartTotals":[],
-            "rawChartdata":[],
-            "gaugesData":[],
-            "project":{},
-            "hierarchy":[]
-        };
+        this.DataStore.empty();
     };
 
     App.AssignStore = function(data){
        // if(_.isEmpty(App.DataStore.chart)){
-            var source =   new kendo.data.DataSource({
+           return  new kendo.data.DataSource({
                 data: _.flatten(data),
                 sort: {
                     field: "Date",
@@ -211,7 +213,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 }
             });
       //  }
-    return source;
+
     };
 
     App.getCookie = function (cname) {
@@ -351,9 +353,31 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 var sv = parseFloat(total[1].bcwpTotal) - parseFloat(total[0].bcwsTotal);
                 var cv = parseFloat(total[1].bcwpTotal) - parseFloat(total[3].acwpTotal);
                 var vac = parseFloat(total[5].bac) - parseFloat(total[4].eacCum);
-                var gaugeData = data.gauges;
-                var spi = gaugeData[0].spi;
-                var cpi = gaugeData[1].cpi;
+                var gaugeData = data.gauges,
+                    spi = gaugeData[0].spi,
+                    cpi = gaugeData[1].cpi;
+                //var currentSPI = $(document).find('');
+                var spiColour = "";
+                if (spi < 0.9) {
+                    spiColour = "#FF0000";//red
+                } else if (spi > 0.9 && spi < 0.95) {
+                    spiColour = "#FF9933";//amber
+                } else if (spi > 0.95 && spi < 1.2) {
+                    spiColour = "#009933";//green
+                } else {
+                    spiColour = "#0066CC";//blue
+                }
+                //currentSPI.attr('data-colour', spiColour);
+                var cpiColour = "";
+                if (cpi < 0.9) {
+                    cpiColour = "#FF0000";//red
+                } else if (cpi > 0.9 && cpi < 0.95) {
+                    cpiColour = "#FF9933";//amber
+                } else if (cpi > 0.95 && cpi < 1.2) {
+                    cpiColour = "#009933";//green
+                } else {
+                    cpiColour = "#0066CC";//blue
+                }
                 var curSPI = gaugeData[0].curSPI;
                 var curCPI = gaugeData[1].curCPI;
                 amounts = {
@@ -376,7 +400,9 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "curSPI": curSPI,
                     "curCPI": curCPI,
                     "spi": spi,
-                    "cpi": cpi
+                    "cpi": cpi,
+                    "spiColour": spiColour,
+                    "cpiColour": cpiColour
                 };
             }
             cost.push({
@@ -413,7 +439,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     cost[indexof].totals.curSPI += parseFloat(value.totals.curSPI);
                     cost[indexof].totals.curCPI += parseFloat(value.totals.curCPI);
                         cost[indexof].totals.vac += parseFloat(value.totals.vac);
-
+                    cost[indexof].totals.spiColour = value.totals.spiColour;
+                    cost[indexof].totals.cpiColour = value.totals.cpiColour;
                 }
             }
         });//end loop
@@ -609,6 +636,28 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         var sv = parseFloat(totals[1].bcwpTotal) - parseFloat(totals[0].bcwsTotal);
         var cv = parseFloat(totals[1].bcwpTotal) - parseFloat(totals[3].acwpTotal);
         var vac = parseFloat(totals[5].bac) - parseFloat(totals[4].eacCum);
+        var spi = gauges[0].spi;
+        var cpi = gauges[1].cpi;
+        var spiColour = "";
+        if (spi < 0.9) {
+            spiColour = "#FF0000";//red
+        } else if (spi > 0.9 && spi < 0.95) {
+            spiColour = "#FF9933";//amber
+        } else if (spi > 0.95 && spi < 1.2) {
+            spiColour = "#009933";//green
+        } else {
+            spiColour = "#0066CC";//blue
+        }
+        var cpiColour = "";
+        if (cpi < 0.9) {
+            cpiColour = "#FF0000";//red
+        } else if (cpi > 0.9 && cpi < 0.95) {
+            cpiColour = "#FF9933";//amber
+        } else if (cpi > 0.95 && cpi < 1.2) {
+            cpiColour = "#009933";//green
+        } else {
+            cpiColour = "#0066CC";//blue
+        }
         return {
             "bcwsTotal":totals[0].bcwsTotal,
             "bcwpTotal": totals[1].bcwpTotal,
@@ -620,6 +669,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             "vac":vac,
             "cpi":gauges[1].cpi,
             "spi":gauges[0].spi,
+            "cpiColour":cpiColour,
+            "spiColour":spiColour,
             "sv":sv,
             "cv":cv
         };
@@ -749,35 +800,24 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 ranges: [
                     {
                         from: 0,
-                        to: .1,
-                        color: "#c20000"//red
+                        to: 0.9,
+                        color: "#FF0000"//red
                     },
                     {
 
-                        from: .1,
-                        to: .2,
-                        color: "#ff7a00"//orange
+                        from: 0.9,
+                        to: 0.95,
+                        color: "#FF9933"//amber
                     },
                     {
-                        from: .2,
-                        to: .5,
-                        color: "#ffc700"//yellow
+                        from: 0.95,
+                        to: 1.2,
+                        color: "#009933"//green
                     },
                     {
-                        from: 1.5,
-                        to: 1.8,
-                        color: "#ffc700"//yellow
-                    },
-                    {
-
-                        from: 1.8,
-                        to: 1.9,
-                        color: "#ff7a00"//orange
-                    },
-                    {
-                        from: 1.9,
+                        from: 1.2,
                         to: 2,
-                        color: "#c20000"//red
+                        color: "#0066CC"//blue
                     }
                 ]
             }
@@ -795,42 +835,30 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 startAngle: -30,
                 endAngle: 210,
                 min: 0,
-                max: 5,
+                max: 3,
                 labels: {
                     position: "outside"
                 },
                 ranges: [
                     {
                         from: 0,
-                        to: .2,
-                        color: "#c20000"//red
+                        to: 0.9,
+                        color: "#FF0000"//red
                     },
                     {
-
-                        from: .2,
-                        to: .5,
-                        color: "#ff7a00"//orange
+                        from: 0.9,
+                        to: 0.95,
+                        color: "#FF9933"//amber
                     },
                     {
-                        from: .5,
-                        to: 1,
-                        color: "#ffc700"//yellow
+                        from: 0.95,
+                        to: 1.2,
+                        color: "#009933"//green
                     },
                     {
-                        from: 4,
-                        to: 4.5,
-                        color: "#ffc700"//yellow
-                    },
-                    {
-
-                        from: 4.5,
-                        to: 4.8,
-                        color: "#ff7a00"//orange
-                    },
-                    {
-                        from: 4.8,
-                        to: 5,
-                        color: "#c20000"//red
+                        from: 1.2,
+                        to: 3,
+                        color: "#0066CC"//blue
                     }
                 ]
             }
@@ -1221,6 +1249,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "QuantityBCWS": Number(value.Quantity),
                     "runningBCWS":Number(runningTotalBCWS),
                     "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
                     "ObjectNumber": value.ObjectNumber,
                     "Version": value.Version,
                     "ValueType": value.ValueType,
@@ -1256,6 +1285,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "QuantityBCWP": Number(value.Quantity),
                     "runningBCWP":Number(runningTotalBCWP),
                     "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
                     "ObjectNumber": value.ObjectNumber,
                     "Version": value.Version,
                     "ValueType": value.ValueType,
@@ -1288,6 +1318,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "QuantityEAC": Number(value.Quantity),
                     "runningEAC": runningTotalEAC,
                     "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
                     "ObjectNumber": value.ObjectNumber,
                     "Version": value.Version,
                     "ValueType": value.ValueType,
@@ -1315,6 +1346,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "QuantityACWP": Number(value.Quantity),
                     "runningACWP":Number(runningTotalACWP),
                     "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
                     "ObjectNumber": value.ObjectNumber,
                     "Version": value.Version,
                     "ValueType": value.ValueType,
@@ -1396,7 +1428,6 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
        // console.log(master.totals);
         return master;
     };
-
 
     App.createChart = function(dataSource, series) {
         $("#chart").kendoChart({

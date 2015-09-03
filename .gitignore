@@ -1,4 +1,5 @@
 compare/
+resources/
 .idea/
 !index.html
 !favicon.html
