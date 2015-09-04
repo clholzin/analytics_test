@@ -3,7 +3,7 @@
  */
 requirejs.config({
     baseUrl: "assets",
-    waitSeconds: 20,
+    waitSeconds: 0,
     paths: {
         jquery: "js/jquery.min",
             text: "js/text",

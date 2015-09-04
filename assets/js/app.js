@@ -19,7 +19,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             field: "runningBCWS",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#428bca",
+            color: "#000099",
             markers: {type: "circle"}
         },
         {
@@ -28,7 +28,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             field: "runningBCWP",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#5bc0de",
+            color: "#009933",
             markers: {type: "circle"}
         },
         {
@@ -37,7 +37,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             field: "runningEAC",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#5cb85c",
+            color: "#9900FF",
             markers: {type: "circle"}
         },
         {
@@ -46,7 +46,65 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             field: "runningACWP",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#f0ad4e",
+            color: "#FF0000",
+            markers: {type: "circle"}
+        },
+        {
+            name: "baseline",
+            type: "line",
+            dashType:"dash",
+            field: "baseLine",
+            categoryField: "Date",
+            // aggregate: "sum",
+            color: "#FF0000",
+            markers: {type: "circle"}
+        }
+    ];
+    App.seriesSV = [
+        {
+            name: "Planned (BCWS)",
+            type: "column",
+            field: "runningBCWS",
+            categoryField: "Date",
+            // aggregate: "sum",
+            color: "#000099",
+            markers: {type: "circle"}
+        },
+        {
+            name: "Earned (BCWP)",
+            type: "column",
+            field: "runningBCWP",
+            categoryField: "Date",
+            // aggregate: "sum",
+            color: "#009933",
+            markers: {type: "circle"}
+        },
+        {
+            name: "EAC",
+            type: "column",
+            field: "runningEAC",
+            categoryField: "Date",
+            // aggregate: "sum",
+            color: "#9900FF",
+            markers: {type: "circle"}
+        },
+        {
+            name: "Spend (ACWP)",
+            type: "column",
+            field: "runningACWP",
+            categoryField: "Date",
+            // aggregate: "sum",
+            color: "#FF0000",
+            markers: {type: "circle"}
+        },
+        {
+            name: "baseline",
+            type: "line",
+            dashType:"dash",
+            field: "baseLine",
+            categoryField: "Date",
+            // aggregate: "sum",
+            color: "#FF0000",
             markers: {type: "circle"}
         }
     ];
@@ -57,7 +115,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             field: "BCWS",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#428bca",
+            color: "#000099",
             markers: {type: "circle"},
             axis: "Total"
         },
@@ -66,8 +124,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             type: "column",
             field: "BCWP",
             categoryField: "Date",
-            // aggregate: "sum",
-            color: "#5bc0de",
+            color: "#009933",
             markers: {type: "circle"},
             axis: "Total"
         },
@@ -76,8 +133,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             type: "column",
             field: "EAC",
             categoryField: "Date",
-            // aggregate: "sum",
-            color: "#5cb85c",
+            color: "#9900FF",
             markers: {type: "circle"},
             axis: "Total"
         },
@@ -87,7 +143,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             field: "ACWP",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#f0ad4e",
+            color: "#FF0000",
             markers: {type: "circle"},
             axis: "Total"
         },
@@ -96,7 +152,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             type: "line",
             field: "runningBCWS",
             categoryField: "Date",
-            color: "#27596b",
+            color: "#000099",
             markers: {type: "circle"},
             axis: "Cumulative"
         },
@@ -105,7 +161,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             type: "line",
             field: "runningBCWP",
             categoryField: "Date",
-            color: "#3585ba",
+            color: "#009933",
             markers: {type: "circle"},
             axis: "Cumulative"
         },
@@ -114,7 +170,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             type: "line",
             field: "runningEAC",
             categoryField: "Date",
-            color: "#258440",
+            color: "#9900FF",
             markers: {type: "circle"}
             ,
             axis: "Cumulative"
@@ -124,12 +180,21 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             type: "line",
             field: "runningACWP",
             categoryField: "Date",
-            color: "#ea9643",
+            color: "#FF0000",
             markers: {type: "circle"},
             axis: "Cumulative"
+        },
+        {
+            name: "baseline",
+            type: "line",
+            dashType:"dash",
+            field: "baseLine",
+            categoryField: "Date",
+            // aggregate: "sum",
+            color: "#FF0000",
+            markers: {type: "circle"}
         }
     ];
-
     App.DataStore = {
         chart:{},
         chartTotals:[],
@@ -147,9 +212,6 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         }
     };
 
-    /**App.unit = {"months":[]};
-     App.unit.months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-     **/
     App.unit = {
         _monthAttr:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         get months(){
@@ -187,7 +249,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
 
     App.CheckProdId = function(){
       if(_.isEmpty(this.projectID) || _.isUndefined(this.projectID)){
-            alert('Please select option from CAM Assigned Projects.');
+            alert('Please select a Project');
                  return true;
         }
     };
@@ -259,7 +321,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
 
     App.analyticsTplConfig = function (selector) {
         var name = $(selector).data('name'),//File Name to Export As
-            $exportReportPDF = $(document).find('span.export-report-pdf');
+            $exportReportPDF = $(document).find('span.export-chart-pdf');
         $exportReportPDF.attr('data-id', name);
         //console.log($exportReportPDF);
     };
@@ -887,25 +949,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         $("#vertical").kendoSplitter({
             orientation: "vertical",
             panes: [
-                {collapsible: true},
-                {collapsible: true, size: "70%"}
-            ]
-        });
-
-        $("#horizontal").kendoSplitter({
-            panes: [
-                {collapsible: true, size: "225px"},
-                {collapsible: true}
-            ]
-        });
-    };
-
-    App.createSplittersFC = function(){
-        $("#vertical").kendoSplitter({
-            orientation: "vertical",
-            panes: [
-                {collapsible: true},
-                {collapsible: true, size: "50%"}
+                {collapsible: false, resizable: false, size: "34px"},
+                {collapsible: false, resizable: false}
             ]
         });
 
@@ -920,29 +965,28 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     App.refreshChart = function() {
         var chart = $("#chart").data("kendoChart"),
             series = '',
-            type = $("input[name=seriesType]:checked").val();
+         ValueAxis  = '',
+        type = $("input[name=seriesType]:checked").val();
         //stack = $("#stack").prop("checked");
-            var ValueAxis = [{
-                title: {text: ' Total'}
-            }];
             if(type === 'combo'){
                 series = App.seriesCombo;
                 ValueAxis =  [{
                         name: "Cumulative",
-                        title: { text: "Cum" },
+                        title: { text: "[Cum.]" },
                         color: "#ec5e0a"
-                    },
-                    {   name: "Total",
+                        },
+                        {name: "Total",
                         title: {text: ' Total'}
                     }];
-
             }else{
+                ValueAxis = [{
+                    title: {text: ' Total'}
+                }];
                 series = App.series;
                 for (var i = 0, length = series.length; i < length; i++) {
                     //series[i].stack = stack;
                     series[i].type = type;
                 }
-
             }
         chart.setOptions({
             valueAxes:ValueAxis,
@@ -996,18 +1040,18 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 default:
                     if ($children) {
                         var allChildIndexes = App.allNodes($($trParent), collectIndexes);
-                        console.log(JSON.stringify(allChildIndexes));
+                       // console.log(JSON.stringify(allChildIndexes));
                         var Indexes = _.without(allChildIndexes, -1);
-                        console.log(JSON.stringify(Indexes));
+                       // console.log(JSON.stringify(Indexes));
                         $.each(Indexes, function (key, value) {//[data-children="false"]
                             filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[value].ObjectNumber});
                         });
-                        console.log('multiple ' + JSON.stringify(filteredSnapByIndex));
+                       // console.log('multiple ' + JSON.stringify(filteredSnapByIndex));
                         filteredSnapByParentId = App.FilterByHierList(filteredSnapByIndex, chartdata);
                         chartFiltered = App.FilterChartData(filteredSnapByParentId);
                     } else {
                         filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[$rowIndex].ObjectNumber});
-                        console.log('single ' + JSON.stringify(filteredSnapByIndex));
+                       // console.log('single ' + JSON.stringify(filteredSnapByIndex));
                         filteredSnapByParentId = App.FilterByHierList(filteredSnapByIndex, chartdata);
                         chartFiltered = App.FilterChartData(filteredSnapByParentId);
                     }
@@ -1035,7 +1079,6 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     App.expandTreeList = function(selector) {
         $(document).find(selector).data("kendoTreeList").expand(".k-treelist-group");
        // $(document).find(selector).data("kendoTreeList").expand(".k-alt");
-
     };
 
     /** New Function projectData 072815**/
@@ -1088,7 +1131,6 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         }).done(function () {
             console.log('request complete: SnapShotData');
         });
-
         return rawData;
     };
 
@@ -1240,7 +1282,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         });//filter data
         if (_.isArray(BCWS)) {
             var runningTotalBCWS = 0;
-            var BCWSdata = _.map(BCWS, function (value) {
+            var BCWSdata = _.map(_.sortBy(BCWS,"Date"), function (value) {
                 runningTotalBCWS += parseFloat(value.IntValProjCurr);
                 dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
                 dateCheckBefore =  moment(value.SnapshotDate).isAfter(value.Date);
@@ -1276,7 +1318,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         }
         if (_.isArray(BCWP)) {
             var runningTotalBCWP = 0;
-            var BCWPdata = _.map(BCWP, function (value) {
+            var BCWPdata = _.map(_.sortBy(BCWP,"Date"), function (value) {
                 runningTotalBCWP += parseFloat(value.IntValProjCurr);
                 dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
                 dateCheckBefore =  moment(value.SnapshotDate).isBefore(value.Date);
@@ -1311,7 +1353,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         }
         if (_.isArray(EAC)) {
             var runningTotalEAC = 0;
-            var EACdata = _.map(EAC, function (value) {
+            var EACdata = _.map(_.sortBy(EAC,"Date"), function (value) {
                 runningTotalEAC +=  parseFloat(value.IntValProjCurr);
                 return {
                     "EAC": Number(value.IntValProjCurr),
@@ -1326,35 +1368,51 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "Date": value.Date
                 }
             }); //convert IntValProjCurr key for Chart Series
-            master.graph.push(EACdata);//add array to master array
-            var eacTotal = 0, eacHrs = 0;
+            var eacTotal = 0, eacHrs = 0,len = EACdata.length, editedbaseLine = [],firstDate = _.first(BCWSdata);
+           // console.log(len);
             $.each(EACdata, function (key, value) {
-                    eacTotal += parseFloat(value.EAC);
-                    eacHrs += parseFloat(value.QuantityEAC);
+                eacTotal += parseFloat(value.EAC);
+                eacHrs += parseFloat(value.QuantityEAC);
+                if(key === 0){
+                   // console.log(key + '--------' +value.Date);
+                    editedbaseLine.push({
+                        "Date": firstDate.Date,
+                        "baseLine":0
+                    });
+                }
+                if (len-1 === key) {
+                  //  console.log(key + '--------' + value.Date);
+                    editedbaseLine.push({
+                        "Date": value.Date,
+                        "baseLine": eacTotal
+                    });
+                }
             });
-            //console.log('eacTotal '+eacTotal);
+
+            master.graph.push(EACdata);//add array to master array
+            master.graph.push(editedbaseLine);//add array to master array
             master.totals.push({"eacTotal": App.Math.ceil10(eacTotal, -2),"eacHrs": App.Math.ceil10(eacHrs, -2)});//.toFixed(2)
         }
         if (_.isArray(ACWP)) {
             var runningTotalACWP = 0;
-            var ACWPdata = _.map(ACWP, function (value) {
+            var ACWPdata = _.map(_.sortBy(ACWP,"Date"), function (value) {
                 runningTotalACWP += parseFloat(value.IntValProjCurr);
                 dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
                 dateCheckBefore =  moment(value.SnapshotDate).isBefore(value.Date);
-                return {
-                    "ACWP": Number(value.IntValProjCurr),
-                    "QuantityACWP": Number(value.Quantity),
-                    "runningACWP":Number(runningTotalACWP),
-                    "IntValProjCurr": Number(value.IntValProjCurr),
-                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
-                    "ObjectNumber": value.ObjectNumber,
-                    "Version": value.Version,
-                    "ValueType": value.ValueType,
-                    "Type":"ACWP",
-                    "Date": value.Date,
-                    "isSame":dateCheck,
-                    "isBefore":dateCheckBefore
-                }
+                    return {
+                        "ACWP": Number(value.IntValProjCurr),
+                        "QuantityACWP": Number(value.Quantity),
+                        "runningACWP":Number(runningTotalACWP),
+                        "IntValProjCurr": Number(value.IntValProjCurr),
+                        "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                        "ObjectNumber": value.ObjectNumber,
+                        "Version": value.Version,
+                        "ValueType": value.ValueType,
+                        "Type":"ACWP",
+                        "Date": value.Date,
+                        "isSame":dateCheck,
+                        "isBefore":dateCheckBefore
+                    }
             });//convert IntValProjCurr key for Chart Series
             var acwpTotal = 0,acwpHrs = 0, curAcwpTotal = 0, curAcwpHrs = 0;
             $.each(ACWPdata, function (key, value) {
@@ -1428,7 +1486,6 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
        // console.log(master.totals);
         return master;
     };
-
     App.createChart = function(dataSource, series) {
         $("#chart").kendoChart({
             pdf: {

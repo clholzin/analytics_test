@@ -300,13 +300,23 @@ html, body {
 .menuItem:hover {
     background-color: #e5e5e5;
 }
-.menu-disabled{
-    background-color:#CCC;
+
+.menu-disabled, .form-control[disabled] {
+    background-color:#999;
+    cursor: default;
 }
+
+.menu-disabled:hover {
+    background-color:#999;
+    cursor: default;
+}
+
 .menuItemImg {
-    position: relative;
+    position: absolute;
     display: block;
-    padding:10px 0 15px 0;
+    bottom: 65px;
+    left:0;
+    right:0;
     margin-left:auto;
     margin-right:auto;
 }
@@ -377,4 +387,12 @@ a:hover {
 .k-select {
     height: 34px !important;
     min-height: auto !important;
+}
+
+.dashboardTitle {
+    font-weight: bold;
+    color: #000;
+    font-size: 2vh;
+    background-color: transparent;
+    border: none
 }

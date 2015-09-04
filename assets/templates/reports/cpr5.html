@@ -16,7 +16,24 @@
         </span></h1>
     </div>
 
-    <table class="animated fadeIn" id="eAndPAnalysesTable" align="center" border='0' cellspacing='0' cellpadding='0'>
+    <div class="col-xs-10 col-md-12" style="border: 0; padding-bottom: 10px; padding-top: 10px">
+        <form class="form-inline">
+            <div class="input-group">
+                <select class="form-control" id="dataType">
+                    <option value="Cost">Cost</option>
+                    <option value="Hours">Hours</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <select class="form-control" id="costType">
+                    <option value="Internal">Internal Cost</option>
+                    <option value="External">External Cost</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <table class="animated fadeIn exportTable" id="eAndPAnalysesTable" align="center" border='0' cellspacing='0' cellpadding='0'>
         <tr>
             <td colspan='13' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 CLASSIFICATION (when filled in)
@@ -85,7 +102,7 @@
 
         <tr>
             <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>HRS</td>
+            <td colspan='2' id="units" style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>&pound;</td>
             <td colspan='4' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='3' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
@@ -138,8 +155,8 @@
             <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Actual (ACWP)</td>
             <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Cost Variance (CV)</td>
             <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Schedule (SV)</td>
-            <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Cost Pref (CPI)</td>
-            <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Shedule Pref (SPI)</td>
+            <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Cost Perf (CPI)</td>
+            <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Shedule Perf (SPI)</td>
             <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Calculated (EAC)</td>
             <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Budget Variance (VAR)</td>
             <td style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>TCPI (BAC)</td>

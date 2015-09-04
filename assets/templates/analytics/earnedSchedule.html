@@ -1,8 +1,31 @@
-<div class="panel panel-default" style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">
-    <div class="panel-heading" style="margin-bottom: 20px">
+<div class="animated fadeIn panel panel-default" style="height:80vh; border: none">
+    <div class="panel-heading">
         <span class="pull-left">
-            <a class="homeTpl" data-id="wbsTable" data-temp="home" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>
+            <a class="homeTpl" data-id="wbsTable" data-temp="#indexTpl" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>
         </span>
-        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">Earned Schedule</h1>
+        <h1 class="panel-title" style="font-size: 24px; font-weight: bold; text-align: center">Earned Schedule</h1>
+    </div>
+
+    <div id="vertical">
+        <div class="col-xs-10 col-md-12" style="border: 0; padding-bottom: 10px; padding-top: 10px">
+            <form class="form-inline">
+                <div class="input-group">
+                    <select class="form-control" id="dataType">
+                        <option value="Cost">Cost</option>
+                        <option value="Hours">Hours</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <select class="form-control" id="costType">
+                        <option value="Internal">Internal Cost</option>
+                        <option value="External">External Cost</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div>
+            <div id="chart"></div>
+            <div class="chart-loading"></div>
+        </div>
     </div>
 </div>

@@ -4,127 +4,69 @@
     </div>
 
     <div class="panel-body animated fadeIn" style="margin-left: 10px; margin-right: 10px">
-        <div class="row">
-            <div class="col-sm-6 col-sm-push-6 col-md-3 col-md-push-8">
-                <form>
-                    <label class="col-md-12" style="padding-top: 8px">My CAM Assigned Projects</label>
-                    <select class="col-md-12 form-control" id="hierarchySets">
-                        <option value="">Please Select a Hierarchy</option>
-                        <!-- FOR EACH ITEM -->
-                        <% $.each(combineData[0],function(key,value){ %>
-                        <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
-                        <%});%>
-                        <!-- END OF FOR EACH -->
-                    </select>
-                    <!--label class="col-md-12" style="padding-top: 8px">My Analyst Assigned Projects</label>
-                    <select class="form-control">
-                        <option>TA1</option>
-                        <option>TA2</option>
-                        <option>TA3</option>
-                        <option>TA4</option>
-                        <option>TA5</option>
-                    </select-->
+        <div class="row" style="margin: 15px 0">
+            <div class="col-sm-6 col-md-4">
+                <form class="form-inline">
+                    <div class="input-group">
+                        <div class="input-group-addon dashboardTitle">Project</div>
+                        <select class="form-control" id="projectSets">
+                            <% if (combineData[0].length < 2) { %>
+                                <% $.each(combineData[0],function(key,value){ %>
+                                <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
+                                <%});
+                            } else { %>
+                                <option value="">Please Select a Project</option>
+                                <!-- FOR EACH ITEM -->
+                                <% $.each(combineData[0],function(key,value){ %>
+                                <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
+                                <%});
+                                <!-- END OF FOR EACH -->
+                            }%>
+                        </select>
+                    </div>
                 </form>
             </div>
         </div>
         <div class="row">
-            <h3 style="color: #fff">Analytics</h3>
+            <!--div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <div class="menuItem getAnalytics" data-id="projectAnalyticsFT" data-temp="projectAnalyticsFT" data-name="projectAnalyticsFT" role="button"><h4 class="menuTitle">Project Analytics</h4><img class="menuItemImg" src="./assets/img/projectAnalytics.png"></div>
+            </div-->
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <a href="#"><div class="menuItem getAnalytics" data-id="projectAnalyticsFT" data-temp="projectAnalyticsFT" data-name="projectAnalyticsFT" role="button"><h4 class="menuTitle">Project Analytics</h4><img class="menuItemImg" src="./assets/img/projectAnalytics.png"></div></a>
+                <div class="menuItem getAnalytics" data-id="spa" data-temp="spa" data-name="spa" role="button"><h4 class="menuTitle">SPA Chart</h4><img class="menuItemImg" src="./assets/img/spa.png"></div>
             </div>
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <a href="#"><div class="menuItem getAnalytics" data-id="spa" data-temp="spa" data-name="spa" role="button"><h4 class="menuTitle">SPA Chart</h4><img class="menuItemImg" src="./assets/img/spa.png"></div></a>
+                <div class="menuItem getAnalytics" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI" role="button"><h4 class="menuTitle">SPI CPI Chart</h4><img class="menuItemImg" src="./assets/img/spiCPI.png"></div>
             </div>
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <a href="#"><div class="menuItem getAnalytics" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI" role="button"><h4 class="menuTitle">SPI CPI Chart</h4><img class="menuItemImg" src="./assets/img/spiCPI.png"></div></a>
+                <div class="menuItem getAnalytics" data-id="scheduleVAR" data-temp="scheduleVAR" data-name="scheduleVAR" role="button"><h4 class="menuTitle">Schedule Variance</h4><img class="menuItemImg" src="./assets/img/scheduleVAR.png"></div>
             </div>
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <a href="#"><div class="menuItem getAnalytics" data-id="scheduleVAR" data-temp="scheduleVAR" data-name="scheduleVAR" role="button"><h4 class="menuTitle">Schedule Variance</h4><img class="menuItemImg" src="./assets/img/scheduleVAR.png"></div></a>
-            </div>
-            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <a href="#"><div class="menuItem getAnalytics" data-id="earnedSchedule" data-temp="earnedSchedule" data-name="earnedSchedule" role="button"><h4 class="menuTitle">Earned Schedule</h4><img class="menuItemImg" src="./assets/img/earnedSchedule.png"></div></a>
-            </div>
-        </div>
-        <div class="row">
-            <h3 style="color: #fff">Reports</h3>
-            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem card" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">
-                    <h4 class="menuTitle">CPR1 - WBS</h4>
-                    <div><img class="menuItemImg" src="./assets/img/wbs.png"></div>
-                <div class="btn-group btn-group-justified btn-group-sm" role="group" aria-label="...">
-                    <a href="#" role="button" class="btn btn-primary getReport" title="Internal Costs" data-filter="int" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Int.</a>
-                    <a href="#" role="button" class="btn btn-info getReport" title="External Costs" data-filter="ext" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Ext.</a>
-                    <a href="#" role="button" class="btn btn-warning getReport" title="Hours" data-filter="hrs" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Hrs.</a>
-                </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem card" data-id="orgCatTable" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">
-                    <h4 class="menuTitle">CPR2 - OBS</h4>
-                    <div><img class="menuItemImg" src="./assets/img/obs.png"></div>
-                <div class="btn-group btn-group-justified btn-group-sm" role="group" aria-label="...">
-                    <a href="#" role="button" class="btn btn-primary getReport" title="Internal Costs" data-filter="int" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">Int.</a>
-                    <a href="#" role="button" class="btn btn-info getReport" title="External Costs" data-filter="ext" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">Ext.</a>
-                    <a href="#" role="button" class="btn btn-warning getReport" title="Hours" data-filter="hrs" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">Hrs.</a>
-                </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem card" data-id="baselineTable" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3">
-                    <h4 class="menuTitle">CPR3 - Baseline</h4>
-                    <div><img class="menuItemImg" src="./assets/img/baseline.png"></div>
-                <div class="btn-group btn-group-justified btn-group-sm" role="group" aria-label="...">
-                    <a href="#" role="button" class="btn btn-primary getReport" title="Internal Costs" data-filter="int" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3">Int.</a>
-                    <a href="#" role="button" class="btn btn-info getReport" title="External Costs" data-filter="ext" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3">Ext.</a>
-                    <a href="#" role="button" class="btn btn-warning getReport" title="Hours" data-filter="hrs" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3">Hrs.</a>
-                </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem card" data-id="staffingTable" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">
-                    <h4 class="menuTitle">CPR4 - Staffing/Forecast</h4>
-                    <div><img class="menuItemImg" src="./assets/img/staffing.png"></div>
-                <div class="btn-group btn-group-justified btn-group-sm" role="group" aria-label="...">
-                    <a href="#" role="button" class="btn btn-primary getReport" title="Internal Costs" data-filter="int" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">Int.</a>
-                    <a href="#" role="button" class="btn btn-info getReport" title="External Costs" data-filter="ext" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">Ext.</a>
-                    <a href="#" role="button" class="btn btn-warning getReport" title="Hours" data-filter="hrs" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">Hrs.</a>
-                </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem card" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">
-                    <h4 class="menuTitle">CPR5 - VAR</h4>
-                    <div><img class="menuItemImg" src="./assets/img/var.png"></div>
-                <div class="btn-group btn-group-justified btn-group-sm" role="group" aria-label="...">
-                    <a href="#" role="button" class="btn btn-primary getReport" title="Internal Costs" data-filter="int" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Int.</a>
-                    <a href="#" role="button" class="btn btn-info getReport" title="External Costs" data-filter="ext" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Ext.</a>
-                    <a href="#" role="button" class="btn btn-warning getReport" title="Hours" data-filter="hrs" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Hrs.</a>
-                </div>
-                </div>
+                <div class="menuItem getAnalytics" data-id="earnedSchedule" data-temp="earnedSchedule" data-name="earnedSchedule" role="button"><h4 class="menuTitle">Earned Schedule</h4><img class="menuItemImg" src="./assets/img/earnedSchedule.png"></div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem card" data-id="trendTable" data-temp="cprTWBS" data-name="CPR_TrendWBS" data-sheet="CPR-TWBS">
-                    <h4 class="menuTitle">CPR Trend - WBS</h4>
-                    <div><img class="menuItemImg" src="./assets/img/trendWBS.png"></div>
-                <div class="btn-group btn-group-justified btn-group-sm" role="group" aria-label="...">
-                    <a href="#" role="button" class="btn btn-primary getReport" title="Internal Costs" data-filter="int" data-temp="cprTWBS" data-name="CPR_TrendWBS" data-sheet="CPR-TWBS">Int.</a>
-                    <a href="#" role="button" class="btn btn-info getReport" title="External Costs" data-filter="ext" data-temp="cprTWBS" data-name="CPR_TrendWBS" data-sheet="CPR-TWBS">Ext.</a>
-                    <a href="#" role="button" class="btn btn-warning getReport" title="Hours" data-filter="hrs" data-temp="cprTWBS" data-name="CPR_TrendWBS" data-sheet="CPR-TWBS">Hrs.</a>
-                </div>
-                </div>
+                <div class="menuItem getReport" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1" role="button"><h4 class="menuTitle">CPR1 - WBS</h4><img class="menuItemImg" src="./assets/img/wbs.png"></div>
             </div>
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem card" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-filter="" data-sheet="CPR-TOBS">
-                    <h4 class="menuTitle">CPR Trend - OBS</h4>
-                    <div><img class="menuItemImg" src="./assets/img/trendOBS.png"></div>
-                    <div class="btn-group btn-group-justified btn-group-sm" role="group" aria-label="...">
-                        <a href="#" role="button" class="btn btn-primary getReport" title="Internal Costs" data-filter="int" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-filter="" data-sheet="CPR-TOBS">Int.</a>
-                        <a href="#" role="button" class="btn btn-info getReport" title="External Costs" data-filter="ext" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-filter="" data-sheet="CPR-TOBS">Ext.</a>
-                        <a href="#" role="button" class="btn btn-warning getReport" title="Hours" data-filter="hrs" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-filter="" data-sheet="CPR-TOBS">Hrs.</a>
-                    </div>
-                </div>
+                <div class="menuItem getReport" data-id="orgCatTable" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2" role="button"><h4 class="menuTitle">CPR2 - OBS</h4><img class="menuItemImg" src="./assets/img/obs.png"></div>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <div class="menuItem getReport" data-id="baselineTable" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3" role="button"><h4 class="menuTitle">CPR3 - Baseline</h4><img class="menuItemImg" src="./assets/img/baseline.png"></div>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <div class="menuItem getReport" data-id="staffingTable" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4" role="button"><h4 class="menuTitle">CPR4 - Staffing/Forecast</h4><img class="menuItemImg" src="./assets/img/staffing.png"></div>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <div class="menuItem getReport" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5" role="button"><h4 class="menuTitle">CPR5 - VAR</h4><img class="menuItemImg" src="./assets/img/var.png"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <div class="menuItem getReport" data-id="trendTable" data-temp="cprTWBS" data-name="CPR_TrendWBS" data-sheet="CPR-TWBS" role="button"><h4 class="menuTitle">CPR Trend - WBS</h4><img class="menuItemImg" src="./assets/img/trendWBS.png"></div>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <div class="menuItem getReport" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-sheet="CPR-TOBS" role="button"><h4 class="menuTitle">CPR Trend - OBS</h4><img class="menuItemImg" src="./assets/img/trendOBS.png"></div>
             </div>
         </div>
     </div>

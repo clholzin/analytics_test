@@ -14,7 +14,24 @@
         </h1>
     </div>
 
-    <table class="animated fadeIn" id="trendTable" align="center" border='0' cellspacing='0' cellpadding='0'>
+    <div class="col-xs-10 col-md-12" style="border: 0; padding-bottom: 10px; padding-top: 10px">
+        <form class="form-inline">
+            <div class="input-group">
+                <select class="form-control" id="dataType">
+                    <option value="Cost">Cost</option>
+                    <option value="Hours">Hours</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <select class="form-control" id="costType">
+                    <option value="Internal">Internal Cost</option>
+                    <option value="External">External Cost</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <table class="animated fadeIn exportTable" id="trendTable" align="center" border='0' cellspacing='0' cellpadding='0'>
         <tr>
             <td colspan='27' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 CLASSIFICATION (when filled in)
@@ -83,7 +100,7 @@
 
         <tr>
             <td colspan='4' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='4' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>HRS</td>
+            <td colspan='4' id="units" style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>&pound;</td>
             <td colspan='8' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='4' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='7' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
