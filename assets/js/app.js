@@ -14,7 +14,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     App.tdColor = '#ede330';
     App.series = [
         {
-            name: "BCWS",
+            name: "Planned (BCWS)",
             type: "line",
             field: "runningBCWS",
             categoryField: "Date",
@@ -23,7 +23,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             markers: {type: "circle"}
         },
         {
-            name: "BCWP",
+            name: "Earned (BCWP)",
             type: "line",
             field: "runningBCWP",
             categoryField: "Date",
@@ -41,7 +41,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             markers: {type: "circle"}
         },
         {
-            name: "ACWP",
+            name: "Spend (ACWP)",
             type: "line",
             field: "runningACWP",
             categoryField: "Date",
@@ -110,7 +110,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     ];
     App.seriesCombo = [
         {
-            name: "BCWS",
+            name: "Planned (BCWS)",
             type: "column",
             field: "BCWS",
             categoryField: "Date",
@@ -120,7 +120,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             axis: "Total"
         },
         {
-            name: "BCWP",
+            name: "Earned (BCWP)",
             type: "column",
             field: "BCWP",
             categoryField: "Date",
@@ -138,7 +138,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             axis: "Total"
         },
         {
-            name: "ACWP",
+            name: "Spend (ACWP)",
             type: "column",
             field: "ACWP",
             categoryField: "Date",
@@ -148,7 +148,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             axis: "Total"
         },
         {
-            name: "BCWS [cum]",
+            name: "Planned (BCWS) [cum]",
             type: "line",
             field: "runningBCWS",
             categoryField: "Date",
@@ -157,7 +157,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             axis: "Cumulative"
         },
         {
-            name: "BCWP [cum]",
+            name: "Earned (BCWP) [cum]",
             type: "line",
             field: "runningBCWP",
             categoryField: "Date",
@@ -176,7 +176,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             axis: "Cumulative"
         },
         {
-            name: "ACWP [cum]",
+            name: "Spend (ACWP) [cum]",
             type: "line",
             field: "runningACWP",
             categoryField: "Date",
@@ -241,6 +241,17 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         }
     };
 
+    App.apiErrorHandler = function(target,loadingWheel,data){
+        /** Error handler **/
+        if(_.isArray(data) && (_.isUndefined(_.first(data))) && (!_.isEmpty(data))){
+            alert('Selection does not have Data, try again.');
+            _.debounce(App.SpinnerTpl(loadingWheel,0), 1000);
+            App.addSpinner(target,false);//bkg loading
+            return true;
+        }
+        /** Error handler **/
+    };
+
     App.setProjectID = function(value){
         this.projectID = value;
         this.urlSnapshotSet = "/SnapshotSet(TreeSelection='" + this.projectID + "')?$format=json";
@@ -257,7 +268,12 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     App.ClearDataStore = function(){
         this.DataStore.empty();
     };
-
+    App.UpdateHierarchy = function(){
+        var $chartGraph = $("div#chart").data("kendoChart"),
+            $treeList = $("div#treelist").data("kendoTreeList");
+        $chartGraph.dataSource.options.data = [];
+        $treeList.dataSource.options.data = [];
+    };
     App.AssignStore = function(data){
        // if(_.isEmpty(App.DataStore.chart)){
            return  new kendo.data.DataSource({
@@ -275,7 +291,6 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 }
             });
       //  }
-
     };
 
     App.getCookie = function (cname) {
@@ -747,7 +762,11 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         });
     };
 
-    App.addSpinner = function(selector) {
+    App.addSpinner = function(selector,boolean) {
+        if(boolean === false){
+            $(selector).find('.spinnerAdded').children().eq(0).unwrap();
+            return;
+        }
         $(selector).children().eq(0).wrap('<div></div>').parent().addClass('spinnerAdded');
     };
 
@@ -994,6 +1013,37 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         });
     };
 
+    App.refreshHierarchy = function() {
+        var chart = $("#treelist").data("kendoChart"),
+            series = '',
+            ValueAxis  = '',
+            type = $("input[name=seriesType]:checked").val();
+        //stack = $("#stack").prop("checked");
+        if(type === 'combo'){
+            series = App.seriesCombo;
+            ValueAxis =  [{
+                name: "Cumulative",
+                title: { text: "[Cum.]" },
+                color: "#ec5e0a"
+            },
+                {name: "Total",
+                    title: {text: ' Total'}
+                }];
+        }else{
+            ValueAxis = [{
+                title: {text: ' Total'}
+            }];
+            series = App.series;
+            for (var i = 0, length = series.length; i < length; i++) {
+                //series[i].stack = stack;
+                series[i].type = type;
+            }
+        }
+        chart.setOptions({
+            valueAxes:ValueAxis,
+            series: series
+        });
+    };
     App.tdHover = function(e) {
         /**nested inside getReport func**/
         e.preventDefault();
@@ -1027,10 +1077,10 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             console.log($rowIndex);
             chartdata = $chartGraph.dataSource.options.data;
             /**Change Title**/
-            var extId = $treeList.dataSource.options.data[$rowIndex].ExtID;
-            var description = $treeList.dataSource.options.data[$rowIndex].Description;
+            //var extId = $treeList.dataSource.options.data[$rowIndex].ExtID;
+            //var description = $treeList.dataSource.options.data[$rowIndex].Description;
             //$(document).find('.gaugeHeading').text(extId+'  '+description);
-            $(document).find('.gaugeHeading').text(description);
+            //$(document).find('.gaugeHeading').text(description);
             /** end title change **/
             switch ($rowIndex) {
                 case 0:
@@ -1084,7 +1134,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     /** New Function projectData 072815**/
     App.projectData = function() {
         var projectSource = $.ajax({
-            url: this.serviceRoot + this.urlProjectSet,
+            //url: this.serviceRoot + this.urlProjectSet,
+            url: "./assets/js/temp.json",
             method: "GET",
             dataType: 'json',
             async: true
@@ -1486,7 +1537,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
        // console.log(master.totals);
         return master;
     };
-    App.createChart = function(dataSource, series) {
+
+    App.createChart = function(dataSource, series, reverse) {
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -1533,7 +1585,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 }
             },
             valueAxis: [
-                {title: {text: ' Total'}}
+                {title: {text: ' Total'},
+                    reverse: reverse}
             ],
             tooltip: {
                 visible: true,

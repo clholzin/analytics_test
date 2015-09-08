@@ -9,14 +9,14 @@
             <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
             <form class="form-inline">
                 <div class="input-group">
-                    <div class="input-group-addon dashboardTitle">Hierachy</div>
-                    <select class="form-control" id="projectSets">
+                    <div class="input-group-addon dashboardTitle">Hierarchy</div>
+                    <select class="form-control" id="hChange">
                         <% if (combineData[0].length < 2) { %>
                             <% $.each(combineData[0],function(key,value){ %>
                             <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
                             <%});
                         } else { %>
-                            <option value="">Please Select a Hierachy</option>
+                            <option value="">Please Select a Hierarchy</option>
                             <!-- FOR EACH ITEM -->
                             <% $.each(combineData[0],function(key,value){ %>
                             <option value="<%-value.TreeSelection%>"><%-value.Description%></option>

@@ -33,14 +33,14 @@
 
     <table class="animated fadeIn exportTable" id="trendTable" align="center" border='0' cellspacing='0' cellpadding='0'>
         <tr>
-            <td colspan='27' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='27' style='text-align: center; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 CLASSIFICATION (when filled in)
             </td>
         </tr>
 
         <tr>
-            <td colspan='27' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                CPR FORMAT TREND - WBS
+            <td id="cprTWTitle" colspan='27' style='text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                CPR FORMAT TREND - WBS (MATERIAL)
             </td>
         </tr>
 
@@ -156,7 +156,7 @@
         </tr>
 
         <tr>
-            <td colspan='2' style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='2' class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='4' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>MANAGEMENT ESTIMATE</td>
             <td colspan='3' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>CONTRACT BUDGET</td>
             <td colspan='3' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>VARIANCE</td>
@@ -165,7 +165,7 @@
         </tr>
 
         <tr>
-            <td colspan='2' style='background-color:#CCC; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='2' class="no-paint" style='background-color:#CCC; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='4' style='border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>AT COMPLETION (1)</td>
             <td colspan='3' style='border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>BASE (2)</td>
             <td colspan='3' style='border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>(3)</td>
@@ -174,7 +174,7 @@
         </tr>
 
         <tr>
-            <td colspan='2' style='background-color:#CCC; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='2' class="no-paint" style='background-color:#CCC; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='4' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='3' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='3' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
@@ -185,8 +185,8 @@
         <tr>
             <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>a. BEST CASE</td>
             <td colspan='4' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
-            <td colspan='3' style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
-            <td colspan='3' style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='3' class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='3' class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='8' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>c. SIGNATURE</td>
             <td colspan='7' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>d. DATE SIGNED (YYYYMMDD)</td>
         </tr>
@@ -194,8 +194,8 @@
         <tr>
             <td colspan='2' style=' border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>b. WORST CASE</td>
             <td colspan='4' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
-            <td colspan='3' style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
-            <td colspan='3' style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='3' class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='3' class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='8' style='border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='7' style='border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
         </tr>
@@ -306,13 +306,13 @@
             <td colspan='3' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 PREVIOUS EDITION IS OBSOLETE.
             </td>
-            <td colspan='4' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='4' style='text-align: right; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 LOCAL REPRODUCTION AUTHORIZED.
             </td>
         </tr>
 
         <tr>
-            <td colspan='27' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='27' style='text-align: center; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 CLASSIFICATION (when filled in)
             </td>
         </tr>

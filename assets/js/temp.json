@@ -1,0 +1,24 @@
+{
+  "d": {
+    "results": [
+      {
+        "__metadata": {
+          "id": "http://wddv3.dassian.com:8100/dsnpmr/odata/DSN/PMR_01/ReportSelectionSet(TreeSelection='OB0000263699|DV3-5')",
+          "uri": "http://wddv3.dassian.com:8100/dsnpmr/odata/DSN/PMR_01/ReportSelectionSet(TreeSelection='OB0000263699|DV3-5')",
+          "type": "/DSN/PMR_01.ReportSelection"
+        },
+        "TreeSelection": "OB0000263699|DV3-5",
+        "Description": "DV3-5"
+      },
+      {
+        "__metadata": {
+          "id": "http://wddv3.dassian.com:8100/dsnpmr/odata/DSN/PMR_01/ReportSelectionSet(TreeSelection='OB0000263699|DV3-6')",
+          "uri": "http://wddv3.dassian.com:8100/dsnpmr/odata/DSN/PMR_01/ReportSelectionSet(TreeSelection='OB0000263699|DV3-6')",
+          "type": "/DSN/PMR_01.ReportSelection"
+        },
+        "TreeSelection": "OB0000263699|DV3-6",
+        "Description": "DV3-6"
+      }
+    ]
+  }
+}
