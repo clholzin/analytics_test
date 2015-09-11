@@ -1,5 +1,5 @@
 ##DP10_Analytics_BAE
-###**Version 0.1**
+###**Version 0.2**
 ####**BAE specific project repo**
 -
 ###Project includes:
