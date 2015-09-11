@@ -50,7 +50,7 @@ define(['jquery','underscore','domReady','app',
             if (combineData[0].length > 1) {
                 doc.find('.menuItem').addClass('menu-disabled');
             } else {
-                App.setProjectID(combineData[0][0].TreeSelection);
+                App.setProjectID(combineData.ProjectSelection);
             }
             App.SpinnerTpl(loadingWheel,0);//remove spinner after load + 1 sec
         });
@@ -61,7 +61,7 @@ define(['jquery','underscore','domReady','app',
             e.stopPropagation();
         });
 
-        doc.on('click','#projectSets',function(e){
+        doc.on('change','#projectSets',function(e){
             e.preventDefault();
             var value = $("#projectSets").val();
             console.log(value);
@@ -71,14 +71,14 @@ define(['jquery','underscore','domReady','app',
                 App.setProjectID(value);
             } else {
                     App.setProjectID(value);
+                    App.setVersion();
                    if(!_.isEmpty(App.projectID) || !_.isUndefined(App.projectID)){
                         doc.find('.menuItem').removeClass('menu-disabled');
                     }
-                App.ClearDataStore();
-
+                    App.ClearDataStore();
             }
             console.log('Project ID: '+ App.projectID);
-            console.log('Project URLs: '+    App.urlSnapshotSet  +'  '+ App.urlHierarchySet)
+            console.log('Project URLs: '+    App.urlSnapshotSet  +'  '+ App.urlHierarchySet);
         });
 
         doc.on('click','body',function(e){
@@ -100,17 +100,19 @@ define(['jquery','underscore','domReady','app',
                 chartDataSource,
                 self = $(this),
                 $treeList = doc.find("div#treelist").data("kendoTreeList"),
+                version = '',
                 $chartGraph = doc.find("div#chart").data("kendoChart");
                 App.setProjectID(selectedHier);
                     if(App.CheckProdId()){
                         return;
                     } else {
                         App.ClearDataStore();
+
                     }
+                App.setVersion();
                 App.SpinnerTpl(loadingWheel,1);
                 var hData = App.hierListData();
                 var cData = App.ChartData();
-
             $.when(hData, cData).done(function(hierData,chartData) {
                 /** Error handler **/
                 if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
@@ -119,10 +121,13 @@ define(['jquery','underscore','domReady','app',
                 /** Error handler **/
 
                 App.DataStore.rawChartdata = _.first(chartData).d.results;
-                chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
-                App.DataStore.chart = App.AssignStore(chartDataSource.graph);
-                App.DataStore.chartTotals  = chartDataSource.totals;
-                App.DataStore.gaugesData   = chartDataSource.gauges;
+                App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
+                console.log(App.DataStore.filtered);
+                chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
+                var refined = App.FilterChartData(chartDataSource.graph);
+                App.DataStore.chart = App.AssignStore(refined.graph);
+                App.DataStore.chartTotals  = refined.totals;
+                App.DataStore.gaugesData   = refined.gauges;
                 App.DataStore.hierarchy = _.first(hierData).d.results;
 
                 /** Clear Hierarchy and Chart **/
@@ -177,6 +182,8 @@ define(['jquery','underscore','domReady','app',
             var self = $(this),
                 cData = [],
                 hData = [],
+                vData = [],
+                version = '',
                 chartDataSource = '',
                 id = self.data('temp'),//Name of DIV
                 name = self.data('name');//File Name to Export As
@@ -185,14 +192,15 @@ define(['jquery','underscore','domReady','app',
             if(_.isEmpty(App.DataStore.chart)){
                 console.log('hit empty chart request');
                  cData = App.ChartData();// get SnapShot Cost Data
+                 hData = App.hierListData();//get hierarchy Data
             }
-            hData = App.hierListData();//get hierarchy Data
+
             /**GET REPORT TPL ON THE FLY**/
             var retrieveTpl = 'tpl!templates/analytics/'+id+'.html';
             requirejs([retrieveTpl],function(tempTpl){
                     tplId = tempTpl;
                     switch(name) {
-                        case 'projectAnalyticsFT':
+                        case 'projectAnalytics':
                             tplFooter = analyticsFooterATpl;
                             break;
                         default:
@@ -203,79 +211,80 @@ define(['jquery','underscore','domReady','app',
                     //$("#hChange").val(App.projectID);
                     switch(name){
                         /*case 'projectAnalytics':
-                     $.when(hData, cData).done(function(hierData,chartData) {
-                     App.createSplitters();
-                     if(!_.isEmpty(chartData)){
-                     chartDataSource = App.FilterChartData(chartData[0].d.results);
-                     App.DataStore.rawChartdata = chartData[0].d.results;
-                     App.DataStore.chart = new kendo.data.DataSource({
-                     data: _.flatten(chartDataSource.graph),
-                     sort: {
-                     field: "Date",
-                     dir: "asc"
-                     },
-                     schema: {
-                     model: {
-                     fields: {
-                     Date: {type: "date"}
-                     }
-                     }
-                     }
-                     });
-                     App.DataStore.chartTotals  = chartDataSource.totals;
-                     App.DataStore.gaugesData   = chartDataSource.gauges;
-                     App.DataStore.hierarchy = _.sortBy(hierData[0].d.results,'SortOrder');
-                     }
-                     //console.log(App.DataStore.chart);
-                     App.hierListInitialize(App.DataStore.hierarchy);
-                     //console.log(App.DataStore.gaugesData);
-                     //console.log(JSON.stringify(App.DataStore.chartTotals));
-
-                     App.createChart(App.DataStore.chart, App.series);
-
-                     App.createGauge(App.DataStore.gaugesData);
-                     App.createTooltip(App.DataStore.gaugesData);
-
-                     var projectName = App.DataStore.hierarchy[0].ExtID;
-                     var WBSDesc = App.DataStore.hierarchy[0].Description;
-                     App.displayTotals(App.DataStore.chartTotals, projectName);
-
-                     $(document).find('.gaugeHeading').text(WBSDesc);
-                     $(document).bind("kendo:skinChange", App.createChart);
-                     $(".chart-type-chooser").bind("change", App.refreshChart);
-                     //Changed Refresh Chart Name for clarity
-                     var hierarchyList = $("div#treelist");
-                     App.hierEvent(hierarchyList);//event for changing chart data
-                     _.debounce(App.expandTreeList(hierarchyList), 500);
-                     //var chartSelector = $("div#chart");
-                     $(".export-pdf").click(function () {
-                     $("#chart").getKendoChart().saveAsPDF();
-                     });
-                     _.debounce(App.SpinnerTpl(loadingWheel,0), 1000);
-                     });
-                     break;*/
-                        case 'projectAnalyticsFT':
-                            $.when(hData, cData).done(function(hierData,chartData) {
-                                App.createSplittersFT();
-                                /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
-                                    return;
-                                }
-                                /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
-                                    chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
-                                    App.DataStore.chart = App.AssignStore(chartDataSource.graph);
-                                    App.DataStore.chartTotals  = chartDataSource.totals;
-                                    App.DataStore.gaugesData   = chartDataSource.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                            $.when(hData, cData).done(function (hierData, chartData) {
+                                App.createSplitters();
+                                if (!_.isEmpty(chartData)) {
+                                    chartDataSource = App.FilterChartData(chartData[0].d.results);
+                                    App.DataStore.rawChartdata = chartData[0].d.results;
+                                    App.DataStore.chart = new kendo.data.DataSource({
+                                        data: _.flatten(chartDataSource.graph),
+                                        sort: {
+                                            field: "Date",
+                                            dir: "asc"
+                                        },
+                                        schema: {
+                                            model: {
+                                                fields: {
+                                                    Date: {type: "date"}
+                                                }
+                                            }
+                                        }
+                                    });
+                                    App.DataStore.chartTotals = chartDataSource.totals;
+                                    App.DataStore.gaugesData = chartDataSource.gauges;
+                                    App.DataStore.hierarchy = _.sortBy(hierData[0].d.results, 'SortOrder');
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
                                 //console.log(App.DataStore.gaugesData);
                                 //console.log(JSON.stringify(App.DataStore.chartTotals));
 
+                                App.createChart(App.DataStore.chart, App.series);
 
+                                App.createGauge(App.DataStore.gaugesData);
+                                App.createTooltip(App.DataStore.gaugesData);
+
+                                var projectName = App.DataStore.hierarchy[0].ExtID;
+                                var WBSDesc = App.DataStore.hierarchy[0].Description;
+                                App.displayTotals(App.DataStore.chartTotals, projectName);
+
+                                $(document).find('.gaugeHeading').text(WBSDesc);
+                                $(document).bind("kendo:skinChange", App.createChart);
+                                $(".chart-type-chooser").bind("change", App.refreshChart);
+                                //Changed Refresh Chart Name for clarity
+                                var hierarchyList = $("div#treelist");
+                                App.hierEvent(hierarchyList);//event for changing chart data
+                                _.debounce(App.expandTreeList(hierarchyList), 500);
+                                //var chartSelector = $("div#chart");
+                                $(".export-pdf").click(function () {
+                                    $("#chart").getKendoChart().saveAsPDF();
+                                });
+                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                            });
+                            break;
+                        case 'projectAnalyticsFT':
+                            $.when(hData, cData).done(function(hierData,chartData) {
+                                App.createSplittersFT();
+
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                    return;
+                                }
+
+                                if(!_.isEmpty(chartData)){
+                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+                                    App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
+                                    console.log(App.DataStore.filtered);
+                                    chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
+                                    var refined = App.FilterChartData(chartDataSource.graph);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.DataStore.chartTotals  = refined.totals;
+                                    App.DataStore.gaugesData   = refined.gauges;
+                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                }
+                                //console.log(App.DataStore.chart);
+                                App.hierListInitialize(App.DataStore.hierarchy);
+                                //console.log(App.DataStore.gaugesData);
+                                //console.log(JSON.stringify(App.DataStore.chartTotals));
 
                                 //App.createGauge(App.DataStore.gaugesData);
                                 //App.createTooltip(App.DataStore.gaugesData);
@@ -287,7 +296,7 @@ define(['jquery','underscore','domReady','app',
                                 $(document).find('.gaugeHeading').text(WBSDesc);
                                 $(document).bind("kendo:skinChange", App.createChart);
                                 $(".chart-type-chooser").bind("change", App.refreshChart);
-                                /** Changed Refresh Chart Name for clarity**/
+
                                 var hierarchyList = $("div#treelist");
                                 App.hierEvent(hierarchyList);//event for changing chart data
                                 _.debounce(App.expandTreeList(hierarchyList), 500);
@@ -297,7 +306,7 @@ define(['jquery','underscore','domReady','app',
                                 });
                                 _.debounce(App.SpinnerTpl(loadingWheel,0), 1000);
                             });
-                            break;
+                            break;*/
                         case 'earnedSchedule':
                             $.when(hData, cData).done(function(hierData,chartData) {
                                 App.createSplittersFT();
@@ -308,10 +317,13 @@ define(['jquery','underscore','domReady','app',
                                 /** Error handler **/
                                 if(!_.isEmpty(chartData)){
                                     App.DataStore.rawChartdata = _.first(chartData).d.results;
-                                    chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
-                                    App.DataStore.chart = App.AssignStore(chartDataSource.graph);
-                                    App.DataStore.chartTotals  = chartDataSource.totals;
-                                    App.DataStore.gaugesData   = chartDataSource.gauges;
+                                    App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
+                                    console.log(App.DataStore.filtered);
+                                    chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
+                                    var refined = App.FilterChartData(chartDataSource.graph);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.DataStore.chartTotals  = refined.totals;
+                                    App.DataStore.gaugesData   = refined.gauges;
                                     App.DataStore.hierarchy = _.first(hierData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
@@ -341,21 +353,25 @@ define(['jquery','underscore','domReady','app',
                                 /** Error handler **/
                                 if(!_.isEmpty(chartData)){
                                     App.DataStore.rawChartdata = _.first(chartData).d.results;
-                                    chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
-                                    App.DataStore.chart = App.AssignStore(chartDataSource.graph);
-                                    App.DataStore.chartTotals  = chartDataSource.totals;
-                                    App.DataStore.gaugesData   = chartDataSource.gauges;
+                                    App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
+                                    console.log(App.DataStore.filtered);
+                                    chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
+                                    var refined = App.FilterChartData(chartDataSource.graph);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.DataStore.chartTotals  = refined.totals;
+                                    App.DataStore.gaugesData   = refined.gauges;
                                     App.DataStore.hierarchy = _.first(hierData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
                                 //console.log(App.DataStore.gaugesData);
                                 //console.log(JSON.stringify(App.DataStore.chartTotals));
-
-                                App.createChart(App.DataStore.chart, App.series, false);
+                                var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart.options.data);
+                                var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
+                                App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
 
                                 var projectName = _.first(App.DataStore.hierarchy).ExtID;
-                                $(document).bind("kendo:skinChange", App.createChart);
+                                $(document).bind("kendo:skinChange", App.createSpiCpiChart);
                                 $(".chart-type-chooser").bind("change", App.refreshChart);
                                 /** Changed Refresh Chart Name for clarity**/
                                 var hierarchyList = $("div#treelist");
@@ -375,17 +391,18 @@ define(['jquery','underscore','domReady','app',
                                 /** Error handler **/
                                 if(!_.isEmpty(chartData)){
                                     App.DataStore.rawChartdata = _.first(chartData).d.results;
-                                    chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
-                                    App.DataStore.chart = App.AssignStore(chartDataSource.graph);
-                                    App.DataStore.chartTotals  = chartDataSource.totals;
-                                    App.DataStore.gaugesData   = chartDataSource.gauges;
+                                    App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
+                                    console.log(App.DataStore.filtered);
+                                    chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
+                                    var refined = App.FilterChartData(chartDataSource.graph);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.DataStore.chartTotals  = refined.totals;
+                                    App.DataStore.gaugesData   = refined.gauges;
                                     App.DataStore.hierarchy = _.first(hierData).d.results;
                                 }
-                                //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
                                 //console.log(App.DataStore.gaugesData);
                                 //console.log(JSON.stringify(App.DataStore.chartTotals));
-
                                 App.createChart(App.DataStore.chart, App.series, false);
 
                                 var projectName = App.DataStore.hierarchy[0].ExtID;
@@ -409,10 +426,13 @@ define(['jquery','underscore','domReady','app',
                                 /** Error handler **/
                                 if(!_.isEmpty(chartData)){
                                     App.DataStore.rawChartdata = _.first(chartData).d.results;
-                                    chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
-                                    App.DataStore.chart = App.AssignStore(chartDataSource.graph);
-                                    App.DataStore.chartTotals  = chartDataSource.totals;
-                                    App.DataStore.gaugesData   = chartDataSource.gauges;
+                                    App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
+                                    console.log(App.DataStore.filtered);
+                                    chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
+                                    var refined = App.FilterChartData(chartDataSource.graph);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.DataStore.chartTotals  = refined.totals;
+                                    App.DataStore.gaugesData   = refined.gauges;
                                     App.DataStore.hierarchy = _.first(hierData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
@@ -450,8 +470,8 @@ define(['jquery','underscore','domReady','app',
                 self = $(this),
                 id = self.data('temp'),
                 sheet = self.data('sheet'),//Worksheet Name
-                pData = '',hData = '',hier = '',costs = '',cData = '',
-                totals = '',gauges = '',chartDataSource = '',
+                version = '',pData = '',hData = '',vData = '',hier = '',costs = '',cData = '',
+                totals = '',gauges = '',chartDataSource = '',currentVersion = [],
                 retrieveTpl = 'tpl!templates/reports/'+id+'.html';
             console.log(id);
             requirejs([retrieveTpl],function(tempTpl){
@@ -471,16 +491,24 @@ define(['jquery','underscore','domReady','app',
                     if(!_.isEmpty(projectData)){
                           App.DataStore.project = _.first(projectData).d.results;
                           App.DataStore.rawChartdata = _.first(chartData).d.results;
-                          chartDataSource = App.FilterChartData(App.DataStore.rawChartdata);
-                          App.DataStore.chart = App.AssignStore(chartDataSource.graph);
-                          App.DataStore.chartTotals  = chartDataSource.totals;
-                          App.DataStore.gaugesData   = chartDataSource.gauges;
+                        App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
+                        console.log(App.DataStore.filtered);
+                        chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
+                        var refined = App.FilterChartData(chartDataSource.graph);
+                        App.DataStore.chart = App.AssignStore(refined.graph);
+                        App.DataStore.chartTotals  = refined.totals;
+                        App.DataStore.gaugesData   = refined.gauges;
                           App.DataStore.hierarchy = _.first(hierData).d.results;
 
                       }
                         hier = App.DataStore.hierarchy;
-                        costs = App.DataStore.rawChartdata;
-
+                        costs = App.DataStore.chart.options.data;
+                      /**  currentVersion[0] = _.chain(App.DataStore.filtered)
+                                                .filter({"Type":App.DataStore.versionSelection})
+                                                //.map(function(item){ return item.data })
+                                                .first()
+                                                .value();
+                    console.log(currentVersion);**/
             switch(sheet){
                 case 'CPR-1':
                     console.log('hit 1');
@@ -513,7 +541,7 @@ define(['jquery','underscore','domReady','app',
                     console.log('hit 3');
                     /*********   Template Processing  *********/
                         totals = App.DataStore.chartTotals;
-                        var chartData = App.DataStore.chart.options.data;
+                        chartData = App.DataStore.chart.options.data;
                         combineData[0]= App.formatThreeTotals(totals,chartData,costs);
                         tplId = tempTpl;
                         tplFooter = reportFooterTpl;

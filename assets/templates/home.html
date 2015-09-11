@@ -12,13 +12,13 @@
                         <select class="form-control" id="projectSets">
                             <% if (combineData[0].length < 2) { %>
                                 <% $.each(combineData[0],function(key,value){ %>
-                                <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
+                                <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
                                 <%});
                             } else { %>
-                                <option value="">Please Select a Project</option>
+                                <option value="">Select Project</option>
                                 <!-- FOR EACH ITEM -->
                                 <% $.each(combineData[0],function(key,value){ %>
-                                <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
+                                <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
                                 <%});
                                 <!-- END OF FOR EACH -->
                             }%>
@@ -29,7 +29,7 @@
         </div>
         <div class="row">
             <!--div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
-                <div class="menuItem getAnalytics" data-id="projectAnalyticsFT" data-temp="projectAnalyticsFT" data-name="projectAnalyticsFT" role="button"><h4 class="menuTitle">Project Analytics</h4><img class="menuItemImg" src="./assets/img/projectAnalytics.png"></div>
+                <div class="menuItem getAnalytics" data-id="projectAnalytics" data-temp="projectAnalytics" data-name="projectAnalytics" role="button"><h4 class="menuTitle">Project Analytics</h4><img class="menuItemImg" src="./assets/img/projectAnalytics.png"></div>
             </div-->
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
                 <div class="menuItem getAnalytics" data-id="spa" data-temp="spa" data-name="spa" role="button"><h4 class="menuTitle">SPA Chart</h4><img class="menuItemImg" src="./assets/img/spa.png"></div>

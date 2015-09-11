@@ -8,6 +8,9 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     App.projectID = "";
     App.reportData = "/DSN/PMR_01_SRV";
     App.serviceRoot = window.location.protocol + '//' + window.location.host + '/pmr01srv' + App.reportData;
+    /*
+        See function setProjectID for other API's
+    * */
     App.urlProjectSet = "/ReportSelectionSet?$format=json";
     App.colorpicker = '';
     moment.locale('en');
@@ -34,10 +37,11 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         {
             name: "EAC",
             type: "line",
+            dashType:"dash",
             field: "runningEAC",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#9900FF",
+            color: "#FF0000",
             markers: {type: "circle"}
         },
         {
@@ -48,7 +52,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             // aggregate: "sum",
             color: "#FF0000",
             markers: {type: "circle"}
-        },
+        }/*,
         {
             name: "baseline",
             type: "line",
@@ -57,6 +61,33 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             categoryField: "Date",
             // aggregate: "sum",
             color: "#FF0000",
+            markers: {type: "circle"}
+        }*/
+    ];
+    App.CpiSpiSeries = [
+        {
+            name: "CPI",
+            type: "line",
+            dashType: "dash",
+            field: "CPI",
+            categoryField: "Date",
+            color: "#FF0000",
+            markers: {type: "circle"}
+        },
+        {
+            name: "SPI",
+            type: "line",
+            field: "SPI",
+            categoryField: "Date",
+            color: "#000099",
+            markers: {type: "circle"}
+        },
+        {
+            name: "Target CPI/SPI",
+            type: "line",
+            field: "baseLine",
+            categoryField: "Date",
+            color: "#00BF32",
             markers: {type: "circle"}
         }
     ];
@@ -96,7 +127,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             // aggregate: "sum",
             color: "#FF0000",
             markers: {type: "circle"}
-        },
+        }/*,
         {
             name: "baseline",
             type: "line",
@@ -106,7 +137,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             // aggregate: "sum",
             color: "#FF0000",
             markers: {type: "circle"}
-        }
+        }*/
     ];
     App.seriesCombo = [
         {
@@ -183,7 +214,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             color: "#FF0000",
             markers: {type: "circle"},
             axis: "Cumulative"
-        },
+        }/*,
         {
             name: "baseline",
             type: "line",
@@ -193,17 +224,22 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             // aggregate: "sum",
             color: "#FF0000",
             markers: {type: "circle"}
-        }
+        }*/
     ];
+
     App.DataStore = {
         chart:{},
+        filtered:[],
         chartTotals:[],
         rawChartdata:[],
         gaugesData:[],
         project:{},
         hierarchy:[],
+        versions:[],
+        versionSelection:'',
          empty: function(){
              this.chart = {};
+             this.filtered =[];
              this.chartTotals = [];
              this.rawChartdata = [];
              this.gaugesData = [];
@@ -218,6 +254,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             return this._monthAttr;
         }
     };
+
     App.paint = {
         "trCssTransparent" : {
             'color':'black',
@@ -241,6 +278,34 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         }
     };
 
+    App.setVersion = function(){
+        var versionData = this.VersionData();
+        App.DataStore.versions = [];
+        App.DataStore.versionSelection = '';
+        $.when(versionData).done(function(vData){
+            App.DataStore.versions = vData.d.results;
+
+           var defVersion =  $.grep( App.DataStore.versions,function(item){
+                if(item.Default === "X"){
+                   return item;
+                }
+            });
+            console.log(defVersion);
+            if(defVersion.length > 1){
+                if(_.first(defVersion).ProjectSelection === 'PMR-T01'){
+                    App.DataStore.versionSelection = 'D01';
+                }else{
+                    App.DataStore.versionSelection = _.first(defVersion).VersionSelection;
+                }
+
+            }else{
+                App.DataStore.versionSelection = defVersion.VersionSelection;
+            }
+            console.log('Version Selection: '+ App.DataStore.versionSelection);
+        });
+
+    };
+
     App.apiErrorHandler = function(target,loadingWheel,data){
         /** Error handler **/
         if(_.isArray(data) && (_.isUndefined(_.first(data))) && (!_.isEmpty(data))){
@@ -254,8 +319,9 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
 
     App.setProjectID = function(value){
         this.projectID = value;
-        this.urlSnapshotSet = "/SnapshotSet(TreeSelection='" + this.projectID + "')?$format=json";
-        this.urlHierarchySet = "/HierarchySet(TreeSelection='" + this.projectID + "')?$format=json";
+        this.urlSnapshotSet = "/SnapshotSet(ProjectSelection='" + this.projectID + "')?$format=json";
+        this.urlHierarchySet = "/HierarchySet(ProjectSelection='" + this.projectID + "')?$format=json";
+        this.urlVersionSet = "/VersionSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
     };
 
     App.CheckProdId = function(){
@@ -268,12 +334,14 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     App.ClearDataStore = function(){
         this.DataStore.empty();
     };
+
     App.UpdateHierarchy = function(){
         var $chartGraph = $("div#chart").data("kendoChart"),
             $treeList = $("div#treelist").data("kendoTreeList");
         $chartGraph.dataSource.options.data = [];
         $treeList.dataSource.options.data = [];
     };
+
     App.AssignStore = function(data){
        // if(_.isEmpty(App.DataStore.chart)){
            return  new kendo.data.DataSource({
@@ -376,7 +444,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     tdBkg.hover(self.tdHover);
     };
 
-    App.formatOneTotals =  function(hier, costs,type) {
+    App.formatOneTotals =  function(hier,costs,type) {
         console.time('Format One Totals');
         var newObj = '';
         var hierarchy = '';
@@ -389,7 +457,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             return alert('No Heirarchy data');
         }
 
-        if (costs.length === 0) {
+        if (_.isEmpty(costs)) {
             return alert('No SnapShot data');
         }
         $.each(hier, function (k, v) {
@@ -397,17 +465,17 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 newObj = $.grep(costs, function (item) {
                     return item.ObjectNumber === v.ObjectNumber
                 });
-            } else {
+            }else{
                 newObj = costs;
             }
 
-            var data = self.FilterChartData(newObj);
+            var data =  App.FilterChartData(newObj);//self.FilterChartData(newObj);
 
-            total = data.totals.length != 0 ? data.totals : 0;
-
+            total = !_.isUndefined(data) ? data.totals : 0;
+            console.log(total);
             if (total === 0) {
                 amounts = {
-                    "bcwsTotal":total,
+                    "bcwsTotal": total,
                     "curBcwsTotal": total,
                     "bcwpTotal": total,
                     "curBcwpTotal": total,
@@ -420,9 +488,15 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "tcpi": total,
                     "sv": total,
                     "cv": total,
+                    "CurrSV": total,
+                    "CurrCV": total,
                     "vac": total,
+                    "curSPI": total,
+                    "curCPI": total,
                     "spi": total,
-                    "cpi": total
+                    "cpi": total,
+                    "spiColour": "#FF0000",
+                    "cpiColour": "#FF0000"
                 };
             } else {
                 var CurrSV = parseFloat(total[1].curBcwpTotal) - parseFloat(total[0].curBcwsTotal);
@@ -433,6 +507,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 var gaugeData = data.gauges,
                     spi = gaugeData[0].spi,
                     cpi = gaugeData[1].cpi;
+                console.log(gaugeData);
                 //var currentSPI = $(document).find('');
                 var spiColour = "";
                 if (spi < 0.9) {
@@ -444,6 +519,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 } else {
                     spiColour = "#0066CC";//blue
                 }
+                console.log("TOM" + spi);
                 //currentSPI.attr('data-colour', spiColour);
                 var cpiColour = "";
                 if (cpi < 0.9) {
@@ -482,6 +558,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "cpiColour": cpiColour
                 };
             }
+           // console.log(amounts);
             cost.push({
                 'parentNumber': v.ParentObjNum,
                 'objNumber': v.ObjectNumber,
@@ -492,7 +569,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 'bcwsCost': amounts.bcwsTotal,
                 'totals': amounts
             });
-        });//end of each loop
+         });//end of each loop
         $.each(cost, function (key, value) {
             if (key > 0) {
                 var indexof = _.findIndex(cost, function (search) {
@@ -537,12 +614,11 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             }
             cost[vv].totals.spi = self.Math.ceil10(spiTotal, -2);
             cost[vv].totals.cpi = self.Math.ceil10(cpiTotal, -3);
-        });/** **/
+        });
         hierarchy = $.grep(cost,function(item,i){
             if(i > 0){
                 return item.Type === type;
-            }
-            if(i === 0){
+            }else{
                 return item;
             }
         });
@@ -710,11 +786,16 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     };
 
     App.formatFiveTotals = function(totals, gauges){
+        console.log(totals);
         var sv = parseFloat(totals[1].bcwpTotal) - parseFloat(totals[0].bcwsTotal);
         var cv = parseFloat(totals[1].bcwpTotal) - parseFloat(totals[3].acwpTotal);
         var vac = parseFloat(totals[5].bac) - parseFloat(totals[4].eacCum);
         var spi = gauges[0].spi;
         var cpi = gauges[1].cpi;
+        var tcpi = totals[6].tcpi;
+        if(_.isNaN(tcpi)){
+            tcpi = 0;
+        }
         var spiColour = "";
         if (spi < 0.9) {
             spiColour = "#FF0000";//red
@@ -742,7 +823,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             "acwpTotal":totals[3].acwpTotal,
             "eacCum":totals[4].eacCum,
             "bac":totals[5].bac,
-            "tcpi":totals[6].tcpi,
+            "tcpi":tcpi,
             "vac":vac,
             "cpi":gauges[1].cpi,
             "spi":gauges[0].spi,
@@ -959,7 +1040,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         $("#horizontal").kendoSplitter({
             panes: [
                 {collapsible: true},
-                {collapsible: true, size: "75%"}
+                {collapsible: true, size: "75%"},
+                { scrollable: false }
             ]
         });
     };
@@ -976,7 +1058,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         $("#horizontal").kendoSplitter({
             panes: [
                 {collapsible: true, size: "275px"},
-                {collapsible: true}
+                {collapsible: true},
+                {scrollable: true }
             ]
         });
     };
@@ -994,12 +1077,19 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                         title: { text: "[Cum.]" },
                         color: "#ec5e0a"
                         },
-                        {name: "Total",
-                        title: {text: ' Total'}
+                        {labels: {
+                            format: "\u00a3{0}"
+                        }
                     }];
             }else{
                 ValueAxis = [{
-                    title: {text: ' Total'}
+                    //reverse: reverse,
+                    /** title: {
+                        text: ' Total'
+                    },**/
+                    labels: {
+                        format: "\u00a3{0}"
+                    }
                 }];
                 series = App.series;
                 for (var i = 0, length = series.length; i < length; i++) {
@@ -1044,6 +1134,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             series: series
         });
     };
+
     App.tdHover = function(e) {
         /**nested inside getReport func**/
         e.preventDefault();
@@ -1061,12 +1152,13 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         /*********** New Hierarchy Button View Click Event ***************/
         selector.on('click', 'tr span.js-hier', function (e) {
             e.preventDefault();
+            $('.noData').remove();
             var chartdata = '',
                 filteredSnapByParentId = '',
                 filteredSnapByIndex = [],
                 collectIndexes = [],
                 chartFiltered = '';
-            console.log('hit selected row');
+            console.log('hit selected row tom');
             var $target = $(e.currentTarget),
                 $treeList = $("div#treelist").data("kendoTreeList"),
                 $chartGraph = $("div#chart").data("kendoChart"),
@@ -1074,6 +1166,14 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 $rowIndex = $trParent.index(),
                 $objectNumber = $target.data('objectNumber'),//data-objectNumber='#=data.ObjectNumber#'
                 $children = $target.data('children');
+
+
+            $target.closest('tr').siblings().removeClass('k-state-selected');
+            if($target.hasClass('animated')) {
+                $target.removeClass('fadeIn').removeClass('shake');
+            }
+            $target.closest('tr').addClass('k-state-selected');
+
             console.log($rowIndex);
             chartdata = $chartGraph.dataSource.options.data;
             /**Change Title**/
@@ -1084,44 +1184,42 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             /** end title change **/
             switch ($rowIndex) {
                 case 0:
-              //  case 1:
+                    //  case 1:
                     chartFiltered = App.FilterChartData(chartdata);
                     break;
                 default:
                     if ($children) {
                         var allChildIndexes = App.allNodes($($trParent), collectIndexes);
-                       // console.log(JSON.stringify(allChildIndexes));
+                        // console.log(JSON.stringify(allChildIndexes));
                         var Indexes = _.without(allChildIndexes, -1);
-                       // console.log(JSON.stringify(Indexes));
+                        // console.log(JSON.stringify(Indexes));
                         $.each(Indexes, function (key, value) {//[data-children="false"]
                             filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[value].ObjectNumber});
                         });
-                       // console.log('multiple ' + JSON.stringify(filteredSnapByIndex));
+                        // console.log('multiple ' + JSON.stringify(filteredSnapByIndex));
                         filteredSnapByParentId = App.FilterByHierList(filteredSnapByIndex, chartdata);
                         chartFiltered = App.FilterChartData(filteredSnapByParentId);
                     } else {
                         filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[$rowIndex].ObjectNumber});
-                       // console.log('single ' + JSON.stringify(filteredSnapByIndex));
+                        // console.log('single ' + JSON.stringify(filteredSnapByIndex));
                         filteredSnapByParentId = App.FilterByHierList(filteredSnapByIndex, chartdata);
                         chartFiltered = App.FilterChartData(filteredSnapByParentId);
                     }
                     break;
             }
-            if (chartFiltered != undefined) {
-                var chartTotalsFilteredBy = _.flatten(chartFiltered.totals);
-                console.log(chartTotalsFilteredBy);
-                App.displayTotals(chartTotalsFilteredBy);
-
+            if (!_.isUndefined(chartFiltered)) {
                 var chartFilteredByParentId = _.flatten(chartFiltered.graph);
                 console.log(chartFilteredByParentId.length);
                 $chartGraph.dataSource.data(chartFilteredByParentId);
                 App.refreshChart();
 
-                var gaugesData = _.flatten(chartFiltered.gauges);
-                App.createGauge(gaugesData);
-                App.createTooltip(gaugesData);
+                $target.addClass('animated fadeIn').css('color','black');
+            }else{
+                $chartGraph.dataSource.data([]);
+                App.refreshChart();
+                $('<div class="noData"><p id="noDataMessage">No data available</p></div>').appendTo("#chart");
+                $target.addClass('animated fadeIn').css('color','red');
             }
-
         });
     };
 
@@ -1134,8 +1232,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     /** New Function projectData 072815**/
     App.projectData = function() {
         var projectSource = $.ajax({
-            //url: this.serviceRoot + this.urlProjectSet,
-            url: "./assets/js/temp.json",
+            url: this.serviceRoot + this.urlProjectSet,
+            //url: "./assets/js/temp.json",
             method: "GET",
             dataType: 'json',
             async: true
@@ -1185,6 +1283,23 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         return rawData;
     };
 
+    App.VersionData = function() {
+        var rawData = $.ajax({
+            url: this.serviceRoot + this.urlVersionSet,
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            // rawData = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('request complete: VersionData');
+        });
+        return rawData;
+    };
+
+
     App.hierListInitialize = function(data) {
         $(document).find("#treelist").kendoTreeList({
             dataSource: {
@@ -1201,7 +1316,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                                 "Type": value.Type,
                                 "ExtID": value.ExtID,
                                 "Description": value.Description,
-                                "TreeSelection": value.TreeSelection,
+                                "ProjectSelection": value.ProjectSelection,
                                 "SortOrder": value.SortOrder
                             };
                             items.push(item);
@@ -1220,6 +1335,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             resizable: true,
             //filterable: true,
             //sortable: true,
+            scrollable:true,
             header: false,
             columns: [
                 {
@@ -1234,6 +1350,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 }*/
             ]
         });
+
+        $('table[role="treegrid"] tr:first').addClass('k-state-selected');
     };
 
     App.FilterByHierList = function(hierArray, data) {
@@ -1253,7 +1371,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         } else {
             return console.log('nothing in array');
         }
-        sendData = _(addValues).chain()
+        sendData = _.chain(addValues)
             .flatten(addValues)
             .value();
         return sendData;
@@ -1294,6 +1412,422 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         return App.decimalAdjust('ceil', value, exp);
     };
 
+    App.cpiSpiTrend = function(costs){
+        var master,
+            spiTotal,
+            cpiTotal;
+        var bcws = _.chain(costs)
+            .sortBy('Date')
+            .where({"Type":"BCWS"})
+            .value();
+
+        var bcwp = _.chain(costs)
+            .sortBy('Date')
+            .where({"Type":"BCWP"})
+            .value();
+
+        var acwp = _.chain(costs)
+            .sortBy('Date')
+            .where({"Type":"ACWP"})
+            .value();
+
+        console.log("BCWS length "+bcws.length);
+        console.log("BCWP length "+bcwp.length);
+        console.log("ACWP length "+acwp.length);
+        var bcwplen = bcwp.length-1;
+        //console.log(bcws);
+         console.log(bcwp);
+        //console.log(acwp);
+        master = _.map(bcwp,function(item,index){
+            if(!_.isUndefined(bcws[index]) || (!_.isEmpty(bcws[index]))){
+                var bcwsCost = bcws[index].IntValProjCurr;
+            }
+            if(!_.isUndefined(bcwp[index]) || (!_.isEmpty(bcwp[index]))){
+                var bcwpCost = bcwp[index].IntValProjCurr;
+            }
+            if(!_.isUndefined(acwp[index]) || (!_.isEmpty(acwp[index]))){
+                var acwpCost = acwp[index].IntValProjCurr;
+            }
+            //console.log(index+' bcwsCost '+bcwsCost+' bcwpCost '+bcwpCost+' acwpCost '+acwpCost);
+            if(bcwsCost < 0) bcwsCost = 0;
+            if(bcwpCost < 0) bcwpCost = 0;
+            if(acwpCost < 0) acwpCost = 0;
+            //  console.log(parseFloat(bcwp[index].IntValProjCurr).toFixed(2));
+            spiTotal = (parseFloat(bcwpCost) / parseFloat(bcwsCost));
+            cpiTotal = (parseFloat(bcwpCost)  / parseFloat(acwpCost));
+            if(index === _.first(bcwp) || index === _.last(bcwp)){
+                return {"CPI":cpiTotal,"SPI":spiTotal,"Date":new Date(bcwp[index].Date),"baseline":1};
+            }
+            return {"CPI":cpiTotal,"SPI":spiTotal,"Date":new Date(bcwp[index].Date)};
+        });
+       // console.log(master);
+        return master;
+
+
+    };
+
+
+/** SAVE work for filter by versions
+ *
+ *  App.FilterData = function(versions,results) {
+       // console.log(versions);
+        console.time('FilterData');
+        var master = {};
+        master.versions = [];
+        master.graph = [];
+        master.totals = [];
+        master.gauges = [];
+        master.series = [];
+        var dateCheck = '';
+        var dateCheckAfter = '';
+        var data = results;
+        if (_.isEmpty(data)) {
+            console.log('No Data to filter series.');
+            return master;
+        }
+        _.each(versions,function(item,index){
+            var verSelection = item.VersionSelection;
+            master.versions[index] = _.filter(data, function(cost) {
+                if (cost.Version === verSelection) {
+                    return cost;
+                }
+            });//filter data
+        });
+        console.log('hit end of each');
+        console.log( master.versions);
+         if(_.isArray(master.versions)){
+        console.log('hit entry  '+ master.versions.length);
+        _.each(master.versions,function(costs,index){
+           // console.log('hit '+index+' length of: '+costs.length);
+            if(_.isEmpty(costs)) return;
+                var seriesObj = {
+                    name: costs.VersionDescription,
+                    type: "line",
+                    field: "value",
+                    categoryField: "Date",
+                    color: '#'+Math.floor(Math.random()*16777215).toString(16),
+                    markers: {type: "circle"},
+                    data:[]
+                };
+                //  seriesObj[_.first(data).Version] =  ;
+
+                var array = costs;
+                var runningTotal = 0;
+                var  data = _.chain(array).sortBy("Date").map(function (value) {
+                    runningTotal += parseFloat(value.IntValProjCurr);
+                    dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
+                    dateCheckAfter =  moment(value.SnapshotDate).isAfter(value.Date);
+                    return {
+                        "Quantity": Number(value.Quantity),
+                        "running":Number(runningTotal),
+                        "IntValProjCurr": Number(value.IntValProjCurr),
+                        "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                        "ObjectNumber": value.ObjectNumber,
+                        "ProjectSelection":value.ProjectSelection,
+                        "Version": value.Version,
+                        "ValueType": value.ValueType,
+                        "Date": value.Date,
+                        "isSame":dateCheck,
+                        "isAfter":dateCheckAfter
+                    }
+                }).value();//convert IntValProjCurr key for Chart Series
+            console.log('data len '+data.length);
+                var  Total = 0, All = 0, Hrs = 0, curTotal = 0, curHrs = 0;
+               _.each(data, function (value,key) {
+                    All += parseFloat(value.IntValProjCurr);
+
+                    if(value.isAfter || value.isSame) {
+                        Total += parseFloat(value.IntValProjCurr);
+                        Hrs += parseFloat(value.Quantity);
+                    }
+                    if(value.isSame){
+                        curTotal += parseFloat(value.IntValProjCurr);
+                        curHrs += parseFloat(value.Quantity);
+                    }
+                   seriesObj.data.push({"value":value.running,"quantity":Hrs,"Date":value.Date});
+                });
+                master.totals[_.first(data).Version] = {"All":App.Math.ceil10(All, -2),"Total": App.Math.ceil10(Total, -2),"Hrs":App.Math.ceil10(Hrs, -2),"curTotal": App.Math.ceil10(curTotal, -2),"curHrs":App.Math.ceil10(curHrs, -2)};//.toFixed(2)
+                master.graph[_.first(data).Version] = data;//add array to master array
+                master.series.push(seriesObj);
+        });
+             console.log(master.series);
+             console.log(master.totals);
+             console.log(master.graph);
+         }
+
+        console.timeEnd('FilterData');
+        return master;
+
+
+//  console.log('Before Decimal Rounding bcwpTotal ' + bcwpTotal + '  bcwsTotal ' + bcwsTotal + ' acwpTotal ' + acwpTotal + ' etcTotal ' + etcTotal);
+var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
+    var roundbcwsAll = App.Math.ceil10(bcwsAll, -2);
+    var roundbcwsTotal = App.Math.ceil10(bcwsTotal, -2);
+    var roundacwpTotal = App.Math.ceil10(acwpTotal, -2);
+    var roundetcTotal = App.Math.ceil10(etcTotal, -2);
+    //  console.log('After Decimal Rounding roundbcwpTotal ' + roundbcwpTotal + '  roundbcwsTotal ' + roundbcwsTotal + ' roundacwpTotal ' + roundacwpTotal + ' roundetcTotal ' + roundetcTotal);
+
+    var eacCum = (roundacwpTotal + roundetcTotal);
+    master.totals.push({"eacCum": App.Math.ceil10(eacCum,-2)});
+
+    var bac = roundbcwsAll;
+    master.totals.push({"bac": App.Math.ceil10(bac, -2)});
+
+    var tcpi = (bac - roundbcwpTotal) / (eacCum - roundacwpTotal);
+    master.totals.push({"tcpi": App.Math.ceil10(tcpi, -2)});
+
+    var spiTotal = (roundbcwpTotal / roundbcwsTotal);
+    var cpiTotal = (roundbcwpTotal / roundacwpTotal);
+    var curSPITotal = (curBcwpTotal / curBcwsTotal);
+    var curCPITotal = (curBcwpTotal / curAcwpTotal);
+    // console.log('Before Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
+    if (isNaN(spiTotal)) {
+        spiTotal = 0;
+    }
+    if (isNaN(cpiTotal)) {
+        cpiTotal = 0;
+    }
+    if (isNaN(curSPITotal)) {
+        curSPITotal = 0;
+    }
+    if (isNaN(curCPITotal)) {
+        curCPITotal = 0;
+    }
+    // console.log('After Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
+    master.gauges.push({'spi': App.Math.ceil10(spiTotal, -2),'curSPI': App.Math.ceil10(curSPITotal, -2)});//master.gauges[0].spi
+    master.gauges.push({'cpi': App.Math.ceil10(cpiTotal, -3),'curCPI': App.Math.ceil10(curCPITotal, -3)});//master.gauges[1].cpi
+
+    _.flatten(master.totals);
+    _.flatten(master.graph);
+    _.flatten(master.gauges);
+    // console.log(master.totals);
+    return master;
+};
+**/
+
+    App.VersionFilter = function(versions,results) {
+    // console.log(versions);
+    console.time('VersionFilter');
+    var master = {};
+    master.versions = [];
+    master.category = [];
+    var dateCheck = '';
+    var dateCheckAfter = '';
+    var data = results;
+
+    if (_.isEmpty(data)) {
+        console.log('No Data to filter series.');
+        return {};//if empty data set - return empty object
+    }
+    _.each(versions,function(item,index){
+        var verSelection = item.VersionSelection;
+        master.versions[index] = {};
+        master.versions[index]['Type'] = item.Type;
+        master.versions[index]['VersionSelection'] = item.VersionSelection;
+        master.versions[index]['Default'] = item.Default;
+        master.versions[index]['Data'] = $.grep(data, function(value,index) {
+            return value.Version === verSelection;
+
+        });//filter data
+    });
+    //console.log('hit end of each');
+    // console.log( master.versions);
+    if(_.isArray(master.versions)){
+        // console.log('hit entry  '+ master.versions.length);
+        _.each(master.versions,function(costs,index){
+            if(_.isEmpty(costs.Data)) return;
+            var data = _.chain(costs.Data).sortBy("Date").map(function (value) {
+                return {
+                    "Quantity": Number(value.Quantity),
+                    "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                    "ObjectNumber": value.ObjectNumber,
+                    "ProjectSelection":value.ProjectSelection,
+                    "Version": value.Version,
+                    "ValueType": value.ValueType,
+                    "Date": value.Date,
+                    "SnapshotDate":value.SnapshotDate,
+                    }
+                }).value();
+            master.category.push({"Version":costs.VersionSelection,"Type":costs.Type,"Default":costs.Default,"data":data});//add array to master array
+        });
+    }
+    console.timeEnd('VersionFilter');
+    return master.category;
+
+};
+
+    App.FilterData = function(version,raw,defaultVersion) {
+        var master = {};
+         master.graph = [];
+        // master.totals = [];
+       //  master.gauges = [];
+        master.raw = {};
+        console.log(defaultVersion);
+        var dateCheck = '';
+        var dateCheckBefore = '';
+        var data = version;
+        if (data.length === 0) {
+            console.log('No Data to filter series.');
+            return;
+        }
+        master.raw.ACWP = $.grep(raw, function (item) {
+            if (item.Version === '000') {
+                return item;
+            }
+        });//filter data
+     _.each(data,function(value, index){
+         if(_.isEmpty(value))return;
+            var costs = value.data;
+                     master[value.Version] = {};
+           var obj = master[value.Version];
+                     obj.graph = [];
+                     obj.totals = [];
+                     obj.gauges = [];
+         obj.BCWS = ''; obj.BCWP = ''; obj.EAC = ''; obj.ACWP = ''; obj.ETC = '';
+         if(!_.isEmpty(costs)) {
+
+             if(value.Type === 'P' && value.Default === 'X'){
+                 obj.BCWS = $.grep(costs, function (item) {
+                         return item.ValueType === '01';
+                 });//filter data
+                 obj.BCWP = $.grep(costs, function (item) {
+                         return item.ValueType === 'P2';
+                 });//filter data
+
+
+                 if (_.isArray(obj.BCWS) && (!_.isEmpty(obj.BCWS))) {
+                     var BCWSdata = _.chain(obj.BCWS).sortBy("Date").map(function (value) {
+                         //console.log(value);
+                         dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
+                         dateCheckBefore =  moment(value.Date).isAfter(value.SnapshotDate);
+                         return {
+                             "BCWS": Number(value.IntValProjCurr),
+                             "QuantityBCWS": Number(value.Quantity),
+                           //  "runningBCWS":Number(runningTotalBCWS),
+                             "IntValProjCurr": Number(value.IntValProjCurr),
+                             "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                             "ObjectNumber": value.ObjectNumber,
+                             "Version": value.Version,
+                             "ValueType": value.ValueType,
+                             "Type":"BCWS",
+                             "Date": value.Date,
+                             "SnapshotDate": value.SnapshotDate,
+                             "isSame":dateCheck,
+                             "isAfter":dateCheckBefore
+                         }
+                     }).value();//convert IntValProjCurr key for Chart Series
+                     master.graph.push(BCWSdata);//add array to master array
+                 }
+
+                 if (_.isArray(obj.BCWP) && (!_.isEmpty(obj.BCWP))) {
+                     var runningTotalBCWP = 0;
+                     var BCWPdata = _.chain(obj.BCWP).sortBy("Date").map(function (value) {
+                        // runningTotalBCWP += parseFloat(value.IntValProjCurr);
+                         dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
+                         dateCheckBefore =  moment(value.Date).isBefore(value.SnapshotDate);
+                         return {
+                             "BCWP": Number(value.IntValProjCurr),
+                             "QuantityBCWP": Number(value.Quantity),
+                            // "runningBCWP":Number(runningTotalBCWP),
+                             "IntValProjCurr": Number(value.IntValProjCurr),
+                             "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                             "ObjectNumber": value.ObjectNumber,
+                             "Version": value.Version,
+                             "ValueType": value.ValueType,
+                             "Type":"BCWP",
+                             "Date": value.Date,
+                             "SnapshotDate": value.SnapshotDate,
+                             "isSame":dateCheck,
+                             "isBefore":dateCheckBefore
+                         }
+                     }).value();//convert IntValProjCurr key for Chart Series
+
+                     master.graph.push(BCWPdata);//add array to master array
+                 }
+
+
+             }//type == p
+
+             if(value.Type === 'E' && value.Default === 'X'){
+                 obj.EAC = $.grep(costs, function (item) {
+                         return item;
+                 });//filter data
+                 obj.ACWP = $.grep(costs, function (item) {
+                     //ValueType = 01 04
+                         return item.ValueType === '04';
+                 });//filter data
+                 obj.ACWP = _.isEmpty(obj.ACWP) ? master.raw.ACWP : obj.ACWP;
+                 obj.ETC = $.grep(costs, function (item) {
+                    //ValueType = 01 04
+                         return item.ValueType === '01';
+                 });//filter data
+
+
+                 if (_.isArray(obj.EAC) && (!_.isEmpty(obj.EAC))) {
+                     var EACdata = _.chain(obj.EAC).sortBy("Date").map(function (value) {
+                         return {
+                             "EAC": Number(value.IntValProjCurr),
+                             "QuantityEAC": Number(value.Quantity),
+                             //"runningEAC": runningTotalEAC,
+                             "IntValProjCurr": Number(value.IntValProjCurr),
+                             "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                             "ObjectNumber": value.ObjectNumber,
+                             "Version": value.Version,
+                             "ValueType": value.ValueType,
+                             "Type":"EAC",
+                             "Date": value.Date,
+                             "SnapshotDate": value.SnapshotDate
+                         }
+                     }).value(); //convert IntValProjCurr key for Chart Series
+                     master.graph.push(EACdata);//add array to master array
+                 }
+                 if (_.isArray(obj.ACWP) && (!_.isEmpty(obj.ACWP))) {
+                     var ACWPdata = _.chain(obj.ACWP).sortBy("Date").map(function (value) {
+                         dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
+                         dateCheckBefore =  moment(value.Date).isBefore(value.SnapshotDate);
+                         return {
+                             "ACWP": Number(value.IntValProjCurr),
+                             "QuantityACWP": Number(value.Quantity),
+                            // "runningACWP":Number(runningTotalACWP),
+                             "IntValProjCurr": Number(value.IntValProjCurr),
+                             "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                             "ObjectNumber": value.ObjectNumber,
+                             "Version": value.Version,
+                             "ValueType": value.ValueType,
+                             "Type":"ACWP",
+                             "Date": value.Date,
+                             "SnapshotDate": value.SnapshotDate,
+                             "isSame":dateCheck,
+                             "isBefore":dateCheckBefore
+                         }
+                     }).value();//convert IntValProjCurr key for Chart Series
+
+                     master.graph.push(ACWPdata);//add array to master array
+                 }
+                 if (_.isArray(obj.ETC) && (!_.isEmpty(obj.ETC))) {
+                     var ETCdata = _.map(obj.ETC, function (value) {
+                         // dateCheck =  moment(value.Date).isBefore(value.SnapshotDate);
+                         return {"ETC": Number(value.IntValProjCurr)};
+                     });//not used for chart, just calculations
+
+                 }
+
+
+             }//type == e
+
+         }
+
+    });//end of each versions
+       // _.flatten(master.totals);
+       // _.flatten(master.graph);
+        //console.log(_.flatten(master.graph));
+        return master;
+
+        //master.ACWP = {"Type":'000',"data":master.raw.ACWP,"values":{}};
+
+    };
+
     App.FilterChartData = function(results) {
         var master = {};
         master.graph = [];
@@ -1301,45 +1835,60 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         master.gauges = [];
         var dateCheck = '';
         var dateCheckBefore = '';
+        //console.log(results);
         var data = _.flatten(results);
         if (data.length === 0) {
             console.log('No Data to filter series.');
-           // return master;
+           return;
         }
         var BCWS = $.grep(data, function (item) {
-            if (item.Version === 'D02' && (item.ValueType === '01')) {
-                return item;
-            }
+                return item.Type === 'BCWS';
         });//filter data
         var BCWP = $.grep(data, function (item) {
-            if (item.Version === 'D02' && (item.ValueType === 'P2')) {
-                return item;
-            }
+            return item.Type === 'BCWP';
         });//filter data
         var EAC = $.grep(data, function (item) {
-            if (item.Version === 'EA1') {
-                return item;
-            }
+            return item.Type === 'EAC';
         });//filter data
         var ACWP = $.grep(data, function (item) {
-            if (item.Version === '000') {
+            return item.Type === 'ACWP';
+        });//filter data
+        var ETC = $.grep(EAC, function (item) {
+            if (item.ValueType === '01') {
                 return item;
             }
         });//filter data
-        var ETC = $.grep(data, function (item) {
-            if (item.Version === 'EA1' && (item.ValueType === '01')) {
+        var baseLine = $.grep(data, function (item) {
+            if (item.Type === 'baseLine') {
                 return item;
             }
         });//filter data
-        if (_.isArray(BCWS)) {
+        master.graph.push(baseLine);//add array to master array
+        if (_.isArray(BCWS)  && !_.isEmpty(BCWS)) {
             var runningTotalBCWS = 0;
-            var BCWSdata = _.map(_.sortBy(BCWS,"Date"), function (value) {
+            var bcwsTotal = 0,bcwsAll = 0, bcwsHrs = 0, curBcwsTotal = 0, curBcwsHrs = 0;
+            var BCWSdata = _.chain(BCWS).sortBy("Date").map(function (value) {
                 runningTotalBCWS += parseFloat(value.IntValProjCurr);
-                dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
-                dateCheckBefore =  moment(value.SnapshotDate).isAfter(value.Date);
+                bcwsAll += parseFloat(value.BCWS);
+                var date = moment(value.Date).unix();
+                //(+new Date(value.Date)/1000).toFixed(0);
+                var snapDate = moment(value.SnapshotDate).unix();
+                //(+new Date(value.SnapshotDate)/1000).toFixed(0);
+                console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
+               // if(moment(value.Date).isAfter(value.SnapshotDate, 'day') || value.isSame) {
+                if(date > snapDate || date === snapDate) {
+                    bcwsTotal += parseFloat(value.BCWS);
+                    bcwsHrs += parseFloat(value.QuantityBCWS);
+                }
+
+                //if(moment(value.Date).isBefore(value.SnapshotDate, 'day')){
+                if(date <= snapDate){
+                    curBcwsTotal += parseFloat(value.BCWS);
+                    curBcwsHrs += parseFloat(value.QuantityBCWS);
+                }
                 return {
                     "BCWS": Number(value.IntValProjCurr),
-                    "QuantityBCWS": Number(value.Quantity),
+                    "QuantityBCWS": Number(value.QuantityBCWS),
                     "runningBCWS":Number(runningTotalBCWS),
                     "IntValProjCurr": Number(value.IntValProjCurr),
                     "ExtValProjCurr" : Number(value.ExtValProjCurr),
@@ -1348,34 +1897,38 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "ValueType": value.ValueType,
                     "Type":"BCWS",
                     "Date": value.Date,
-                    "isSame":dateCheck,
-                    "isAfter":dateCheckBefore
+                    "isSame":value.isSame,
+                    "isAfter":value['isAfter']
                 }
-            });//convert IntValProjCurr key for Chart Series
-            var bcwsTotal = 0,bcwsAll = 0, bcwsHrs = 0, curBcwsTotal = 0, curBcwsHrs = 0;
-            $.each(BCWSdata, function (key, value) {
-                bcwsAll += parseFloat(value.BCWS);
-                if(value.isAfter || value.isSame) {
-                    bcwsTotal += parseFloat(value.BCWS);
-                    bcwsHrs += parseFloat(value.QuantityBCWS);
-                }
-                if(value.isSame){
-                    curBcwsTotal += parseFloat(value.BCWS);
-                    curBcwsHrs += parseFloat(value.QuantityBCWS);
-                }
-            });
+            }).value();//convert IntValProjCurr key for Chart Series
+
             master.totals.push({"bcwsAll":App.Math.ceil10(bcwsAll, -2),"bcwsTotal": App.Math.ceil10(bcwsTotal, -2),"bcwsHrs":App.Math.ceil10(bcwsHrs, -2),"curBcwsTotal": App.Math.ceil10(curBcwsTotal, -2),"curBcwsHrs":App.Math.ceil10(curBcwsHrs, -2)});//.toFixed(2)
             master.graph.push(BCWSdata);//add array to master array
+        }else{
+            master.totals.push({"bcwsAll":0.00,"bcwsTotal": 0.00,"bcwsHrs":0.00,"curBcwsHrs":0.00});//.toFixed(2)
         }
-        if (_.isArray(BCWP)) {
+        if (_.isArray(BCWP) && !_.isEmpty(BCWP)) {
             var runningTotalBCWP = 0;
-            var BCWPdata = _.map(_.sortBy(BCWP,"Date"), function (value) {
+            var bcwpTotal = 0, bcwpHrs = 0, curBcwpTotal = 0, curBcwpHrs = 0;
+            var BCWPdata = _.chain(BCWP).sortBy("Date").map(function (value) {
                 runningTotalBCWP += parseFloat(value.IntValProjCurr);
-                dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
-                dateCheckBefore =  moment(value.SnapshotDate).isBefore(value.Date);
+                var date = moment(value.Date).unix();
+                //(+new Date(value.Date)/1000).toFixed(0);
+                var snapDate = moment(value.SnapshotDate).unix();
+                //(+new Date(value.SnapshotDate)/1000).toFixed(0);
+                console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
+                //console.log(date +'  '+snapDate+' '+ value.SnapshotDate);
+                if(date >= snapDate) {
+                    bcwpTotal += parseFloat(value.BCWP);
+                    bcwpHrs += parseFloat(value.QuantityBCWP);
+                }
+                if(date <= snapDate){
+                    curBcwpTotal += parseFloat(value.BCWP);
+                    curBcwpHrs += parseFloat(value.QuantityBCWP);
+                }
                 return {
                     "BCWP": Number(value.IntValProjCurr),
-                    "QuantityBCWP": Number(value.Quantity),
+                    "QuantityBCWP": Number(value.QuantityBCWP),
                     "runningBCWP":Number(runningTotalBCWP),
                     "IntValProjCurr": Number(value.IntValProjCurr),
                     "ExtValProjCurr" : Number(value.ExtValProjCurr),
@@ -1384,31 +1937,45 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "ValueType": value.ValueType,
                     "Type":"BCWP",
                     "Date": value.Date,
-                    "isSame":dateCheck,
-                    "isBefore":dateCheckBefore
+                    "isSame":value.isSame,
+                    "isBefore":value['isBefore']
                 }
-            });//convert IntValProjCurr key for Chart Series
-            var bcwpTotal = 0, bcwpHrs = 0, curBcwpTotal = 0, curBcwpHrs = 0;
-            $.each(BCWPdata, function (key, value) {
-                if(!value.isBefore || value.isSame) {
-                    bcwpTotal += parseFloat(value.BCWP);
-                    bcwpHrs += parseFloat(value.QuantityBCWP);
-                }
-                if(value.isSame){
-                    curBcwpTotal += parseFloat(value.BCWP);
-                    curBcwpHrs += parseFloat(value.QuantityBCWP);
-                }
-            });
+            }).value();//convert IntValProjCurr key for Chart Series
+
             master.totals.push({"bcwpTotal": App.Math.ceil10(bcwpTotal, -2),"bcwpHrs":App.Math.ceil10(bcwpHrs, -2),"curBcwpTotal": App.Math.ceil10(curBcwpTotal, -2),"curBcwpHrs":App.Math.ceil10(curBcwpHrs, -2)});//.toFixed(2)
             master.graph.push(BCWPdata);//add array to master array
+        }else{
+            master.totals.push({"bcwpTotal": 0.00,"bcwpHrs":0.00,"curBcwpTotal": 0.00,"curBcwpHrs":0.00});//.toFixed(2)
         }
-        if (_.isArray(EAC)) {
+        if (_.isArray(EAC) && !_.isEmpty(EAC)) {
             var runningTotalEAC = 0;
-            var EACdata = _.map(_.sortBy(EAC,"Date"), function (value) {
+            var firstDate = _.first(EAC).Date;
+            var eacTotal = 0,eacHrs = 0,len = EAC.length, editedbaseLine = [];
+            console.log(_.first(EAC).Date);
+
+            var EACdata = _.chain(EAC).sortBy("Date").map(function (value,index) {
                 runningTotalEAC +=  parseFloat(value.IntValProjCurr);
+                eacTotal += parseFloat(value.EAC);
+                eacHrs += parseFloat(value.QuantityEAC);
+                if(index === 0){
+                    // console.log(key + '--------' +value.Date);
+                    editedbaseLine.push({
+                        "Date": firstDate,
+                        "baseLine":0,
+                        "Type":"baseline"
+                    });
+                }
+                if (len-1 === index) {
+                    //  console.log(key + '--------' + value.Date);
+                    editedbaseLine.push({
+                        "Date": value.Date,
+                        "baseLine": eacTotal,
+                        "Type":"baseline"
+                    });
+                }
                 return {
                     "EAC": Number(value.IntValProjCurr),
-                    "QuantityEAC": Number(value.Quantity),
+                    "QuantityEAC": Number(value.QuantityEAC),
                     "runningEAC": runningTotalEAC,
                     "IntValProjCurr": Number(value.IntValProjCurr),
                     "ExtValProjCurr" : Number(value.ExtValProjCurr),
@@ -1418,41 +1985,34 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "Type":"EAC",
                     "Date": value.Date
                 }
-            }); //convert IntValProjCurr key for Chart Series
-            var eacTotal = 0, eacHrs = 0,len = EACdata.length, editedbaseLine = [],firstDate = _.first(BCWSdata);
-           // console.log(len);
-            $.each(EACdata, function (key, value) {
-                eacTotal += parseFloat(value.EAC);
-                eacHrs += parseFloat(value.QuantityEAC);
-                if(key === 0){
-                   // console.log(key + '--------' +value.Date);
-                    editedbaseLine.push({
-                        "Date": firstDate.Date,
-                        "baseLine":0
-                    });
-                }
-                if (len-1 === key) {
-                  //  console.log(key + '--------' + value.Date);
-                    editedbaseLine.push({
-                        "Date": value.Date,
-                        "baseLine": eacTotal
-                    });
-                }
-            });
-
+            }).value(); //convert IntValProjCurr key for Chart Series
             master.graph.push(EACdata);//add array to master array
             master.graph.push(editedbaseLine);//add array to master array
             master.totals.push({"eacTotal": App.Math.ceil10(eacTotal, -2),"eacHrs": App.Math.ceil10(eacHrs, -2)});//.toFixed(2)
+        }else{
+            master.totals.push({"eacTotal": 0.00,"eacHrs": 0.00});//.toFixed(2)
         }
-        if (_.isArray(ACWP)) {
+        if (_.isArray(ACWP)&& !_.isEmpty(ACWP)) {
             var runningTotalACWP = 0;
-            var ACWPdata = _.map(_.sortBy(ACWP,"Date"), function (value) {
+            var acwpTotal = 0,acwpHrs = 0, curAcwpTotal = 0, curAcwpHrs = 0;
+            var ACWPdata = _.chain(ACWP).sortBy("Date").map(function (value) {
                 runningTotalACWP += parseFloat(value.IntValProjCurr);
-                dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
-                dateCheckBefore =  moment(value.SnapshotDate).isBefore(value.Date);
+                var date = moment(value.Date).unix();
+                //(+new Date(value.Date)/1000).toFixed(0);
+                var snapDate = moment(value.SnapshotDate).unix();
+                //(+new Date(value.SnapshotDate)/1000).toFixed(0);
+                console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
+                if(date < snapDate || date === snapDate) {
+                    acwpTotal += parseFloat(value.ACWP);
+                    acwpHrs += parseFloat(value.QuantityACWP);
+                }
+                if(date < snapDate){
+                    curAcwpTotal += parseFloat(value.ACWP);
+                    curAcwpHrs += parseFloat(value.QuantityACWP);
+                }
                     return {
                         "ACWP": Number(value.IntValProjCurr),
-                        "QuantityACWP": Number(value.Quantity),
+                        "QuantityACWP": Number(value.QuantityACWP),
                         "runningACWP":Number(runningTotalACWP),
                         "IntValProjCurr": Number(value.IntValProjCurr),
                         "ExtValProjCurr" : Number(value.ExtValProjCurr),
@@ -1461,37 +2021,24 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                         "ValueType": value.ValueType,
                         "Type":"ACWP",
                         "Date": value.Date,
-                        "isSame":dateCheck,
-                        "isBefore":dateCheckBefore
+                        "isSame":value.isSame,
+                        "isBefore":value['isBefore']
                     }
-            });//convert IntValProjCurr key for Chart Series
-            var acwpTotal = 0,acwpHrs = 0, curAcwpTotal = 0, curAcwpHrs = 0;
-            $.each(ACWPdata, function (key, value) {
-                if(!value.isBefore || value.isSame) {
-                    acwpTotal += parseFloat(value.ACWP);
-                    acwpHrs += parseFloat(value.QuantityACWP);
-                }
-                if(value.isSame){
-                    curAcwpTotal += parseFloat(value.ACWP);
-                    curAcwpHrs += parseFloat(value.QuantityACWP);
-                }
-            });
+            }).value();//convert IntValProjCurr key for Chart Series
+
             master.totals.push({"acwpTotal": App.Math.ceil10(acwpTotal, -2),"acwpHrs": App.Math.ceil10(acwpHrs, -2),"curAcwpTotal": App.Math.ceil10(curAcwpTotal, -2),"curAcwpHrs": App.Math.ceil10(curAcwpHrs, -2)});//.toFixed(2)
             master.graph.push(ACWPdata);//add array to master array
+        }else{
+            master.totals.push({"acwpTotal": 0.00,"acwpHrs":0.00,"curAcwpTotal":0.00,"curAcwpHrs":0.00});//.toFixed(2)
         }
-        if (_.isArray(ETC)) {
+        if (_.isArray(ETC) && !_.isEmpty(ETC)) {
+            var etcTotal = 0;
             var ETCdata = _.map(ETC, function (value) {
+                //var etccost = App.Math.ceil10(value.ETC, -2);
+                etcTotal += parseFloat(value.ETC);
                // dateCheck =  moment(value.Date).isBefore(value.SnapshotDate);
                 return {"ETC": Number(value.IntValProjCurr)};
             });//not used for chart, just calculations
-            var etcTotal = 0;
-            $.each(ETCdata, function (key, value) {
-                var etccost = App.Math.ceil10(value.ETC, -2);
-                etcTotal += parseFloat(etccost);
-            });
-           // console.log("etcTotal: " + etcTotal);
-            // master.totals.push({"etcTotal": etcTotal});//.toFixed(2)
-            // master.graph.push(ETCdata);//add array to master array
         }
         //  console.log('Before Decimal Rounding bcwpTotal ' + bcwpTotal + '  bcwsTotal ' + bcwsTotal + ' acwpTotal ' + acwpTotal + ' etcTotal ' + etcTotal);
         var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
@@ -1501,7 +2048,8 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         var roundetcTotal = App.Math.ceil10(etcTotal, -2);
         //  console.log('After Decimal Rounding roundbcwpTotal ' + roundbcwpTotal + '  roundbcwsTotal ' + roundbcwsTotal + ' roundacwpTotal ' + roundacwpTotal + ' roundetcTotal ' + roundetcTotal);
 
-        var eacCum = (roundacwpTotal + roundetcTotal);
+        var eacCum = (parseFloat(roundacwpTotal) + parseFloat(roundetcTotal));
+        console.log(roundacwpTotal+' '+roundetcTotal+' '+(parseFloat(roundacwpTotal) + parseFloat(roundetcTotal)));
         master.totals.push({"eacCum": App.Math.ceil10(eacCum,-2)});
 
         var bac = roundbcwsAll;
@@ -1538,6 +2086,64 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
         return master;
     };
 
+    App.createSpiCpiChart = function(dataSource, series) {
+        $("#chart").kendoChart({
+            pdf: {
+                fileName: "SnapShot Costs Export.pdf",
+                proxyURL: this.serviceRoot + "/kendo-ui/service/export"
+            },
+            dataSource: dataSource,
+            chartArea: {
+                // width: 200,
+                //height: 475
+            },
+            legend: {
+                position: "bottom"
+            },
+            seriesDefaults: {
+                type: "line",
+                style: "smooth",
+                highlight: { visible: false },
+                markers: {
+                    size: 5
+                }
+            },
+            series: series,
+            categoryAxis: {
+                baseUnit: "fit",
+                //title: { text: "Date" },
+                field: "Date",
+                labels: {
+                    rotation: -60,
+                    dateFormats: {
+                        days: "M/YYYY"
+                    }
+                },
+                maxDateGroups: 45,
+                crosshair: {
+                    visible: false
+                },
+                line: {
+                    visible: false
+                },
+                majorGridLines: {
+                    visible: false
+                }
+            },
+            valueAxis: [
+                {labels: {
+                    format: "\u00a3{0}"
+                }//title: {text: ' Total'},
+                }
+            ],
+            tooltip: {
+                visible: true,
+                shared: true,
+                template: "#= kendo.format('{0:C}',value) #"
+            }
+        });
+    };
+
     App.createChart = function(dataSource, series, reverse) {
         $("#chart").kendoChart({
             pdf: {
@@ -1563,9 +2169,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
             series: series,
             categoryAxis: {
                 baseUnit: "fit",
-                title: {
-                    text: "Date"
-                },
+                //title: { text: "Date" },
                 field: "Date",
                 labels: {
                     rotation: -60,
@@ -1585,8 +2189,11 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 }
             },
             valueAxis: [
-                {title: {text: ' Total'},
-                    reverse: reverse}
+                {reverse: reverse,
+                labels: {
+                    format: "\u00a3{0}"
+                }//title: {text: ' Total'},
+                }
             ],
             tooltip: {
                 visible: true,

@@ -1,4 +1,4 @@
-<div class="animated fadeIn panel panel-default" style="height:80vh; border: none">
+<div class="animated fadeIn panel panel-default" style="height: Calc(100vh - 176px); border: none">
     <div class="panel-heading">
         <span class="pull-left">
             <a class="homeTpl" data-id="wbsTable" data-temp="#indexTpl" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>
@@ -15,13 +15,13 @@
                         <select class="form-control" id="hChange">
                             <% if (combineData[0].length < 2) { %>
                             <% $.each(combineData[0],function(key,value){ %>
-                            <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
+                            <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
                             <%});
                             } else { %>
-                            <option value="">Please Select a Hierachy</option>
+                            <option value="">Select Hierachy</option>
                             <!-- FOR EACH ITEM -->
                             <% $.each(combineData[0],function(key,value){ %>
-                            <option value="<%-value.TreeSelection%>"><%-value.Description%></option>
+                            <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
                             <%});
                             <!-- END OF FOR EACH -->
                             }%>
@@ -33,16 +33,16 @@
         </div>
         <div>
             <div id="vertical">
-                <div class="col-xs-10 col-md-12" style="border: 0; padding-bottom: 10px; padding-top: 10px">
+                <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
                     <form class="form-inline">
-                        <div class="input-group">
-                            <select class="form-control" id="dataType">
+                        <div class="col-xs-5 input-group">
+                            <select class="col-xs-6 form-control" id="dataType">
                                 <option value="Cost">Cost</option>
                                 <option value="Hours">Hours</option>
                             </select>
                         </div>
-                        <div class="input-group">
-                            <select class="form-control" id="costType">
+                        <div class="col-xs-5 input-group">
+                            <select class="col-xs-6 form-control" id="costType">
                                 <option value="Internal">Internal Cost</option>
                                 <option value="External">External Cost</option>
                             </select>

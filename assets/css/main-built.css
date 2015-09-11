@@ -2749,10 +2749,23 @@ html, body {
     height:100%;
     font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
 }
-.js-hier{
+.noData {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(100, 149, 237, .4);
+    font-size: 34px;
+}
+#noDataMessage {
+    color: #666666;
+    position: absolute; left: 40%; top: 50%;
+}
+.js-hier {
     cursor:pointer;
 }
-.PD, .PR,.OB, .NP,.NV{
+.PD, .PR,.OB, .NP,.NV {
     width:27px;
     height:27px;
     padding:0 5px 0 10px;
@@ -2760,22 +2773,22 @@ html, body {
     margin:0 0 -5px 0;
     position:relative;
 }
-.PD{
+.PD {
     background:url(../img/heirarchyIcons/Project-24.png) transparent no-repeat 50% 50%;
 }
-.PR{
+.PR {
     background:url(../img/heirarchyIcons/WBS-26.png) transparent no-repeat  50% 50%;
 }
-.OB{
+.OB {
     background:url(../img/heirarchyIcons/WBS-26.png) transparent no-repeat  50% 50%;
 }
-.NP{
+.NP {
     background:url(../img/heirarchyIcons/Work_Package_26.png) transparent no-repeat  50% 50%;
 }
-.NV{
+.NV {
     background:url(../img/heirarchyIcons/Activity_Task_26.png) transparent no-repeat  50% 50%;
 }
-.spinner{
+.spinner {
     background: url(../css/Fiori/loading_2x.gif) transparent no-repeat 50% 50%;
     position: fixed;
     width:100%;
@@ -3079,4 +3092,9 @@ a:hover {
     font-size: 2vh;
     background-color: transparent;
     border: none
+}
+.input-group[class*=col-]{
+    float:left;
+    max-width: 150px;
+    margin: 0 5px;
 }
