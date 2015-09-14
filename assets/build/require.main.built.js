@@ -7060,12 +7060,15 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
     'jquery.table2excel'], function ($,_,moment) {
     var App = App || {};
     App.projectID = "";
+    App.HierarchySelectionID = '';
+    App.SnapshotSelectionID = '';
+    App.ChartType = '';
     App.reportData = "/DSN/PMR_01_SRV";
     App.serviceRoot = window.location.protocol + '//' + window.location.host + '/pmr01srv' + App.reportData;
     /*
         See function setProjectID for other API's
     * */
-    App.urlProjectSet = "/ReportSelectionSet?$format=json";
+    App.urlProjectSet = "/ProjectSelectionSet?$format=json";
     App.colorpicker = '';
     moment.locale('en');
     App.tdColor = '#ede330';
@@ -7291,6 +7294,8 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
         hierarchy:[],
         versions:[],
         versionSelection:'',
+        hierarchyList:[],
+        snapShotList:[],
          empty: function(){
              this.chart = {};
              this.filtered =[];
@@ -7299,6 +7304,8 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
              this.gaugesData = [];
              this.project = {};
              this.hierarchy = [];
+             this.hierarchyList = {};
+             this.snapShotList = [];
         }
     };
 
@@ -7334,48 +7341,89 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
 
     App.setVersion = function(){
         var versionData = this.VersionData();
-        App.DataStore.versions = [];
         App.DataStore.versionSelection = '';
         $.when(versionData).done(function(vData){
             App.DataStore.versions = vData.d.results;
 
            var defVersion =  $.grep( App.DataStore.versions,function(item){
-                if(item.Default === "X"){
-                   return item;
-                }
+                   return item.Default === "X";
             });
             console.log(defVersion);
             if(defVersion.length > 1){
-                if(_.first(defVersion).ProjectSelection === 'PMR-T01'){
-                    App.DataStore.versionSelection = 'D01';
-                }else{
                     App.DataStore.versionSelection = _.first(defVersion).VersionSelection;
-                }
-
             }else{
                 App.DataStore.versionSelection = defVersion.VersionSelection;
             }
             console.log('Version Selection: '+ App.DataStore.versionSelection);
         });
+    };
 
+    App.setHierarchyList = function(){
+        var List = this.HierarchyListSet();
+        App.HierarchySelectionID = '';
+        $.when(List).done(function(lData){
+            App.DataStore.hierarchyList = lData.d.results;
+            var defList =  $.grep( App.DataStore.hierarchyList,function(item){
+                if(App.DataStore.hierarchyList.length === 1){
+                    return item;
+                }
+                return item.Default === "X";
+            });
+            console.log(defList);
+            if(defList.length >= 1){
+                App.HierarchySelectionID = _.first(defList).HierarchySelection;
+            }
+            console.log('HierarchySelectionID Selection: '+ App.HierarchySelectionID);
+        });
+    };
+
+    App.setSnapshotList = function(){
+        var List = this.SnapshotListSet();
+        App.SnapshotSelectionID = '';
+        $.when(List).done(function(lData){
+            App.DataStore.snapShotList = lData.d.results;
+            var defList =  $.grep( App.DataStore.snapShotList,function(item){
+                return item.Default === "X";
+            });
+            console.log(defList);
+            if(defList.length >= 1){
+                App.SnapshotSelectionID = _.first(defList).SnapshotSelection;
+            }
+            console.log('SnapshotSelectionID Selection: '+ App.SnapshotSelectionID);
+        });
     };
 
     App.apiErrorHandler = function(target,loadingWheel,data){
-        /** Error handler **/
-        if(_.isArray(data) && (_.isUndefined(_.first(data))) && (!_.isEmpty(data))){
-            alert('Selection does not have Data, try again.');
-            _.debounce(App.SpinnerTpl(loadingWheel,0), 1000);
-            App.addSpinner(target,false);//bkg loading
-            return true;
+        /** Error handler **///(_.isUndefined(_.first(data))) ||
+        if(_.isArray(data)) {
+            if(_.isEmpty(data)) return;
+                if(_.isUndefined(_.first(data))) {
+                    alert('Selection does not have Data, try again.');
+                    _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                    App.addSpinner(target, false);//bkg loading
+                    return true;
+                }
         }
         /** Error handler **/
     };
 
     App.setProjectID = function(value){
         this.projectID = value;
-        this.urlSnapshotSet = "/SnapshotSet(ProjectSelection='" + this.projectID + "')?$format=json";
-        this.urlHierarchySet = "/HierarchySet(ProjectSelection='" + this.projectID + "')?$format=json";
         this.urlVersionSet = "/VersionSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
+        this.urlSnapshotListSet = "/SnapshotSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
+    };
+
+    App.setHierarchySelection = function(ChartType){
+        this.ChartType = ChartType;
+        //HierarchySelectionSet(ChartType='SPA',ProjectSelection='PMR-T01')?$format=json
+        this.urlHierarchyListSet = "/HierarchySelectionSet(ChartType='" + this.ChartType + "',ProjectSelection='" + this.projectID + "')?$format=json";
+    };
+
+    App.setDataSelection = function(){
+        //SnapshotDataSet(ProjectSelection='PMR-T01',HierarchySelection='OB0000265594',SnapshotType='M')?$format=json
+        this.urlSnapshotSet = "/SnapshotDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='"+this.HierarchySelectionID+"',SnapshotType='M')?$format=json";
+        //HierarchyDataSet(ProjectSelection='PMR-T01',HierarchySelection='OB0000265594')?$format=json
+        this.urlHierarchySet = "/HierarchyDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='"+this.HierarchySelectionID+"')?$format=json";
     };
 
     App.CheckProdId = function(){
@@ -7496,17 +7544,83 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
 
                     var tdBkg = $(document).has('table').find('td.single');
                     tdBkg.hover(self.tdHover);
+        _.debounce($(document).on('click','.getChildren',function(e){
+                        e.preventDefault();
+                        $('.child').toggleClass('hide');
+                        if($(e.currentTarget).hasClass('shown')){
+                            $(e.currentTarget).text('Expand');
+                        }else{
+                            $(e.currentTarget).text('Collapse');
+                        }
+                        $(e.currentTarget).toggleClass('shown btn-primary btn-warning');
+
+                    }),300);
     };
+
+    App.convertArraytoObject = function(array){
+        var total = {};
+        if(_.isArray(array)){
+            _.each(array,function(value){
+                for(prop in value){
+                    if( value.hasOwnProperty( prop ) ) {
+                        total[prop] = value[prop];
+                    }
+
+                }
+            });
+            return total
+        }
+    };
+
+    App.ragSpi = function(spi){
+        var spiColour = "#0066CC";
+        if(_.isNumber(spi)){
+            if (spi < 0.9) {
+                spiColour = "#FF0000";//red
+            } else if (spi > 0.9 && spi < 0.95) {
+                spiColour = "#FF9933";//amber
+            } else if (spi > 0.95 && spi < 1.2) {
+                spiColour = "#009933";//green
+            } else {
+                spiColour = "#0066CC";//blue
+            }
+            return spiColour;
+        }
+       // return spiColour;
+    };
+
+    App.ragCpi = function(cpi){
+        var cpiColour = "#009933";
+        if(_.isNumber(cpi)){
+          if (cpi < 0.9) {
+                cpiColour = "#FF0000";//red
+            } else if (cpi > 0.9 && cpi < 0.95) {
+                cpiColour = "#FF9933";//amber
+            } else if (cpi > 0.95 && cpi < 1.2) {
+                cpiColour = "#009933";//green
+            } else {
+                cpiColour = "#0066CC";//blue
+            }
+            return cpiColour;
+        }
+       // return cpiColour;
+    };
+
+
 
     App.formatOneTotals =  function(hier,costs,type) {
         console.time('Format One Totals');
-        var newObj = '';
-        var hierarchy = '';
-        var cost = [];
-        var total = 0;
-        var amounts = '';
-        var parent = [];
-        var self = this;
+        var newObj = '',
+             hierarchy = '',
+             cost = [],
+             total = 0,
+             amounts = '',
+             parent = [],
+             spiColour = "",
+             cpiColour = "",
+             curSPIColour = "",
+             curCPIColour = "",
+             self = this;
         if (hier.length === 0) {
             return alert('No Heirarchy data');
         }
@@ -7514,7 +7628,7 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
         if (_.isEmpty(costs)) {
             return alert('No SnapShot data');
         }
-        $.each(hier, function (k, v) {
+        _.chain(hier).sortBy("SortOrder").each(function (v,k) {
             if (k > 0) {
                 newObj = $.grep(costs, function (item) {
                     return item.ObjectNumber === v.ObjectNumber
@@ -7524,9 +7638,18 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
             }
 
             var data =  App.FilterChartData(newObj);//self.FilterChartData(newObj);
+             if(_.isUndefined(data)){
+                 var totals = undefined;
+                 var gauges =   undefined;
+             }else{
+                  totals = App.convertArraytoObject(data.totals);
+                  gauges =   App.convertArraytoObject(data.gauges);
+             }
 
-            total = !_.isUndefined(data) ? data.totals : 0;
-            console.log(total);
+            var total = !_.isUndefined(totals) && _.isObject(totals) ? totals : 0;
+            var gauge = !_.isUndefined(gauges) && _.isObject(gauges) ? gauges : 0;
+            //console.log(total);
+            //console.log(gauges);
             if (total === 0) {
                 amounts = {
                     "bcwsTotal": total,
@@ -7550,55 +7673,43 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
                     "spi": total,
                     "cpi": total,
                     "spiColour": "#FF0000",
-                    "cpiColour": "#FF0000"
+                     "cpiColour": "#FF0000",
+                    "curSPIColour":"#FF0000",
+                    "curCPIColour":"#FF0000"
                 };
             } else {
-                var CurrSV = parseFloat(total[1].curBcwpTotal) - parseFloat(total[0].curBcwsTotal);
-                var CurrCV = parseFloat(total[1].curBcwpTotal) - parseFloat(total[3].curAcwpTotal);
-                var sv = parseFloat(total[1].bcwpTotal) - parseFloat(total[0].bcwsTotal);
-                var cv = parseFloat(total[1].bcwpTotal) - parseFloat(total[3].acwpTotal);
-                var vac = parseFloat(total[5].bac) - parseFloat(total[4].eacCum);
-                var gaugeData = data.gauges,
-                    spi = gaugeData[0].spi,
-                    cpi = gaugeData[1].cpi;
-                console.log(gaugeData);
+                var spi =  App.Math.ceil10(Number(gauge.spi), -3),
+                    cpi = App.Math.ceil10(Number(gauge.cpi), -2),
+                    curSPI = App.Math.ceil10(Number(gauge.curSPI), -3),
+                    curCPI = App.Math.ceil10(Number(gauge.curCPI), -2),
+                    CurrSV = parseFloat(total.curBcwpTotal) - parseFloat(total.curBcwsTotal),
+                    CurrCV = parseFloat(total.curBcwpTotal) - parseFloat(total.curAcwpTotal),
+                    sv = parseFloat(total.bcwpTotal) - parseFloat(total.bcwsTotal),
+                    cv = parseFloat(total.bcwpTotal) - parseFloat(total.acwpTotal),
+                    vac = parseFloat(total.bac) - parseFloat(total.eacCum);
+                console.log(vac +' '+ total.bac + ' '+ total.eacCum +' '+ (total.bac - total.eacCum));
                 //var currentSPI = $(document).find('');
-                var spiColour = "";
-                if (spi < 0.9) {
-                    spiColour = "#FF0000";//red
-                } else if (spi > 0.9 && spi < 0.95) {
-                    spiColour = "#FF9933";//amber
-                } else if (spi > 0.95 && spi < 1.2) {
-                    spiColour = "#009933";//green
-                } else {
-                    spiColour = "#0066CC";//blue
-                }
-                console.log("TOM" + spi);
+
+
+                spiColour =  App.ragSpi(spi);
+                cpiColour = App.ragCpi(cpi);
+                curSPIColour =  App.ragSpi(curSPI);
+                curCPIColour = App.ragCpi(curCPI);
+                console.log("TOM  SPI: " + spi);
                 //currentSPI.attr('data-colour', spiColour);
-                var cpiColour = "";
-                if (cpi < 0.9) {
-                    cpiColour = "#FF0000";//red
-                } else if (cpi > 0.9 && cpi < 0.95) {
-                    cpiColour = "#FF9933";//amber
-                } else if (cpi > 0.95 && cpi < 1.2) {
-                    cpiColour = "#009933";//green
-                } else {
-                    cpiColour = "#0066CC";//blue
-                }
-                var curSPI = gaugeData[0].curSPI;
-                var curCPI = gaugeData[1].curCPI;
+
                 amounts = {
-                    "bcwsTotal": total[0].bcwsTotal,
-                     "curBcwsTotal": total[0].curBcwsTotal,
-                    "bcwpTotal": total[1].bcwpTotal,
-                     "curBcwpTotal": total[1].curBcwpTotal,
-                    "eacTotal": total[2].eacTotal,
-                     "curEacTotal": total[2].curEacTotal,
-                    "acwpTotal": total[3].acwpTotal,
-                     "curAcwpTotal": total[3].curAcwpTotal,
-                    "eacCum": total[4].eacCum,
-                    "bac": total[5].bac,
-                    "tcpi": total[6].tcpi,
+                    "bcwsTotal": total.bcwsTotal,
+                     "curBcwsTotal": total.curBcwsTotal,
+                    "bcwpTotal": total.bcwpTotal,
+                     "curBcwpTotal": total.curBcwpTotal,
+                    "eacTotal": total.eacTotal,
+                     "curEacTotal": total.curEacTotal,
+                    "acwpTotal": total.acwpTotal,
+                     "curAcwpTotal": total.curAcwpTotal,
+                    "eacCum": total.eacCum,
+                    "bac": total.bac,
+                    "tcpi": total.tcpi,
                     "sv": sv,
                     "cv": cv,
                     "CurrSV": CurrSV,
@@ -7609,10 +7720,17 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
                     "spi": spi,
                     "cpi": cpi,
                     "spiColour": spiColour,
-                    "cpiColour": cpiColour
+                    "cpiColour": cpiColour,
+                    "curSPIColour":curSPIColour,//"#009933"
+                    "curCPIColour":curCPIColour
                 };
             }
            // console.log(amounts);
+            if(v.ObjectNumber.charAt(0) === type.charAt(0)){
+                var typeCheck = false;
+            }else{
+                 typeCheck = (v.ParentObjNum.charAt(0) === type.charAt(0));
+            }
             cost.push({
                 'parentNumber': v.ParentObjNum,
                 'objNumber': v.ObjectNumber,
@@ -7621,16 +7739,17 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
                 'Description': v.Description,
                 'SortOrder': v.SortOrder,
                 'bcwsCost': amounts.bcwsTotal,
-                'totals': amounts
+                'totals': amounts,
+                'isChild':typeCheck
             });
          });//end of each loop
-        $.each(cost, function (key, value) {
+        _.each(cost, function (value,key ) {
             if (key > 0) {
                 var indexof = _.findIndex(cost, function (search) {
                     return search.objNumber === value.parentNumber
                 });
               //  console.log(indexof);
-                if (indexof != -1 && (indexof > 0)) {
+                if (indexof != -1 && (key > 0)) {
                         parent.push(indexof);
                         cost[indexof].totals.bcwsTotal += parseFloat(value.totals.bcwsTotal);
                         cost[indexof].totals.bcwpTotal += parseFloat(value.totals.bcwpTotal);
@@ -7644,38 +7763,86 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
                         cost[indexof].totals.bac += parseFloat(value.totals.bac);
                     cost[indexof].totals.sv += parseFloat(value.totals.sv);
                     cost[indexof].totals.cv += parseFloat(value.totals.cv);
-                    cost[indexof].totals.curSPI += parseFloat(value.totals.curSPI);
-                    cost[indexof].totals.curCPI += parseFloat(value.totals.curCPI);
-                        cost[indexof].totals.vac += parseFloat(value.totals.vac);
-                    cost[indexof].totals.spiColour = value.totals.spiColour;
-                    cost[indexof].totals.cpiColour = value.totals.cpiColour;
+                    cost[indexof].totals.vac += parseFloat(value.totals.vac);
+
+                    var roundbcwsTotal = cost[indexof].totals.bcwsTotal;
+                    var roundbcwpTotal = cost[indexof].totals.bcwpTotal;
+                    var roundacwpTotal = cost[indexof].totals.acwpTotal;
+                    var curBcwsTotal = cost[indexof].totals.curBcwsTotal;
+                    var curBcwpTotal = cost[indexof].totals.curBcwpTotal;
+                    var curAcwpTotal = cost[indexof].totals.curAcwpTotal;
+
+                    var spiTotal = (roundbcwpTotal / roundbcwsTotal),
+                        cpiTotal = (roundbcwpTotal / roundacwpTotal),
+                        curSPITotal = (curBcwpTotal / curBcwsTotal),
+                        curCPITotal = (curBcwpTotal / curAcwpTotal);
+                    spiTotal = _.isNaN(spiTotal) ? 0 : spiTotal;
+                    cpiTotal = _.isNaN(cpiTotal) ? 0 : cpiTotal;
+                    curSPITotal = _.isNaN(curSPITotal) ? 0 : curSPITotal;
+                    curCPITotal = _.isNaN(curCPITotal) ? 0 : curCPITotal;
+                    cost[indexof].totals.spi = App.Math.ceil10(spiTotal,-2);
+                    cost[indexof].totals.cpi = App.Math.ceil10(cpiTotal,-3);
+                    cost[indexof].totals.curSPI = App.Math.ceil10(curSPITotal,-2);
+                    cost[indexof].totals.curCPI = App.Math.ceil10(curCPITotal,-3);
+
+                    spiColour =  App.ragSpi(spiTotal);
+                    cpiColour = App.ragCpi(cpiTotal);
+                    curSPIColour =  App.ragSpi(curSPITotal);
+                    curCPIColour = App.ragCpi(curCPITotal);
+                    cost[indexof].totals.spiColour = spiColour;
+                    cost[indexof].totals.cpiColour = cpiColour;
+
+                    cost[indexof].totals.curSPIColour = curSPIColour;
+                    cost[indexof].totals.curCPIColour = curCPIColour;
                 }
             }
-        });//end loop
-
-       $.each(parent, function (kk, vv) {
-            var roundbcwsTotal = self.Math.ceil10(cost[vv].totals.bcwsTotal, -2);
-            var roundbcwpTotal = self.Math.ceil10(cost[vv].totals.bcwpTotal, -2);
-            var roundacwpTotal = self.Math.ceil10(cost[vv].totals.acwpTotal, -2);
-            var spiTotal = (roundbcwpTotal / roundbcwsTotal);
-            var cpiTotal = (roundbcwpTotal / roundacwpTotal);
-            //  var tcpi = (bac - roundbcwpTotal)/(eacCum - roundacwpTotal);
-            if (isNaN(spiTotal)) {
-                spiTotal = 0;
-            }
-            if (isNaN(cpiTotal)) {
-                cpiTotal = 0;
-            }
-            cost[vv].totals.spi = self.Math.ceil10(spiTotal, -2);
-            cost[vv].totals.cpi = self.Math.ceil10(cpiTotal, -3);
         });
-        hierarchy = $.grep(cost,function(item,i){
-            if(i > 0){
+
+        _.each(parent, function (vv,kk) {
+            var roundbcwsTotal = self.Math.ceil10(cost[vv].totals.bcwsTotal, -2),
+                roundbcwpTotal = self.Math.ceil10(cost[vv].totals.bcwpTotal, -2),
+                roundacwpTotal = self.Math.ceil10(cost[vv].totals.acwpTotal, -2),
+                curBcwsTotal  =  self.Math.ceil10(cost[vv].totals.curBcwsTotal, -2),
+                curBcwpTotal =  self.Math.ceil10(cost[vv].totals.curBcwpTotal, -2),
+                curAcwpTotal = self.Math.ceil10(cost[vv].totals.curAcwpTotal, -2);
+
+            var spiTotal = (roundbcwpTotal / roundbcwsTotal),
+                cpiTotal = (roundbcwpTotal / roundacwpTotal),
+                curSPITotal = (curBcwpTotal / curBcwsTotal),
+                curCPITotal = (curBcwpTotal / curAcwpTotal);
+            //  var tcpi = (bac - roundbcwpTotal)/(eacCum - roundacwpTotal);
+                spiTotal = _.isNaN(spiTotal) ? 0 : spiTotal;
+                cpiTotal = _.isNaN(cpiTotal) ? 0 : cpiTotal;
+                curSPITotal = _.isNaN(curSPITotal) ? 0 : curSPITotal;
+                curCPITotal = _.isNaN(curCPITotal) ? 0 : curCPITotal;
+
+                spiColour =  App.ragSpi(spiTotal);
+                cpiColour = App.ragCpi(cpiTotal);
+                curSPIColour =  App.ragSpi(curSPITotal);
+                curCPIColour = App.ragCpi(curCPITotal);
+                cost[vv].totals.spiColour = spiColour;
+                cost[vv].totals.cpiColour = cpiColour;
+                cost[vv].totals.curSPIColour = curSPIColour;
+                cost[vv].totals.curCPIColour = curCPIColour;
+                cost[vv].totals.spi = self.Math.ceil10(spiTotal, -2);
+                cost[vv].totals.cpi = self.Math.ceil10(cpiTotal, -3);
+                cost[vv].totals.curSPI = self.Math.ceil10(curSPITotal, -2);
+                cost[vv].totals.curCPI = self.Math.ceil10(curCPITotal, -3);
+        });
+        if(type === 'PR'){
+            hierarchy = $.grep(cost,function(item,i){
+                if(i > 0){
                 return item.Type === type;
             }else{
                 return item;
-            }
-        });
+             }
+            });
+        }else{
+            hierarchy = $.grep(cost,function(item,i){
+                return item;
+            });
+        }
+
         console.timeEnd('Format One Totals');
         return hierarchy;
     };
@@ -7841,46 +8008,31 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
 
     App.formatFiveTotals = function(totals, gauges){
         console.log(totals);
-        var sv = parseFloat(totals[1].bcwpTotal) - parseFloat(totals[0].bcwsTotal);
-        var cv = parseFloat(totals[1].bcwpTotal) - parseFloat(totals[3].acwpTotal);
-        var vac = parseFloat(totals[5].bac) - parseFloat(totals[4].eacCum);
-        var spi = gauges[0].spi;
-        var cpi = gauges[1].cpi;
-        var tcpi = totals[6].tcpi;
+        var total = App.convertArraytoObject(totals);
+        var gauge = App.convertArraytoObject(gauges);
+        var sv = parseFloat(total.bcwpTotal) - parseFloat(total.bcwsTotal);
+        var cv = parseFloat(total.bcwpTotal) - parseFloat(total.acwpTotal);
+        var vac = parseFloat(total.bac) - parseFloat(total.eacCum);
+        var spi = gauge.spi;
+        var cpi = gauge.cpi;
+        var tcpi = total.tcpi;
         if(_.isNaN(tcpi)){
             tcpi = 0;
         }
-        var spiColour = "";
-        if (spi < 0.9) {
-            spiColour = "#FF0000";//red
-        } else if (spi > 0.9 && spi < 0.95) {
-            spiColour = "#FF9933";//amber
-        } else if (spi > 0.95 && spi < 1.2) {
-            spiColour = "#009933";//green
-        } else {
-            spiColour = "#0066CC";//blue
-        }
-        var cpiColour = "";
-        if (cpi < 0.9) {
-            cpiColour = "#FF0000";//red
-        } else if (cpi > 0.9 && cpi < 0.95) {
-            cpiColour = "#FF9933";//amber
-        } else if (cpi > 0.95 && cpi < 1.2) {
-            cpiColour = "#009933";//green
-        } else {
-            cpiColour = "#0066CC";//blue
-        }
+        var spiColour = "",cpiColour = "";
+        spiColour =  App.ragSpi(spi);
+        cpiColour = App.ragCpi(cpi);
         return {
-            "bcwsTotal":totals[0].bcwsTotal,
-            "bcwpTotal": totals[1].bcwpTotal,
-            "eacTotal":totals[2].eacTotal,
-            "acwpTotal":totals[3].acwpTotal,
-            "eacCum":totals[4].eacCum,
-            "bac":totals[5].bac,
+            "bcwsTotal":total.bcwsTotal,
+            "bcwpTotal": total.bcwpTotal,
+            "eacTotal":total.eacTotal,
+            "acwpTotal":total.acwpTotal,
+            "eacCum":total.eacCum,
+            "bac":total.bac,
             "tcpi":tcpi,
             "vac":vac,
-            "cpi":gauges[1].cpi,
-            "spi":gauges[0].spi,
+            "cpi":gauge.cpi,
+            "spi":gauge.spi,
             "cpiColour":cpiColour,
             "spiColour":spiColour,
             "sv":sv,
@@ -7891,7 +8043,7 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
 
     App.ExportTable = function(selector, DocName, fileName) {
         $(selector).table2excel({
-            exclude: "",
+            exclude: ".hide",
             name: DocName,
             filename: fileName
         });
@@ -8212,7 +8364,7 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
                 filteredSnapByIndex = [],
                 collectIndexes = [],
                 chartFiltered = '';
-            console.log('hit selected row tom');
+            console.log('hit selected row');
             var $target = $(e.currentTarget),
                 $treeList = $("div#treelist").data("kendoTreeList"),
                 $chartGraph = $("div#chart").data("kendoChart"),
@@ -8224,7 +8376,7 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
 
             $target.closest('tr').siblings().removeClass('k-state-selected');
             if($target.hasClass('animated')) {
-                $target.removeClass('fadeIn').removeClass('shake');
+                $target.removeClass('fadeIn');
             }
             $target.closest('tr').addClass('k-state-selected');
 
@@ -8296,7 +8448,7 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
             //   console.log(projectSource);
         }).error(function (err) {
             alert('error ' + err);
-        }).done(function () {
+        }).done(function (response) {
             console.log('projectData complete ');
         });
 
@@ -8304,7 +8456,24 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
     };
 
     /** New Function hierListData 072815**/
-    App.hierListData = function() {
+//urlHierarchyListSet
+    App.HierarchyListSet = function() {
+        var Source = $.ajax({
+            url: this.serviceRoot + this.urlHierarchyListSet,
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            // hierSource = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('HierarchyListSet complete ');
+        });
+        return Source;
+    };
+
+    App.HierarchySet = function() {
         var Source = $.ajax({
             url: this.serviceRoot + this.urlHierarchySet,
             method: "GET",
@@ -8321,7 +8490,23 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
     };
 
     /** New Function ChartData 072815**/
-    App.ChartData = function() {
+    App.SnapshotListSet = function() {
+        var rawData = $.ajax({
+            url: this.serviceRoot + this.urlSnapshotListSet,
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            // rawData = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('request complete: SnapshotListSet');
+        });
+        return rawData;
+    };
+
+    App.SnapshotSet = function() {
         var rawData = $.ajax({
             url: this.serviceRoot + this.urlSnapshotSet,
             method: "GET",
@@ -8489,9 +8674,7 @@ define('app',['jquery','underscore','moment','kendo','Blob','base64','jszip','Fi
         console.log("BCWP length "+bcwp.length);
         console.log("ACWP length "+acwp.length);
         var bcwplen = bcwp.length-1;
-        //console.log(bcws);
-         console.log(bcwp);
-        //console.log(acwp);
+
         master = _.map(bcwp,function(item,index){
             if(!_.isUndefined(bcws[index]) || (!_.isEmpty(bcws[index]))){
                 var bcwsCost = bcws[index].IntValProjCurr;
@@ -8665,6 +8848,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
     var master = {};
     master.versions = [];
     master.category = [];
+        master.array = '';
     var dateCheck = '';
     var dateCheckAfter = '';
     var data = results;
@@ -8672,6 +8856,13 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
     if (_.isEmpty(data)) {
         console.log('No Data to filter series.');
         return {};//if empty data set - return empty object
+    }
+    if (data.length > 2) {
+        master.array  =  _.reject(versions, function(num){
+            return num % 2 == 0;
+        });//returns odds in the array
+    }else{
+        master.array = versions;
     }
     _.each(versions,function(item,index){
         var verSelection = item.VersionSelection;
@@ -8700,7 +8891,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                     "Version": value.Version,
                     "ValueType": value.ValueType,
                     "Date": value.Date,
-                    "SnapshotDate":value.SnapshotDate,
+                    "SnapshotDate":value.SnapshotDate
                     }
                 }).value();
             master.category.push({"Version":costs.VersionSelection,"Type":costs.Type,"Default":costs.Default,"data":data});//add array to master array
@@ -8741,7 +8932,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
          obj.BCWS = ''; obj.BCWP = ''; obj.EAC = ''; obj.ACWP = ''; obj.ETC = '';
          if(!_.isEmpty(costs)) {
 
-             if(value.Type === 'P' && value.Default === 'X'){
+             if(value.Type === 'P' && value.Default === 'X' || index === 0){
                  obj.BCWS = $.grep(costs, function (item) {
                          return item.ValueType === '01';
                  });//filter data
@@ -8803,7 +8994,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
 
              }//type == p
 
-             if(value.Type === 'E' && value.Default === 'X'){
+             if(value.Type === 'E' && value.Default === 'X' || index === 2){
                  obj.EAC = $.grep(costs, function (item) {
                          return item;
                  });//filter data
@@ -8918,9 +9109,9 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
             }
         });//filter data
         master.graph.push(baseLine);//add array to master array
+        var runningTotalBCWS = 0,bcwsTotal = 0,bcwsAll = 0, bcwsHrs = 0, curBcwsTotal = 0, curBcwsHrs = 0;
         if (_.isArray(BCWS)  && !_.isEmpty(BCWS)) {
-            var runningTotalBCWS = 0;
-            var bcwsTotal = 0,bcwsAll = 0, bcwsHrs = 0, curBcwsTotal = 0, curBcwsHrs = 0;
+
             var BCWSdata = _.chain(BCWS).sortBy("Date").map(function (value) {
                 runningTotalBCWS += parseFloat(value.IntValProjCurr);
                 bcwsAll += parseFloat(value.BCWS);
@@ -8928,13 +9119,12 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                 //(+new Date(value.Date)/1000).toFixed(0);
                 var snapDate = moment(value.SnapshotDate).unix();
                 //(+new Date(value.SnapshotDate)/1000).toFixed(0);
-                console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
+              //  console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
                // if(moment(value.Date).isAfter(value.SnapshotDate, 'day') || value.isSame) {
                 if(date > snapDate || date === snapDate) {
                     bcwsTotal += parseFloat(value.BCWS);
                     bcwsHrs += parseFloat(value.QuantityBCWS);
                 }
-
                 //if(moment(value.Date).isBefore(value.SnapshotDate, 'day')){
                 if(date <= snapDate){
                     curBcwsTotal += parseFloat(value.BCWS);
@@ -8952,7 +9142,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                     "Type":"BCWS",
                     "Date": value.Date,
                     "isSame":value.isSame,
-                    "isAfter":value['isAfter']
+                    "isAfter":value.isAfter
                 }
             }).value();//convert IntValProjCurr key for Chart Series
 
@@ -8961,17 +9151,15 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
         }else{
             master.totals.push({"bcwsAll":0.00,"bcwsTotal": 0.00,"bcwsHrs":0.00,"curBcwsHrs":0.00});//.toFixed(2)
         }
+
+        var runningTotalBCWP = 0,bcwpTotal = 0, bcwpHrs = 0, curBcwpTotal = 0, curBcwpHrs = 0;
         if (_.isArray(BCWP) && !_.isEmpty(BCWP)) {
-            var runningTotalBCWP = 0;
-            var bcwpTotal = 0, bcwpHrs = 0, curBcwpTotal = 0, curBcwpHrs = 0;
+
             var BCWPdata = _.chain(BCWP).sortBy("Date").map(function (value) {
                 runningTotalBCWP += parseFloat(value.IntValProjCurr);
                 var date = moment(value.Date).unix();
-                //(+new Date(value.Date)/1000).toFixed(0);
                 var snapDate = moment(value.SnapshotDate).unix();
-                //(+new Date(value.SnapshotDate)/1000).toFixed(0);
-                console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
-                //console.log(date +'  '+snapDate+' '+ value.SnapshotDate);
+               // console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
                 if(date >= snapDate) {
                     bcwpTotal += parseFloat(value.BCWP);
                     bcwpHrs += parseFloat(value.QuantityBCWP);
@@ -8992,7 +9180,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                     "Type":"BCWP",
                     "Date": value.Date,
                     "isSame":value.isSame,
-                    "isBefore":value['isBefore']
+                    "isBefore":value.isBefore
                 }
             }).value();//convert IntValProjCurr key for Chart Series
 
@@ -9001,12 +9189,12 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
         }else{
             master.totals.push({"bcwpTotal": 0.00,"bcwpHrs":0.00,"curBcwpTotal": 0.00,"curBcwpHrs":0.00});//.toFixed(2)
         }
-        if (_.isArray(EAC) && !_.isEmpty(EAC)) {
-            var runningTotalEAC = 0;
-            var firstDate = _.first(EAC).Date;
-            var eacTotal = 0,eacHrs = 0,len = EAC.length, editedbaseLine = [];
-            console.log(_.first(EAC).Date);
 
+        var runningTotalEAC = 0,eacTotal = 0,eacHrs = 0;
+        if (_.isArray(EAC) && !_.isEmpty(EAC)) {
+            var firstDate = _.chain(EAC).sortBy('Date').first().value();
+            var len = EAC.length, editedbaseLine = [];
+           // console.log(firstDate);
             var EACdata = _.chain(EAC).sortBy("Date").map(function (value,index) {
                 runningTotalEAC +=  parseFloat(value.IntValProjCurr);
                 eacTotal += parseFloat(value.EAC);
@@ -9014,7 +9202,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                 if(index === 0){
                     // console.log(key + '--------' +value.Date);
                     editedbaseLine.push({
-                        "Date": firstDate,
+                        "Date": firstDate.Date,
                         "baseLine":0,
                         "Type":"baseline"
                     });
@@ -9046,16 +9234,15 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
         }else{
             master.totals.push({"eacTotal": 0.00,"eacHrs": 0.00});//.toFixed(2)
         }
+
+        var runningTotalACWP = 0,acwpTotal = 0,acwpHrs = 0, curAcwpTotal = 0, curAcwpHrs = 0;
         if (_.isArray(ACWP)&& !_.isEmpty(ACWP)) {
-            var runningTotalACWP = 0;
-            var acwpTotal = 0,acwpHrs = 0, curAcwpTotal = 0, curAcwpHrs = 0;
+
             var ACWPdata = _.chain(ACWP).sortBy("Date").map(function (value) {
                 runningTotalACWP += parseFloat(value.IntValProjCurr);
                 var date = moment(value.Date).unix();
-                //(+new Date(value.Date)/1000).toFixed(0);
                 var snapDate = moment(value.SnapshotDate).unix();
-                //(+new Date(value.SnapshotDate)/1000).toFixed(0);
-                console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
+                //console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
                 if(date < snapDate || date === snapDate) {
                     acwpTotal += parseFloat(value.ACWP);
                     acwpHrs += parseFloat(value.QuantityACWP);
@@ -9076,7 +9263,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                         "Type":"ACWP",
                         "Date": value.Date,
                         "isSame":value.isSame,
-                        "isBefore":value['isBefore']
+                        "isBefore":value.isBefore
                     }
             }).value();//convert IntValProjCurr key for Chart Series
 
@@ -9085,48 +9272,51 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
         }else{
             master.totals.push({"acwpTotal": 0.00,"acwpHrs":0.00,"curAcwpTotal":0.00,"curAcwpHrs":0.00});//.toFixed(2)
         }
+
+
         if (_.isArray(ETC) && !_.isEmpty(ETC)) {
             var etcTotal = 0;
-            var ETCdata = _.map(ETC, function (value) {
+            _.each(ETC, function(value) {
                 //var etccost = App.Math.ceil10(value.ETC, -2);
-                etcTotal += parseFloat(value.ETC);
+                etcTotal += parseFloat(value.EAC);
                // dateCheck =  moment(value.Date).isBefore(value.SnapshotDate);
-                return {"ETC": Number(value.IntValProjCurr)};
             });//not used for chart, just calculations
         }
-        //  console.log('Before Decimal Rounding bcwpTotal ' + bcwpTotal + '  bcwsTotal ' + bcwsTotal + ' acwpTotal ' + acwpTotal + ' etcTotal ' + etcTotal);
-        var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
-        var roundbcwsAll = App.Math.ceil10(bcwsAll, -2);
-        var roundbcwsTotal = App.Math.ceil10(bcwsTotal, -2);
-        var roundacwpTotal = App.Math.ceil10(acwpTotal, -2);
-        var roundetcTotal = App.Math.ceil10(etcTotal, -2);
-        //  console.log('After Decimal Rounding roundbcwpTotal ' + roundbcwpTotal + '  roundbcwsTotal ' + roundbcwsTotal + ' roundacwpTotal ' + roundacwpTotal + ' roundetcTotal ' + roundetcTotal);
+
+        var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2),
+            roundbcwsAll = App.Math.ceil10(bcwsAll, -2),
+            roundbcwsTotal = App.Math.ceil10(bcwsTotal, -2),
+            roundacwpTotal = App.Math.ceil10(acwpTotal, -2),
+            roundetcTotal = App.Math.ceil10(etcTotal, -2);
+
 
         var eacCum = (parseFloat(roundacwpTotal) + parseFloat(roundetcTotal));
-        console.log(roundacwpTotal+' '+roundetcTotal+' '+(parseFloat(roundacwpTotal) + parseFloat(roundetcTotal)));
+       // console.log(roundacwpTotal+' '+roundetcTotal+' '+(parseFloat(roundacwpTotal) + parseFloat(roundetcTotal)));
         master.totals.push({"eacCum": App.Math.ceil10(eacCum,-2)});
 
-        var bac = roundbcwsAll;
-        master.totals.push({"bac": App.Math.ceil10(bac, -2)});
+        var bac = App.Math.ceil10(roundbcwsAll, -2);
+        master.totals.push({"bac": bac});
 
-        var tcpi = (bac - roundbcwpTotal) / (eacCum - roundacwpTotal);
-        master.totals.push({"tcpi": App.Math.ceil10(tcpi, -2)});
+            var bac_BCWP = bac - roundbcwpTotal;
+            var eacCum_ACWP = bac - roundacwpTotal;
+            var tcpi = bac_BCWP / eacCum_ACWP;
+            master.totals.push({"tcpi": App.Math.ceil10(tcpi, -2)});
 
-        var spiTotal = (roundbcwpTotal / roundbcwsTotal);
-        var cpiTotal = (roundbcwpTotal / roundacwpTotal);
-        var curSPITotal = (curBcwpTotal / curBcwsTotal);
-        var curCPITotal = (curBcwpTotal / curAcwpTotal);
+        var spiTotal = (roundbcwpTotal / roundbcwsTotal),
+            cpiTotal = (roundbcwpTotal / roundacwpTotal),
+            curSPITotal = (curBcwpTotal / curBcwsTotal),
+             curCPITotal = (curBcwpTotal / curAcwpTotal);
         // console.log('Before Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
-        if (isNaN(spiTotal)) {
+        if (_.isNaN(spiTotal)) {
             spiTotal = 0;
         }
-        if (isNaN(cpiTotal)) {
+        if (_.isNaN(cpiTotal)) {
             cpiTotal = 0;
         }
-        if (isNaN(curSPITotal)) {
+        if (_.isNaN(curSPITotal)) {
             curSPITotal = 0;
         }
-        if (isNaN(curCPITotal)) {
+        if (_.isNaN(curCPITotal)) {
             curCPITotal = 0;
         }
         // console.log('After Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
@@ -9173,7 +9363,10 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                         days: "M/YYYY"
                     }
                 },
-                maxDateGroups: 45,
+              autoBaseUnitSteps: {
+                    months: [1]
+                },
+                //maxDateGroups: 45,
                 crosshair: {
                     visible: false
                 },
@@ -9210,7 +9403,8 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                 //height: 475
             },
             legend: {
-                position: "bottom"
+                position: "bottom",
+                align: "center"
             },
             seriesDefaults: {
                 type: "line",
@@ -9218,21 +9412,37 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                 highlight: { visible: false },
                 markers: {
                     size: 5
+                },
+                tooltip: {
+                    visible: true,
+                    format: "({0:M-yy})"
                 }
             },
             series: series,
             categoryAxis: {
                 baseUnit: "fit",
+                baseUnitStep: "auto",
                 //title: { text: "Date" },
                 field: "Date",
                 labels: {
                     rotation: -60,
+                    //format: "Year: {0}",
                     dateFormats: {
-                        days: "M/YYYY"
+                       // months: "MMM-yy"
+                        months: "M-yyyy"
                     }
+                },
+                autoBaseUnitSteps: {
+                    days: [],
+                     weeks: [],
+                    years: []
                 },
                 maxDateGroups: 45,
                 crosshair: {
+                    tooltip: {
+                        format: "{0:MM-yyyy}",
+                        visible: false
+                    },
                     visible: false
                 },
                 line: {
@@ -9252,7 +9462,16 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
             tooltip: {
                 visible: true,
                 shared: true,
+                padding: 10,
+                margin: 20,
+                color: "black",
+                background: "#FFFFFF",
+                border: {
+                    width: 2,
+                    color: "black"
+                },
                 template: "#= kendo.format('{0:C}',value) #"
+               // template: "#: value.x # - #: value.y # (#: value.size #)"
             }
         });
     };
@@ -9850,7 +10069,7 @@ define('tpl',['underscore', 'text'], function (_, text) {
 define("tpl!templates/home.html", ["underscore"], function(_) { return function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div class="panel panel-default" style="background-color: transparent; margin-bottom: 56px; box-shadow: none; border: none">\r\n    <div class="panel-heading">\r\n        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">Analytics Dashboard</h1>\r\n    </div>\r\n\r\n    <div class="panel-body animated fadeIn" style="margin-left: 10px; margin-right: 10px">\r\n        <div class="row" style="margin: 15px 0">\r\n            <div class="col-sm-6 col-md-4">\r\n                <form class="form-inline">\r\n                    <div class="input-group">\r\n                        <div class="input-group-addon dashboardTitle">Project</div>\r\n                        <select class="form-control" id="projectSets">\r\n                            ';
+__p+='<div class="panel panel-default" style="background-color: transparent; margin-bottom: 56px; box-shadow: none; border: none">\r\n    <div class="panel-heading">\r\n        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">Analytics Dashboard</h1>\r\n    </div>\r\n\r\n    <div class="panel-body animated fadeIn" style="margin-left: 10px; margin-right: 10px">\r\n        <div class="row" style="margin: 15px 0">\r\n            <div class="col-sm-6 col-md-4">\r\n                <form class="form-inline">\r\n                    <div class="input-group">\r\n                        <div class="input-group-addon dashboardTitle">Project</div>\r\n                        <select class="form-control" id="projectSets">\r\n\r\n                            ';
  if (combineData[0].length < 2) { 
 __p+='\r\n                                ';
  $.each(combineData[0],function(key,value){ 
@@ -10012,9 +10231,19 @@ return __p;
 define("tpl!templates/reports/cpr1.html", ["underscore"], function(_) { return function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div class="panel panel-default" style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">\r\n    <div class="panel-heading" style="margin-bottom: 20px">\r\n        <span class="pull-left">\r\n            <a class="homeTpl" data-id="wbsTable" data-temp="home" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>\r\n        </span>\r\n        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">CPR1 - WBS\r\n        <span class="pull-right dropdown">\r\n        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>\r\n        <ul class="dropdown-menu" role="menu">\r\n            <li><input id="picker" /></li>\r\n            <li><a tabindex="-1" href="#" id="clearPicker" style="cursor: pointer">Clear All Color</a></li>\r\n            <li role="separator" class="divider"></li>\r\n            <li id="applyRAGButton" style="display: none"><a tabindex="-1" href="#" id="applyRAG" style="cursor: pointer">Apply RAG</a></li>\r\n            <li id="clearRAGButton"><a tabindex="-1" href="#" id="clearRAG" style="cursor: pointer">Clear RAG</a></li>\r\n        </ul>\r\n        </span>\r\n        </h1>\r\n    </div>\r\n\r\n    <div style="border: 0; padding-bottom: 10px; padding-top: 10px">\r\n        <form class="form-inline">\r\n            <div class="col-xs-5 input-group">\r\n                <select class="col-xs-6 form-control" id="dataType">\r\n                    <option value="Cost">Cost</option>\r\n                    <option value="Hours">Hours</option>\r\n                </select>\r\n            </div>\r\n            <div class="col-xs-5 input-group">\r\n                <select class="col-xs-6 form-control" id="costType">\r\n                    <option value="Internal">Internal Cost</option>\r\n                    <option value="External">External Cost</option>\r\n                </select>\r\n            </div>\r\n        </form>\r\n    </div>\r\n\r\n    <table class="animated fadeIn exportTable" id="wbsTable" align="center" border=\'0\' cellspacing=\'0\' cellpadding=\'0\'>\r\n        <tr>\r\n            <td colspan=\'20\' style=\'text-align: center; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px\'>\r\n                CLASSIFICATION (when filled in)\r\n            </td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td id="cpr1Title" colspan=\'20\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>\r\n                CPR FORMAT 1 - WBS (MATERIAL)\r\n            </td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONTRACTOR</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONT. TYPE</td>\r\n            <td colspan=\'5\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>PROGRAMME NAME</td>\r\n            <td colspan=\'3\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>PROGRAMME NO.</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>REPORT PERIOD</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>FROM</td>\r\n            <td colspan=\'4\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>15-May-2015</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>BAE SYSTEMS</td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'5\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>Successor</td>\r\n            <td colspan=\'3\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px\'>TO</td>\r\n            <td colspan=\'4\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>19-Jun-2015</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>LOCATION</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>NEGOTIATED COST</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EST. COST AUTH UNPRICED WORK</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>TARGET PROFIT</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>TARGET PRICE</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ESTIMATED PRICE</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>Barrow</td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>QUANTITY</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>UNITS</td>\r\n            <td colspan=\'8\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONTRACT CEILING</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EST. CONT. CEILING</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' id="units" style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>&pound;</td>\r\n            <td colspan=\'8\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-bottom:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'7\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CURRENT PERIOD</td>\r\n            <td colspan=\'7\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CUMULATIVE TO DATE</td>\r\n            <td colspan=\'4\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>AT COMPLETION</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGETED COST</td>\r\n            <td colspan=\'1\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ACTUAL COST</td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGETED COST</td>\r\n            <td colspan=\'1\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ACTUAL COST</td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WBS ITEM</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>DESCRIPTION</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK SCHEDULED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SCHEDULE</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>COST</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SPI</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CPI</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK SCHEDULED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SCHEDULE</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>COST</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SPI</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CPI</td>\r\n            <td style=\'text-align: center; text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGET AT COMPLETION</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ETC/CPI (Calculated)</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EAC (Calculated)</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE AT COMPLETION</td>\r\n        </tr>\r\n\r\n        <!-- FOR EACH ITEM -->\r\n        ';
+__p+='<div class="panel panel-default" style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">\r\n    <div class="panel-heading" style="margin-bottom: 20px">\r\n        <span class="pull-left">\r\n            <a class="homeTpl" data-id="wbsTable" data-temp="home" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>\r\n        </span>\r\n        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">CPR1 - WBS\r\n        <span class="pull-right dropdown">\r\n        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>\r\n        <ul class="dropdown-menu" role="menu">\r\n            <li><input id="picker" /></li>\r\n            <li><a tabindex="-1" href="#" id="clearPicker" style="cursor: pointer">Clear All Color</a></li>\r\n            <li role="separator" class="divider"></li>\r\n            <li id="applyRAGButton" style="display: none"><a tabindex="-1" href="#" id="applyRAG" style="cursor: pointer">Apply RAG</a></li>\r\n            <li id="clearRAGButton"><a tabindex="-1" href="#" id="clearRAG" style="cursor: pointer">Clear RAG</a></li>\r\n        </ul>\r\n        </span>\r\n        </h1>\r\n    </div>\r\n\r\n    <div style="border: 0; padding-bottom: 10px; padding-top: 10px">\r\n        <form class="form-inline">\r\n            <div class="col-xs-5 input-group">\r\n                <select class="col-xs-6 form-control" id="dataType">\r\n                    <option value="Cost">Cost</option>\r\n                    <option value="Hours">Hours</option>\r\n                </select>\r\n            </div>\r\n            <div class="col-xs-5 input-group">\r\n                <select class="col-xs-6 form-control" id="costType">\r\n                    <option value="Internal">Internal Cost</option>\r\n                    <option value="External">External Cost</option>\r\n                </select>\r\n            </div>\r\n            <div class="col-xs-5 input-group">\r\n                <div class="btn btn-primary getChildren" role="button">Expand</div>\r\n            </div>\r\n        </form>\r\n    </div>\r\n\r\n    <table class="animated fadeIn exportTable" id="wbsTable" align="center" border=\'0\' cellspacing=\'0\' cellpadding=\'0\'>\r\n        <tr>\r\n            <td colspan=\'20\' style=\'text-align: center; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px\'>\r\n                CLASSIFICATION (when filled in)\r\n            </td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td id="cpr1Title" colspan=\'20\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>\r\n                CPR FORMAT 1 - WBS (MATERIAL)\r\n            </td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONTRACTOR</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONT. TYPE</td>\r\n            <td colspan=\'5\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>PROGRAMME NAME</td>\r\n            <td colspan=\'3\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>PROGRAMME NO.</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>REPORT PERIOD</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>FROM</td>\r\n            <td colspan=\'4\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>15-May-2015</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>BAE SYSTEMS</td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'5\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>Successor</td>\r\n            <td colspan=\'3\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px\'>TO</td>\r\n            <td colspan=\'4\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>19-Jun-2015</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>LOCATION</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>NEGOTIATED COST</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EST. COST AUTH UNPRICED WORK</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>TARGET PROFIT</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>TARGET PRICE</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ESTIMATED PRICE</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>Barrow</td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>QUANTITY</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>UNITS</td>\r\n            <td colspan=\'8\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONTRACT CEILING</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EST. CONT. CEILING</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' id="units" style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>&pound;</td>\r\n            <td colspan=\'8\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-bottom:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'7\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CURRENT PERIOD</td>\r\n            <td colspan=\'7\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CUMULATIVE TO DATE</td>\r\n            <td colspan=\'4\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>AT COMPLETION</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGETED COST</td>\r\n            <td colspan=\'1\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ACTUAL COST</td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGETED COST</td>\r\n            <td colspan=\'1\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ACTUAL COST</td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WBS ITEM</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>DESCRIPTION</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK SCHEDULED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SCHEDULE</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>COST</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SPI</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CPI</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK SCHEDULED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SCHEDULE</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>COST</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SPI</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CPI</td>\r\n            <td style=\'text-align: center; text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGET AT COMPLETION</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ETC/CPI (Calculated)</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EAC (Calculated)</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE AT COMPLETION</td>\r\n        </tr>\r\n\r\n        <!-- FOR EACH ITEM -->\r\n        ';
  $.each(combineData[1],function(key,value){ 
-__p+='\r\n\r\n        <tr>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
+__p+='\r\n        ';
+ if(value.isChild){ 
+__p+='\r\n        <tr data-type="'+
+((__t=(value.Type))==null?'':_.escape(__t))+
+'" class="hide child">\r\n        ';
+}else{
+__p+='\r\n        <tr data-type="'+
+((__t=(value.Type))==null?'':_.escape(__t))+
+'" class="parent">\r\n        ';
+}
+__p+='\r\n\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.ExtID))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.Description))==null?'':_.escape(__t))+
@@ -10029,15 +10258,15 @@ __p+='\r\n\r\n        <tr>\r\n            <td style=\'border-top:1px solid black
 '\r\n            </td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(Number(value.totals.cv).toFixed(2)))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td class="no-paint rag" data-colour="'+
-((__t=(value.totals.spiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curSPIColour))==null?'':_.escape(__t))+
 '" style=\'background-color:'+
-((__t=(value.totals.spiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curSPIColour))==null?'':_.escape(__t))+
 '; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.totals.curSPI))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td class="no-paint rag" data-colour="'+
-((__t=(value.totals.cpiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curCPIColour))==null?'':_.escape(__t))+
 '" style=\'background-color:'+
-((__t=(value.totals.cpiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curCPIColour))==null?'':_.escape(__t))+
 '; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.totals.curCPI))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
@@ -10081,7 +10310,17 @@ var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments
 with(obj||{}){
 __p+='<div class="panel panel-default" style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">\r\n    <div class="panel-heading" style="margin-bottom: 20px">\r\n        <span class="pull-left">\r\n            <a class="homeTpl" data-id="orgCatTable" data-temp="#indexTpl" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>\r\n        </span>\r\n        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">CPR2 - OBS\r\n        <span class="pull-right dropdown">\r\n        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>\r\n        <ul class="dropdown-menu" role="menu">\r\n            <li><input id="picker" /></li>\r\n            <li><a tabindex="-1" href="#" id="clearPicker" style="cursor: pointer">Clear All Color</a></li>\r\n            <li role="separator" class="divider"></li>\r\n            <li id="applyRAGButton" style="display: none"><a tabindex="-1" href="#" id="applyRAG" style="cursor: pointer">Apply RAG</a></li>\r\n            <li id="clearRAGButton"><a tabindex="-1" href="#" id="clearRAG" style="cursor: pointer">Clear RAG</a></li>\r\n        </ul>\r\n        </span></h1>\r\n    </div>\r\n\r\n    <div style="border: 0; padding-bottom: 10px; padding-top: 10px">\r\n        <form class="form-inline">\r\n            <div class="col-xs-5 input-group">\r\n                <select class="col-xs-6 form-control" id="dataType">\r\n                    <option value="Cost">Cost</option>\r\n                    <option value="Hours">Hours</option>\r\n                </select>\r\n            </div>\r\n            <div class="col-xs-5 input-group">\r\n                <select class="col-xs-6 form-control" id="costType">\r\n                    <option value="Internal">Internal Cost</option>\r\n                    <option value="External">External Cost</option>\r\n                </select>\r\n            </div>\r\n        </form>\r\n    </div>\r\n\r\n    <table class="animated fadeIn exportTable" id="orgCatTable" align="center" border=\'0\' cellspacing=\'0\' cellpadding=\'0\'>\r\n        <tr>\r\n            <td colspan=\'20\' style=\'text-align: center; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px\'>\r\n                CLASSIFICATION (when filled in)\r\n            </td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td id="cpr2Title" colspan=\'20\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>\r\n                CPR FORMAT 2 - OBS (MATERIAL)\r\n            </td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONTRACTOR</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONT. TYPE</td>\r\n            <td colspan=\'5\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>PROGRAMME NAME</td>\r\n            <td colspan=\'3\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>PROGRAMME NO.</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>REPORT PERIOD</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>FROM</td>\r\n            <td colspan=\'4\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>15-May-2015</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>BAE SYSTEMS</td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'5\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>Successor</td>\r\n            <td colspan=\'3\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px\'>TO</td>\r\n            <td colspan=\'4\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>19-Jun-2015</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>LOCATION</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>NEGOTIATED COST</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EST. COST AUTH UNPRICED WORK</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>TARGET PROFIT</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>TARGET PRICE</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ESTIMATED PRICE</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>Barrow</td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>QUANTITY</td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>UNITS</td>\r\n            <td colspan=\'8\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CONTRACT CEILING</td>\r\n            <td colspan=\'6\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EST. CONT. CEILING</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' id="units" style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>&pound;</td>\r\n            <td colspan=\'8\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n            <td colspan=\'6\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'20\' style=\'border-top:1px solid black; border-bottom:1px solid black; font-size:12px; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'7\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CURRENT PERIOD</td>\r\n            <td colspan=\'7\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CUMULATIVE TO DATE</td>\r\n            <td colspan=\'4\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>AT COMPLETION</td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td colspan=\'2\' style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGETED COST</td>\r\n            <td colspan=\'1\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ACTUAL COST</td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGETED COST</td>\r\n            <td colspan=\'1\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ACTUAL COST</td>\r\n            <td colspan=\'2\' style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'></td>\r\n        </tr>\r\n\r\n        <tr>\r\n            <td style=\'border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WBS ITEM</td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>DESCRIPTION</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK SCHEDULED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SCHEDULE</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>COST</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SPI</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CPI</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK SCHEDULED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>WORK PERFORMED</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SCHEDULE</td>\r\n            <td style=\'text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>COST</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>SPI</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>CPI</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>BUDGET AT COMPLETION</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>ETC/CPI (Calculated)</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>EAC (Calculated)</td>\r\n            <td style=\'text-align: center; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px\'>VARIANCE AT COMPLETION</td>\r\n        </tr>\r\n\r\n        <!-- FOR EACH ITEM -->\r\n        ';
  $.each(combineData[1],function(key,value){ 
-__p+='\r\n\r\n        <tr>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
+__p+='\r\n        ';
+ if(value.isChild){ 
+__p+='\r\n        <tr data-type="'+
+((__t=(value.Type))==null?'':_.escape(__t))+
+'" class="hide child">\r\n            ';
+}else{
+__p+='\r\n        <tr data-type="'+
+((__t=(value.Type))==null?'':_.escape(__t))+
+'" class="parent">\r\n            ';
+}
+__p+='\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.ExtID))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.Description))==null?'':_.escape(__t))+
@@ -10096,15 +10335,15 @@ __p+='\r\n\r\n        <tr>\r\n            <td style=\'border-top:1px solid black
 '\r\n            </td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(Number(value.totals.cv).toFixed(2)))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td class="no-paint rag" data-colour="'+
-((__t=(value.totals.spiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curSPIColour))==null?'':_.escape(__t))+
 '" style=\'background-color:'+
-((__t=(value.totals.spiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curSPIColour))==null?'':_.escape(__t))+
 '; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.totals.curSPI))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td class="no-paint rag" data-colour="'+
-((__t=(value.totals.cpiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curCPIColour))==null?'':_.escape(__t))+
 '" style=\'background-color:'+
-((__t=(value.totals.cpiColour))==null?'':_.escape(__t))+
+((__t=(value.totals.curCPIColour))==null?'':_.escape(__t))+
 '; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
 ((__t=(value.totals.curCPI))==null?'':_.escape(__t))+
 '\r\n            </td>\r\n            <td style=\'border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px\'>\r\n                '+
@@ -11967,13 +12206,22 @@ define('events',['jquery','underscore','domReady','app',
 
         var hierarchySets = App.projectData();
         $.when(hierarchySets).done(function(hData) {
-            combineData.push(hData.d.results);
+
+            if(_.isObject(hData)){
+                combineData.push(hData.d.results);
+                console.log(combineData);
+            }else{
+                combineData.push(_.first(hData).d.results);
+            }
             mainBody.html(homeTpl({'combineData': combineData}));
             footer.html(blankFooterTpl);
             if (combineData[0].length > 1) {
                 doc.find('.menuItem').addClass('menu-disabled');
             } else {
-                App.setProjectID(combineData.ProjectSelection);
+                var project = _.first(combineData[0]);
+                App.setProjectID(project.ProjectSelection);
+                App.setVersion();
+                App.setSnapshotList();
             }
             App.SpinnerTpl(loadingWheel,0);//remove spinner after load + 1 sec
         });
@@ -11984,7 +12232,7 @@ define('events',['jquery','underscore','domReady','app',
             e.stopPropagation();
         });
 
-        doc.on('change','#projectSets',function(e){
+        doc.on('click','#projectSets',function(e){
             e.preventDefault();
             var value = $("#projectSets").val();
             console.log(value);
@@ -12001,7 +12249,7 @@ define('events',['jquery','underscore','domReady','app',
                     App.ClearDataStore();
             }
             console.log('Project ID: '+ App.projectID);
-            console.log('Project URLs: '+    App.urlSnapshotSet  +'  '+ App.urlHierarchySet);
+            console.log('Project URLs: '+    App.urlSnapshotSet  +'  '+ App.urlHierarchySet +'  '+ App.urlHierarchySelectionSet);
         });
 
         doc.on('click','body',function(e){
@@ -12034,8 +12282,8 @@ define('events',['jquery','underscore','domReady','app',
                     }
                 App.setVersion();
                 App.SpinnerTpl(loadingWheel,1);
-                var hData = App.hierListData();
-                var cData = App.ChartData();
+                var hData = App.HierarchySet();
+                var cData = App.SnapshotSet();
             $.when(hData, cData).done(function(hierData,chartData) {
                 /** Error handler **/
                 if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
@@ -12103,19 +12351,37 @@ define('events',['jquery','underscore','domReady','app',
             App.addSpinner(e.currentTarget);//bkg loading
             App.SpinnerTpl(loadingWheel,1);
             var self = $(this),
-                cData = [],
-                hData = [],
+                chartData = [],
+                hierData = [],
                 vData = [],
                 version = '',
                 chartDataSource = '',
                 id = self.data('temp'),//Name of DIV
                 name = self.data('name');//File Name to Export As
 
+            App.setHierarchySelection(id.toUpperCase());
+            var List = App.HierarchyListSet();
+            App.HierarchySelectionID = '';
+            $.when(List).done(function(lData){
+                App.DataStore.hierarchyList = lData.d.results;
+                var defList =  $.grep( App.DataStore.hierarchyList,function(item){
+                    if(App.DataStore.hierarchyList.length === 1){
+                        return item;
+                    }
+                    return item.Default === "X";
+                });
+                console.log(defList);
+                if(defList.length >= 1){
+                    App.HierarchySelectionID = _.first(defList).HierarchySelection;
+                }
+                console.log('HierarchySelectionID Selection: '+ App.HierarchySelectionID);
+
             /** Begin Hierarchy Panel **/
             if(_.isEmpty(App.DataStore.chart)){
                 console.log('hit empty chart request');
-                 cData = App.ChartData();// get SnapShot Cost Data
-                 hData = App.hierListData();//get hierarchy Data
+                App.setDataSelection();
+                chartData = App.SnapshotSet();// get SnapShot Cost Data
+                hierData = App.HierarchySet();//get hierarchy Data
             }
 
             /**GET REPORT TPL ON THE FLY**/
@@ -12130,14 +12396,17 @@ define('events',['jquery','underscore','domReady','app',
                             tplFooter = analyticsFooterBTpl;
                             break;
                     }
+                console.log("TOMLAU");
+                console.log(combineData);
+                console.log("LAUTOM");
                     App.Project(tplId, tplFooter, combineData);
                     //$("#hChange").val(App.projectID);
                     switch(name){
                         /*case 'projectAnalytics':
-                            $.when(hData, cData).done(function (hierData, chartData) {
+                         $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplitters();
                                 if (!_.isEmpty(chartData)) {
-                                    chartDataSource = App.FilterChartData(chartData[0].d.results);
+                                    chartDataSource = App.FilterChartData(cData[0].d.results);
                                     App.DataStore.rawChartdata = chartData[0].d.results;
                                     App.DataStore.chart = new kendo.data.DataSource({
                                         data: _.flatten(chartDataSource.graph),
@@ -12155,7 +12424,7 @@ define('events',['jquery','underscore','domReady','app',
                                     });
                                     App.DataStore.chartTotals = chartDataSource.totals;
                                     App.DataStore.gaugesData = chartDataSource.gauges;
-                                    App.DataStore.hierarchy = _.sortBy(hierData[0].d.results, 'SortOrder');
+                                    App.DataStore.hierarchy = _.sortBy(hData[0].d.results, 'SortOrder');
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -12231,15 +12500,15 @@ define('events',['jquery','underscore','domReady','app',
                             });
                             break;*/
                         case 'earnedSchedule':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -12247,7 +12516,7 @@ define('events',['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -12267,15 +12536,15 @@ define('events',['jquery','underscore','domReady','app',
                             });
                             break;
                         case 'spiCPI':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -12283,7 +12552,7 @@ define('events',['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -12305,15 +12574,16 @@ define('events',['jquery','underscore','domReady','app',
                             });
                             break;
                         case 'spa':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -12321,7 +12591,7 @@ define('events',['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 App.hierListInitialize(App.DataStore.hierarchy);
                                 //console.log(App.DataStore.gaugesData);
@@ -12340,15 +12610,15 @@ define('events',['jquery','underscore','domReady','app',
                             });
                             break;
                         case 'scheduleVAR':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -12356,7 +12626,7 @@ define('events',['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -12380,6 +12650,7 @@ define('events',['jquery','underscore','domReady','app',
                             break;
                     }
               });
+            });//when hierarchy default found
         });
 
         doc.on('click', '.getReport',function(e) {
@@ -12393,27 +12664,44 @@ define('events',['jquery','underscore','domReady','app',
                 self = $(this),
                 id = self.data('temp'),
                 sheet = self.data('sheet'),//Worksheet Name
-                version = '',pData = '',hData = '',vData = '',hier = '',costs = '',cData = '',
+                version = '',projectData = '',hierData = '',vData = '',hier = '',costs = '',chartData = '',
                 totals = '',gauges = '',chartDataSource = '',currentVersion = [],
                 retrieveTpl = 'tpl!templates/reports/'+id+'.html';
             console.log(id);
+            App.setHierarchySelection(id.toUpperCase());
+            var List = App.HierarchyListSet();
+            App.HierarchySelectionID = '';
+            $.when(List).done(function(lData){
+                App.DataStore.hierarchyList = lData.d.results;
+                var defList =  $.grep( App.DataStore.hierarchyList,function(item){
+                    if(App.DataStore.hierarchyList.length === 1){
+                        return item;
+                    }
+                    return item.Default === "X";
+                });
+                console.log(defList);
+                if(defList.length >= 1){
+                    App.HierarchySelectionID = _.first(defList).HierarchySelection;
+                }
+                console.log('HierarchySelectionID Selection: '+ App.HierarchySelectionID);
+                App.setDataSelection();
             requirejs([retrieveTpl],function(tempTpl){
             /*********   Data Processing  *************/
             if(_.isEmpty(App.DataStore.chart)){
                 console.log('hit empty chart request');
-                cData = App.ChartData();// get SnapShot Cost Data
-                pData = App.projectData();//get project Data
-                hData = App.hierListData();//get hierarchy Data
+                chartData = App.SnapshotSet();// get SnapShot Cost Data
+                projectData = App.projectData();//get project Data
+                hierData = App.HierarchySet();//get hierarchy Data
             }
-                $.when(pData, hData,cData).done(function(projectData, hierData,chartData) {//holds on for async data calls
+                $.when(projectData, hierData,chartData).done(function(pData, hData,cData) {//holds on for async data calls
                     /** Error handler **/
-                    if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                    if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                         return;
                     }
                     /** Error handler **/
-                    if(!_.isEmpty(projectData)){
-                          App.DataStore.project = _.first(projectData).d.results;
-                          App.DataStore.rawChartdata = _.first(chartData).d.results;
+                    if(!_.isEmpty(cData)){
+                          App.DataStore.project = _.first(pData).d.results;
+                          App.DataStore.rawChartdata = _.first(cData).d.results;
                         App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                         console.log(App.DataStore.filtered);
                         chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -12421,7 +12709,7 @@ define('events',['jquery','underscore','domReady','app',
                         App.DataStore.chart = App.AssignStore(refined.graph);
                         App.DataStore.chartTotals  = refined.totals;
                         App.DataStore.gaugesData   = refined.gauges;
-                          App.DataStore.hierarchy = _.first(hierData).d.results;
+                          App.DataStore.hierarchy = _.first(hData).d.results;
 
                       }
                         hier = App.DataStore.hierarchy;
@@ -12432,6 +12720,7 @@ define('events',['jquery','underscore','domReady','app',
                                                 .first()
                                                 .value();
                     console.log(currentVersion);**/
+
             switch(sheet){
                 case 'CPR-1':
                     console.log('hit 1');
@@ -12539,7 +12828,8 @@ define('events',['jquery','underscore','domReady','app',
             }
                 });//end of when clause
                 /*********   End Data Processing  *********/
-            });//end of template require
+                });//end of template require
+            });//when hierarchy default found
         });
 
         doc.on('click', 'span.export-excel', function (e){

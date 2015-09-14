@@ -44,13 +44,22 @@ define(['jquery','underscore','domReady','app',
 
         var hierarchySets = App.projectData();
         $.when(hierarchySets).done(function(hData) {
-            combineData.push(hData.d.results);
+
+            if(_.isObject(hData)){
+                combineData.push(hData.d.results);
+                console.log(combineData);
+            }else{
+                combineData.push(_.first(hData).d.results);
+            }
             mainBody.html(homeTpl({'combineData': combineData}));
             footer.html(blankFooterTpl);
             if (combineData[0].length > 1) {
                 doc.find('.menuItem').addClass('menu-disabled');
             } else {
-                App.setProjectID(combineData.ProjectSelection);
+                var project = _.first(combineData[0]);
+                App.setProjectID(project.ProjectSelection);
+                App.setVersion();
+                App.setSnapshotList();
             }
             App.SpinnerTpl(loadingWheel,0);//remove spinner after load + 1 sec
         });
@@ -61,7 +70,7 @@ define(['jquery','underscore','domReady','app',
             e.stopPropagation();
         });
 
-        doc.on('change','#projectSets',function(e){
+        doc.on('click','#projectSets',function(e){
             e.preventDefault();
             var value = $("#projectSets").val();
             console.log(value);
@@ -78,7 +87,7 @@ define(['jquery','underscore','domReady','app',
                     App.ClearDataStore();
             }
             console.log('Project ID: '+ App.projectID);
-            console.log('Project URLs: '+    App.urlSnapshotSet  +'  '+ App.urlHierarchySet);
+            console.log('Project URLs: '+    App.urlSnapshotSet  +'  '+ App.urlHierarchySet +'  '+ App.urlHierarchySelectionSet);
         });
 
         doc.on('click','body',function(e){
@@ -111,8 +120,8 @@ define(['jquery','underscore','domReady','app',
                     }
                 App.setVersion();
                 App.SpinnerTpl(loadingWheel,1);
-                var hData = App.hierListData();
-                var cData = App.ChartData();
+                var hData = App.HierarchySet();
+                var cData = App.SnapshotSet();
             $.when(hData, cData).done(function(hierData,chartData) {
                 /** Error handler **/
                 if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
@@ -180,19 +189,37 @@ define(['jquery','underscore','domReady','app',
             App.addSpinner(e.currentTarget);//bkg loading
             App.SpinnerTpl(loadingWheel,1);
             var self = $(this),
-                cData = [],
-                hData = [],
+                chartData = [],
+                hierData = [],
                 vData = [],
                 version = '',
                 chartDataSource = '',
                 id = self.data('temp'),//Name of DIV
                 name = self.data('name');//File Name to Export As
 
+            App.setHierarchySelection(id.toUpperCase());
+            var List = App.HierarchyListSet();
+            App.HierarchySelectionID = '';
+            $.when(List).done(function(lData){
+                App.DataStore.hierarchyList = lData.d.results;
+                var defList =  $.grep( App.DataStore.hierarchyList,function(item){
+                    if(App.DataStore.hierarchyList.length === 1){
+                        return item;
+                    }
+                    return item.Default === "X";
+                });
+                console.log(defList);
+                if(defList.length >= 1){
+                    App.HierarchySelectionID = _.first(defList).HierarchySelection;
+                }
+                console.log('HierarchySelectionID Selection: '+ App.HierarchySelectionID);
+
             /** Begin Hierarchy Panel **/
             if(_.isEmpty(App.DataStore.chart)){
                 console.log('hit empty chart request');
-                 cData = App.ChartData();// get SnapShot Cost Data
-                 hData = App.hierListData();//get hierarchy Data
+                App.setDataSelection();
+                chartData = App.SnapshotSet();// get SnapShot Cost Data
+                hierData = App.HierarchySet();//get hierarchy Data
             }
 
             /**GET REPORT TPL ON THE FLY**/
@@ -207,14 +234,17 @@ define(['jquery','underscore','domReady','app',
                             tplFooter = analyticsFooterBTpl;
                             break;
                     }
+                console.log("TOMLAU");
+                console.log(combineData);
+                console.log("LAUTOM");
                     App.Project(tplId, tplFooter, combineData);
                     //$("#hChange").val(App.projectID);
                     switch(name){
                         /*case 'projectAnalytics':
-                            $.when(hData, cData).done(function (hierData, chartData) {
+                         $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplitters();
                                 if (!_.isEmpty(chartData)) {
-                                    chartDataSource = App.FilterChartData(chartData[0].d.results);
+                                    chartDataSource = App.FilterChartData(cData[0].d.results);
                                     App.DataStore.rawChartdata = chartData[0].d.results;
                                     App.DataStore.chart = new kendo.data.DataSource({
                                         data: _.flatten(chartDataSource.graph),
@@ -232,7 +262,7 @@ define(['jquery','underscore','domReady','app',
                                     });
                                     App.DataStore.chartTotals = chartDataSource.totals;
                                     App.DataStore.gaugesData = chartDataSource.gauges;
-                                    App.DataStore.hierarchy = _.sortBy(hierData[0].d.results, 'SortOrder');
+                                    App.DataStore.hierarchy = _.sortBy(hData[0].d.results, 'SortOrder');
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -308,15 +338,15 @@ define(['jquery','underscore','domReady','app',
                             });
                             break;*/
                         case 'earnedSchedule':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -324,7 +354,7 @@ define(['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -344,15 +374,15 @@ define(['jquery','underscore','domReady','app',
                             });
                             break;
                         case 'spiCPI':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -360,7 +390,7 @@ define(['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -382,15 +412,16 @@ define(['jquery','underscore','domReady','app',
                             });
                             break;
                         case 'spa':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -398,7 +429,7 @@ define(['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 App.hierListInitialize(App.DataStore.hierarchy);
                                 //console.log(App.DataStore.gaugesData);
@@ -417,15 +448,15 @@ define(['jquery','underscore','domReady','app',
                             });
                             break;
                         case 'scheduleVAR':
-                            $.when(hData, cData).done(function(hierData,chartData) {
+                            $.when(hierData, chartData).done(function(hData,cData) {
                                 App.createSplittersFT();
                                 /** Error handler **/
-                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                                if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                                     return;
                                 }
                                 /** Error handler **/
-                                if(!_.isEmpty(chartData)){
-                                    App.DataStore.rawChartdata = _.first(chartData).d.results;
+                                if(!_.isEmpty(cData)){
+                                    App.DataStore.rawChartdata = _.first(cData).d.results;
                                     App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                                     console.log(App.DataStore.filtered);
                                     chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -433,7 +464,7 @@ define(['jquery','underscore','domReady','app',
                                     App.DataStore.chart = App.AssignStore(refined.graph);
                                     App.DataStore.chartTotals  = refined.totals;
                                     App.DataStore.gaugesData   = refined.gauges;
-                                    App.DataStore.hierarchy = _.first(hierData).d.results;
+                                    App.DataStore.hierarchy = _.first(hData).d.results;
                                 }
                                 //console.log(App.DataStore.chart);
                                 App.hierListInitialize(App.DataStore.hierarchy);
@@ -457,6 +488,7 @@ define(['jquery','underscore','domReady','app',
                             break;
                     }
               });
+            });//when hierarchy default found
         });
 
         doc.on('click', '.getReport',function(e) {
@@ -470,27 +502,44 @@ define(['jquery','underscore','domReady','app',
                 self = $(this),
                 id = self.data('temp'),
                 sheet = self.data('sheet'),//Worksheet Name
-                version = '',pData = '',hData = '',vData = '',hier = '',costs = '',cData = '',
+                version = '',projectData = '',hierData = '',vData = '',hier = '',costs = '',chartData = '',
                 totals = '',gauges = '',chartDataSource = '',currentVersion = [],
                 retrieveTpl = 'tpl!templates/reports/'+id+'.html';
             console.log(id);
+            App.setHierarchySelection(id.toUpperCase());
+            var List = App.HierarchyListSet();
+            App.HierarchySelectionID = '';
+            $.when(List).done(function(lData){
+                App.DataStore.hierarchyList = lData.d.results;
+                var defList =  $.grep( App.DataStore.hierarchyList,function(item){
+                    if(App.DataStore.hierarchyList.length === 1){
+                        return item;
+                    }
+                    return item.Default === "X";
+                });
+                console.log(defList);
+                if(defList.length >= 1){
+                    App.HierarchySelectionID = _.first(defList).HierarchySelection;
+                }
+                console.log('HierarchySelectionID Selection: '+ App.HierarchySelectionID);
+                App.setDataSelection();
             requirejs([retrieveTpl],function(tempTpl){
             /*********   Data Processing  *************/
             if(_.isEmpty(App.DataStore.chart)){
                 console.log('hit empty chart request');
-                cData = App.ChartData();// get SnapShot Cost Data
-                pData = App.projectData();//get project Data
-                hData = App.hierListData();//get hierarchy Data
+                chartData = App.SnapshotSet();// get SnapShot Cost Data
+                projectData = App.projectData();//get project Data
+                hierData = App.HierarchySet();//get hierarchy Data
             }
-                $.when(pData, hData,cData).done(function(projectData, hierData,chartData) {//holds on for async data calls
+                $.when(projectData, hierData,chartData).done(function(pData, hData,cData) {//holds on for async data calls
                     /** Error handler **/
-                    if(App.apiErrorHandler(e.currentTarget,loadingWheel,chartData)){
+                    if(App.apiErrorHandler(e.currentTarget,loadingWheel,cData)){
                         return;
                     }
                     /** Error handler **/
-                    if(!_.isEmpty(projectData)){
-                          App.DataStore.project = _.first(projectData).d.results;
-                          App.DataStore.rawChartdata = _.first(chartData).d.results;
+                    if(!_.isEmpty(cData)){
+                          App.DataStore.project = _.first(pData).d.results;
+                          App.DataStore.rawChartdata = _.first(cData).d.results;
                         App.DataStore.filtered = App.VersionFilter(App.DataStore.versions,App.DataStore.rawChartdata);
                         console.log(App.DataStore.filtered);
                         chartDataSource = App.FilterData(App.DataStore.filtered,App.DataStore.rawChartdata,App.DataStore.versionSelection);
@@ -498,7 +547,7 @@ define(['jquery','underscore','domReady','app',
                         App.DataStore.chart = App.AssignStore(refined.graph);
                         App.DataStore.chartTotals  = refined.totals;
                         App.DataStore.gaugesData   = refined.gauges;
-                          App.DataStore.hierarchy = _.first(hierData).d.results;
+                          App.DataStore.hierarchy = _.first(hData).d.results;
 
                       }
                         hier = App.DataStore.hierarchy;
@@ -509,6 +558,7 @@ define(['jquery','underscore','domReady','app',
                                                 .first()
                                                 .value();
                     console.log(currentVersion);**/
+
             switch(sheet){
                 case 'CPR-1':
                     console.log('hit 1');
@@ -616,7 +666,8 @@ define(['jquery','underscore','domReady','app',
             }
                 });//end of when clause
                 /*********   End Data Processing  *********/
-            });//end of template require
+                });//end of template require
+            });//when hierarchy default found
         });
 
         doc.on('click', 'span.export-excel', function (e){

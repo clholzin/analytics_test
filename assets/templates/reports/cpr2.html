@@ -162,8 +162,11 @@
 
         <!-- FOR EACH ITEM -->
         <% $.each(combineData[1],function(key,value){ %>
-
-        <tr>
+        <% if(value.isChild){ %>
+        <tr data-type="<%-value.Type%>" class="hide child">
+            <%}else{%>
+        <tr data-type="<%-value.Type%>" class="parent">
+            <%}%>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.ExtID%>
             </td>
@@ -185,10 +188,10 @@
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-Number(value.totals.cv).toFixed(2)%>
             </td>
-            <td class="no-paint rag" data-colour="<%-value.totals.spiColour%>" style='background-color:<%-value.totals.spiColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+            <td class="no-paint rag" data-colour="<%-value.totals.curSPIColour%>" style='background-color:<%-value.totals.curSPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.totals.curSPI%>
             </td>
-            <td class="no-paint rag" data-colour="<%-value.totals.cpiColour%>" style='background-color:<%-value.totals.cpiColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+            <td class="no-paint rag" data-colour="<%-value.totals.curCPIColour%>" style='background-color:<%-value.totals.curCPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.totals.curCPI%>
             </td>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
