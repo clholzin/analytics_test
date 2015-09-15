@@ -10,18 +10,17 @@
                 <form class="form-inline">
                     <div class="input-group">
                         <div class="input-group-addon dashboardTitle">Hierarchy</div>
-                        <select class="form-control" id="hChange">
+                        <select class="form-control" id="hChange" >
                             <% if (combineData[0].length < 2) { %>
                             <% $.each(combineData[0],function(key,value){ %>
-                            <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
+                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPA"><%-value.HierarchyDescription%></option>
                             <%});
                             } else { %>
                             <option value="">Select Hierarchy</option>
-                            <!-- FOR EACH ITEM -->
                             <% $.each(combineData[0],function(key,value){ %>
-                            <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
+                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPA"><%-value.HierarchyDescription%></option>
                             <%});
-                            <!-- END OF FOR EACH -->
+
                             }%>
                         </select>
                     </div>

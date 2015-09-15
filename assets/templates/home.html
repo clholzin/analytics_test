@@ -17,11 +17,9 @@
                                 <%});
                             } else { %>
                                 <option value="">Select Project</option>
-                                <!-- FOR EACH ITEM -->
                                 <% $.each(combineData[0],function(key,value){ %>
                                 <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
                                 <%});
-                                <!-- END OF FOR EACH -->
                             }%>
                         </select>
                     </div>

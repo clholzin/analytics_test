@@ -252,8 +252,20 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
              this.hierarchy = [];
              this.hierarchyList = {};
              this.snapShotList = [];
+        },
+        setData: function(cData,hData){
+            this.rawChartdata = _.first(cData).d.results;
+            this.filtered = App.VersionFilter(this.versions,this.rawChartdata);
+            console.log(this.filtered);
+            var chartDataSource = App.FilterData(this.filtered,this.rawChartdata,this.versionSelection);
+            var refined = App.FilterChartData(chartDataSource.graph);
+            this.chart = App.AssignStore(refined.graph);
+            this.chartTotals  = refined.totals;
+            this.gaugesData   = refined.gauges;
+            this.hierarchy = _.first(hData).d.results;
         }
     };
+
 
     App.unit = {
         _monthAttr:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
@@ -376,6 +388,13 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
       if(_.isEmpty(this.projectID) || _.isUndefined(this.projectID)){
             alert('Please select a Project');
                  return true;
+        }
+    };
+    App.CheckHierarchyId = function(){
+
+        if(_.isEmpty(this.HierarchySelectionID) || _.isUndefined(this.HierarchySelectionID)){
+            alert('Please select a Hierarchy');
+            return true;
         }
     };
 
@@ -552,8 +571,6 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
        // return cpiColour;
     };
 
-
-
     App.formatOneTotals =  function(hier,costs,type) {
         console.time('Format One Totals');
         var newObj = '',
@@ -566,6 +583,7 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
              cpiColour = "",
              curSPIColour = "",
              curCPIColour = "",
+             com = {},
              self = this;
         if (hier.length === 0) {
             return alert('No Heirarchy data');
@@ -618,32 +636,27 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "curCPI": total,
                     "spi": total,
                     "cpi": total,
+                    "ETC_CPI":total,
                     "spiColour": "#FF0000",
                      "cpiColour": "#FF0000",
                     "curSPIColour":"#FF0000",
                     "curCPIColour":"#FF0000"
                 };
             } else {
-                var spi =  App.Math.ceil10(Number(gauge.spi), -3),
-                    cpi = App.Math.ceil10(Number(gauge.cpi), -2),
-                    curSPI = App.Math.ceil10(Number(gauge.curSPI), -3),
-                    curCPI = App.Math.ceil10(Number(gauge.curCPI), -2),
-                    CurrSV = parseFloat(total.curBcwpTotal) - parseFloat(total.curBcwsTotal),
-                    CurrCV = parseFloat(total.curBcwpTotal) - parseFloat(total.curAcwpTotal),
-                    sv = parseFloat(total.bcwpTotal) - parseFloat(total.bcwsTotal),
-                    cv = parseFloat(total.bcwpTotal) - parseFloat(total.acwpTotal),
-                    vac = parseFloat(total.bac) - parseFloat(total.eacCum);
-                console.log(vac +' '+ total.bac + ' '+ total.eacCum +' '+ (total.bac - total.eacCum));
+                    //_.isNaN() ? 0 :
+                console.log(total.vac +' '+ total.CurrSV + ' '+ total.CurrCV+ ' CPI_EAC '+ total.ETC_CPI);
                 //var currentSPI = $(document).find('');
 
-
-                spiColour =  App.ragSpi(spi);
-                cpiColour = App.ragCpi(cpi);
-                curSPIColour =  App.ragSpi(curSPI);
-                curCPIColour = App.ragCpi(curCPI);
+                var spi =  gauge.spi,
+                    cpi = gauge.cpi,
+                    curSPI = gauge.curSPI,
+                    curCPI = gauge.curCPI;
+                    spiColour =  App.ragSpi(spi);
+                    cpiColour = App.ragCpi(cpi);
+                    curSPIColour =  App.ragSpi(curSPI);
+                    curCPIColour = App.ragCpi(curCPI);
                 console.log("TOM  SPI: " + spi);
                 //currentSPI.attr('data-colour', spiColour);
-
                 amounts = {
                     "bcwsTotal": total.bcwsTotal,
                      "curBcwsTotal": total.curBcwsTotal,
@@ -656,20 +669,35 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                     "eacCum": total.eacCum,
                     "bac": total.bac,
                     "tcpi": total.tcpi,
-                    "sv": sv,
-                    "cv": cv,
-                    "CurrSV": CurrSV,
-                    "CurrCV": CurrCV,
-                    "vac": vac,
+                    "sv": total.sv,
+                    "cv": total.cv,
+                    "CurrSV": total.CurrSV,
+                    "CurrCV": total.CurrCV,
+                    "vac": total.vac,
                     "curSPI": curSPI,
                     "curCPI": curCPI,
                     "spi": spi,
                     "cpi": cpi,
+                    "ETC_CPI":total.ETC_CPI,
                     "spiColour": spiColour,
                     "cpiColour": cpiColour,
                     "curSPIColour":curSPIColour,//"#009933"
                     "curCPIColour":curCPIColour
                 };
+                if(k === 0){
+                     com = {
+                        bcwsCOM :total.bcwsCOM,
+                        bcwpCOM :total.bcwpCOM,
+                        acwpCOM :total.acwpCOM,
+                        curbcwsCOM :total.curbcwsCOM,
+                        curbcwpCOM :total.curbcwpCOM,
+                        curacwpCOM :total.curacwpCOM,
+                        CurrSvCom :total.CurrSvCom,
+                        CurrCvCom :total.CurrCvCom,
+                        cvCom :total.cvCom,
+                        svCom  :total.svCom
+                    };
+                }
             }
            // console.log(amounts);
             if(v.ObjectNumber.charAt(0) === type.charAt(0)){
@@ -709,7 +737,10 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                         cost[indexof].totals.bac += parseFloat(value.totals.bac);
                     cost[indexof].totals.sv += parseFloat(value.totals.sv);
                     cost[indexof].totals.cv += parseFloat(value.totals.cv);
+                    cost[indexof].totals.CurrSV += parseFloat(value.totals.CurrSV);
+                    cost[indexof].totals.CurrCV += parseFloat(value.totals.CurrCV);
                     cost[indexof].totals.vac += parseFloat(value.totals.vac);
+                    cost[indexof].totals.ETC_CPI += parseFloat(value.totals.ETC_CPI);
 
                     var roundbcwsTotal = cost[indexof].totals.bcwsTotal;
                     var roundbcwpTotal = cost[indexof].totals.bcwpTotal;
@@ -788,33 +819,39 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
                 return item;
             });
         }
-
+        _.first(hierarchy).com = com;
+        console.log(hierarchy[0].com);
         console.timeEnd('Format One Totals');
         return hierarchy;
     };
 
     App.formatThreeTotals = function(totals,chartData,rawData){
         var rawSortedDate = _.sortBy(rawData,'Date');
+        if(_.isUndefined(totals)){
+            var total = undefined;
+        }else{
+            total = App.convertArraytoObject(totals);
+        }
         var array = [],
             start = moment(_.first(rawSortedDate).Date).format('YYYY/MM'),
             end = moment(_.last(rawSortedDate).Date).format('YYYY/MM'),
-            bcwsHrRate = parseFloat(totals[0].bcwsTotal) / parseFloat(totals[0].bcwsHrs),
-            bcwpHrRate = parseFloat(totals[1].bcwpTotal) / parseFloat(totals[1].bcwpHrs),
-            eacHrRate  = parseFloat(totals[2].eacTotal) / parseFloat(totals[2].eacHrs),
-            acwpHrRate = parseFloat(totals[3].acwpTotal) / parseFloat(totals[3].acwpHrs);
+            bcwsHrRate = parseFloat(total.bcwsTotal) / parseFloat(total.bcwsHrs),
+            bcwpHrRate = parseFloat(total.bcwpTotal) / parseFloat(total.bcwpHrs),
+            eacHrRate  = parseFloat(total.eacTotal) / parseFloat(total.eacHrs),
+            acwpHrRate = parseFloat(total.acwpTotal) / parseFloat(total.acwpHrs);
             array.push({
                 "start":start,
                 "end":end,
                 "bcwsTotal":bcwsHrRate.toFixed(2)+' Hourly Rate',
-                "bcwsHrs":totals[0].bcwsHrs.toFixed(2),
+                "bcwsHrs":total.bcwsHrs.toFixed(2),
                 "bcwpTotal": bcwpHrRate.toFixed(2)+' Hourly Rate',
-                "bcwpHrs": totals[1].bcwpHrs.toFixed(2),
+                "bcwpHrs": total.bcwpHrs.toFixed(2),
                 "eacTotal":eacHrRate.toFixed(2)+' Hourly Rate',
-                "eacHrs":totals[2].eacHrs.toFixed(2),
+                "eacHrs":total.eacHrs.toFixed(2),
                 "acwpTotal":acwpHrRate.toFixed(2)+' Hourly Rate',
-                "acwpHrs":totals[3].acwpHrs.toFixed(2),
-                "eacCum":totals[4].eacCum.toFixed(2),
-                "bac":totals[5].bac.toFixed(2)
+                "acwpHrs":total.acwpHrs.toFixed(2),
+                "eacCum":total.eacCum.toFixed(2),
+                "bac":total.bac.toFixed(2)
             });
         return array[0];
     };
@@ -953,36 +990,51 @@ define(['jquery','underscore','moment','kendo','Blob','base64','jszip','FileSave
     };
 
     App.formatFiveTotals = function(totals, gauges){
-        console.log(totals);
-        var total = App.convertArraytoObject(totals);
-        var gauge = App.convertArraytoObject(gauges);
-        var sv = parseFloat(total.bcwpTotal) - parseFloat(total.bcwsTotal);
-        var cv = parseFloat(total.bcwpTotal) - parseFloat(total.acwpTotal);
-        var vac = parseFloat(total.bac) - parseFloat(total.eacCum);
-        var spi = gauge.spi;
-        var cpi = gauge.cpi;
-        var tcpi = total.tcpi;
-        if(_.isNaN(tcpi)){
-            tcpi = 0;
+        if(_.isUndefined(totals) || _.isUndefined(gauges)){
+            var total = undefined;
+            var gauge =   undefined;
+            console.log('missing data for formatFiveTotals');
+            return;
+        }else{
+            total = App.convertArraytoObject(totals);
+            gauge =   App.convertArraytoObject(gauges);
         }
-        var spiColour = "",cpiColour = "";
-        spiColour =  App.ragSpi(spi);
-        cpiColour = App.ragCpi(cpi);
+        var spi =  gauge.spi,
+            cpi = gauge.cpi,
+            curSPI = gauge.curSPI,
+            curCPI = gauge.curCPI,
+            spiColour =  App.ragSpi(spi),
+            cpiColour = App.ragCpi(cpi),
+            curSPIColour =  App.ragSpi(curSPI),
+            curCPIColour = App.ragCpi(curCPI);
+        console.info('Info! curCPIColour', curCPIColour);
+        console.info('Info! curSPIColour', curSPIColour);
         return {
-            "bcwsTotal":total.bcwsTotal,
+            "bcwsTotal": total.bcwsTotal,
+            "curBcwsTotal": total.curBcwsTotal,
             "bcwpTotal": total.bcwpTotal,
-            "eacTotal":total.eacTotal,
-            "acwpTotal":total.acwpTotal,
-            "eacCum":total.eacCum,
-            "bac":total.bac,
-            "tcpi":tcpi,
-            "vac":vac,
-            "cpi":gauge.cpi,
-            "spi":gauge.spi,
-            "cpiColour":cpiColour,
-            "spiColour":spiColour,
-            "sv":sv,
-            "cv":cv
+            "curBcwpTotal": total.curBcwpTotal,
+            "eacTotal": total.eacTotal,
+            "curEacTotal": total.curEacTotal,
+            "acwpTotal": total.acwpTotal,
+            "curAcwpTotal": total.curAcwpTotal,
+            "eacCum": total.eacCum,
+            "bac": total.bac,
+            "tcpi": total.tcpi,
+            "sv": total.sv,
+            "cv": total.cv,
+            "CurrSV": total.CurrSV,
+            "CurrCV": total.CurrCV,
+            "vac": total.vac,
+            "curSPI": curSPI,
+            "curCPI": curCPI,
+            "spi": spi,
+            "cpi": cpi,
+            "ETC_CPI":total.ETC_CPI,
+            "spiColour": spiColour,
+            "cpiColour": cpiColour,
+            "curSPIColour":curSPIColour,//"#009933"
+            "curCPIColour":curCPIColour
         };
 
     };
@@ -1837,6 +1889,9 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                     "Version": value.Version,
                     "ValueType": value.ValueType,
                     "Date": value.Date,
+                    "PeriodType":value.PeriodType,
+                    "Overhead":value.Overhead,
+                    "CostType":value.CostType,
                     "SnapshotDate":value.SnapshotDate
                     }
                 }).value();
@@ -1890,8 +1945,8 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                  if (_.isArray(obj.BCWS) && (!_.isEmpty(obj.BCWS))) {
                      var BCWSdata = _.chain(obj.BCWS).sortBy("Date").map(function (value) {
                          //console.log(value);
-                         dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
-                         dateCheckBefore =  moment(value.Date).isAfter(value.SnapshotDate);
+                         /*dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
+                         dateCheckBefore =  moment(value.Date).isAfter(value.SnapshotDate);*/
                          return {
                              "BCWS": Number(value.IntValProjCurr),
                              "QuantityBCWS": Number(value.Quantity),
@@ -1903,9 +1958,10 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                              "ValueType": value.ValueType,
                              "Type":"BCWS",
                              "Date": value.Date,
-                             "SnapshotDate": value.SnapshotDate,
-                             "isSame":dateCheck,
-                             "isAfter":dateCheckBefore
+                             "PeriodType":value.PeriodType,
+                             "Overhead":value.Overhead,
+                             "CostType":value.CostType,
+                             "SnapshotDate": value.SnapshotDate
                          }
                      }).value();//convert IntValProjCurr key for Chart Series
                      master.graph.push(BCWSdata);//add array to master array
@@ -1915,8 +1971,8 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                      var runningTotalBCWP = 0;
                      var BCWPdata = _.chain(obj.BCWP).sortBy("Date").map(function (value) {
                         // runningTotalBCWP += parseFloat(value.IntValProjCurr);
-                         dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
-                         dateCheckBefore =  moment(value.Date).isBefore(value.SnapshotDate);
+                        /* dateCheck =  moment(value.Date).isSame(value.SnapshotDate);
+                         dateCheckBefore =  moment(value.Date).isBefore(value.SnapshotDate);*/
                          return {
                              "BCWP": Number(value.IntValProjCurr),
                              "QuantityBCWP": Number(value.Quantity),
@@ -1928,9 +1984,10 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                              "ValueType": value.ValueType,
                              "Type":"BCWP",
                              "Date": value.Date,
-                             "SnapshotDate": value.SnapshotDate,
-                             "isSame":dateCheck,
-                             "isBefore":dateCheckBefore
+                             "PeriodType":value.PeriodType,
+                             "Overhead":value.Overhead,
+                             "CostType":value.CostType,
+                             "SnapshotDate": value.SnapshotDate
                          }
                      }).value();//convert IntValProjCurr key for Chart Series
 
@@ -1968,6 +2025,9 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                              "ValueType": value.ValueType,
                              "Type":"EAC",
                              "Date": value.Date,
+                             "PeriodType":value.PeriodType,
+                             "Overhead":value.Overhead,
+                             "CostType":value.CostType,
                              "SnapshotDate": value.SnapshotDate
                          }
                      }).value(); //convert IntValProjCurr key for Chart Series
@@ -1988,6 +2048,9 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                              "ValueType": value.ValueType,
                              "Type":"ACWP",
                              "Date": value.Date,
+                             "PeriodType":value.PeriodType,
+                             "Overhead":value.Overhead,
+                             "CostType":value.CostType,
                              "SnapshotDate": value.SnapshotDate,
                              "isSame":dateCheck,
                              "isBefore":dateCheckBefore
@@ -2010,12 +2073,8 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
          }
 
     });//end of each versions
-       // _.flatten(master.totals);
-       // _.flatten(master.graph);
-        //console.log(_.flatten(master.graph));
-        return master;
 
-        //master.ACWP = {"Type":'000',"data":master.raw.ACWP,"values":{}};
+        return master;
 
     };
 
@@ -2030,10 +2089,10 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
         var data = _.flatten(results);
         if (data.length === 0) {
             console.log('No Data to filter series.');
-           return;
+            return;
         }
         var BCWS = $.grep(data, function (item) {
-                return item.Type === 'BCWS';
+            return item.Type === 'BCWS';
         });//filter data
         var BCWP = $.grep(data, function (item) {
             return item.Type === 'BCWP';
@@ -2055,110 +2114,183 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
             }
         });//filter data
         master.graph.push(baseLine);//add array to master array
-        var runningTotalBCWS = 0,bcwsTotal = 0,bcwsAll = 0, bcwsHrs = 0, curBcwsTotal = 0, curBcwsHrs = 0;
-        if (_.isArray(BCWS)  && !_.isEmpty(BCWS)) {
+
+        var runningTotalBCWS = 0, bcwsTotal = 0, bcwsAll = 0, bcwsHrs = 0, curBcwsTotal = 0,
+            curBcwsHrs = 0, bcwsCOM = 0,curbcwsCOM = 0;
+        if (_.isArray(BCWS) && !_.isEmpty(BCWS)) {
 
             var BCWSdata = _.chain(BCWS).sortBy("Date").map(function (value) {
                 runningTotalBCWS += parseFloat(value.IntValProjCurr);
                 bcwsAll += parseFloat(value.BCWS);
-                var date = moment(value.Date).unix();
-                //(+new Date(value.Date)/1000).toFixed(0);
-                var snapDate = moment(value.SnapshotDate).unix();
-                //(+new Date(value.SnapshotDate)/1000).toFixed(0);
-              //  console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
-               // if(moment(value.Date).isAfter(value.SnapshotDate, 'day') || value.isSame) {
-                if(date > snapDate || date === snapDate) {
+                if (value.PeriodType == "C" || value.PeriodType == "P") {
                     bcwsTotal += parseFloat(value.BCWS);
                     bcwsHrs += parseFloat(value.QuantityBCWS);
+                    if (value.CostType == "COM") {
+                        bcwsCOM += parseFloat(value.BCWS);
+                    }
                 }
                 //if(moment(value.Date).isBefore(value.SnapshotDate, 'day')){
-                if(date <= snapDate){
+                if (value.PeriodType == "C") {
                     curBcwsTotal += parseFloat(value.BCWS);
                     curBcwsHrs += parseFloat(value.QuantityBCWS);
+                    if (value.CostType == "COM") {
+                        curbcwsCOM += parseFloat(value.BCWS);
+                    }
                 }
                 return {
                     "BCWS": Number(value.IntValProjCurr),
                     "QuantityBCWS": Number(value.QuantityBCWS),
-                    "runningBCWS":Number(runningTotalBCWS),
+                    "runningBCWS": Number(runningTotalBCWS),
                     "IntValProjCurr": Number(value.IntValProjCurr),
-                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                    "ExtValProjCurr": Number(value.ExtValProjCurr),
                     "ObjectNumber": value.ObjectNumber,
                     "Version": value.Version,
                     "ValueType": value.ValueType,
-                    "Type":"BCWS",
+                    "Type": "BCWS",
                     "Date": value.Date,
-                    "isSame":value.isSame,
-                    "isAfter":value.isAfter
+                    "PeriodType": value.PeriodType,
+                    "Overhead": value.Overhead,
+                    "CostType": value.CostType
                 }
             }).value();//convert IntValProjCurr key for Chart Series
 
-            master.totals.push({"bcwsAll":App.Math.ceil10(bcwsAll, -2),"bcwsTotal": App.Math.ceil10(bcwsTotal, -2),"bcwsHrs":App.Math.ceil10(bcwsHrs, -2),"curBcwsTotal": App.Math.ceil10(curBcwsTotal, -2),"curBcwsHrs":App.Math.ceil10(curBcwsHrs, -2)});//.toFixed(2)
+            master.totals.push({
+                "bcwsAll": App.Math.ceil10(bcwsAll, -2),
+                "bcwsTotal": App.Math.ceil10(bcwsTotal, -2),
+                "bcwsHrs": App.Math.ceil10(bcwsHrs, -2),
+                "curBcwsTotal": App.Math.ceil10(curBcwsTotal, -2),
+                "curBcwsHrs": App.Math.ceil10(curBcwsHrs, -2),
+                "bcwsCOM": App.Math.ceil10(bcwsCOM, -2),
+                "curbcwsCOM": App.Math.ceil10(curbcwsCOM, -2)
+            });//.toFixed(2)
             master.graph.push(BCWSdata);//add array to master array
-        }else{
-            master.totals.push({"bcwsAll":0.00,"bcwsTotal": 0.00,"bcwsHrs":0.00,"curBcwsHrs":0.00});//.toFixed(2)
+        } else {
+            master.totals.push({"bcwsAll": 0.00, "bcwsTotal": 0.00, "bcwsHrs": 0.00, "curBcwsHrs": 0.00});//.toFixed(2)
         }
 
-        var runningTotalBCWP = 0,bcwpTotal = 0, bcwpHrs = 0, curBcwpTotal = 0, curBcwpHrs = 0;
+        var runningTotalBCWP = 0, bcwpTotal = 0, bcwpHrs = 0, curBcwpTotal = 0,
+            curBcwpHrs = 0, bcwpCOM = 0,curbcwpCOM = 0;
         if (_.isArray(BCWP) && !_.isEmpty(BCWP)) {
 
             var BCWPdata = _.chain(BCWP).sortBy("Date").map(function (value) {
                 runningTotalBCWP += parseFloat(value.IntValProjCurr);
-                var date = moment(value.Date).unix();
-                var snapDate = moment(value.SnapshotDate).unix();
-               // console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
-                if(date >= snapDate) {
+                if (value.PeriodType == "C" || value.PeriodType == "P") {
                     bcwpTotal += parseFloat(value.BCWP);
                     bcwpHrs += parseFloat(value.QuantityBCWP);
+                    if (value.CostType == "COM") {
+                        bcwpCOM += parseFloat(value.BCWP);
+                    }
                 }
-                if(date <= snapDate){
+                if (value.PeriodType == "C") {
                     curBcwpTotal += parseFloat(value.BCWP);
                     curBcwpHrs += parseFloat(value.QuantityBCWP);
+                    if (value.CostType == "COM") {
+                        curbcwpCOM += parseFloat(value.BCWP);
+                    }
                 }
                 return {
                     "BCWP": Number(value.IntValProjCurr),
                     "QuantityBCWP": Number(value.QuantityBCWP),
-                    "runningBCWP":Number(runningTotalBCWP),
+                    "runningBCWP": Number(runningTotalBCWP),
                     "IntValProjCurr": Number(value.IntValProjCurr),
-                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                    "ExtValProjCurr": Number(value.ExtValProjCurr),
                     "ObjectNumber": value.ObjectNumber,
                     "Version": value.Version,
                     "ValueType": value.ValueType,
-                    "Type":"BCWP",
+                    "Type": "BCWP",
                     "Date": value.Date,
-                    "isSame":value.isSame,
-                    "isBefore":value.isBefore
+                    "PeriodType": value.PeriodType,
+                    "Overhead": value.Overhead,
+                    "CostType": value.CostType
                 }
             }).value();//convert IntValProjCurr key for Chart Series
 
-            master.totals.push({"bcwpTotal": App.Math.ceil10(bcwpTotal, -2),"bcwpHrs":App.Math.ceil10(bcwpHrs, -2),"curBcwpTotal": App.Math.ceil10(curBcwpTotal, -2),"curBcwpHrs":App.Math.ceil10(curBcwpHrs, -2)});//.toFixed(2)
+            master.totals.push({
+                "bcwpTotal": App.Math.ceil10(bcwpTotal, -2),
+                "bcwpHrs": App.Math.ceil10(bcwpHrs, -2),
+                "curBcwpTotal": App.Math.ceil10(curBcwpTotal, -2),
+                "curBcwpHrs": App.Math.ceil10(curBcwpHrs, -2),
+                "bcwpCOM": App.Math.ceil10(bcwpCOM, -2),
+                "curbcwpCOM": App.Math.ceil10(curbcwpCOM, -2)
+            });//.toFixed(2)
             master.graph.push(BCWPdata);//add array to master array
-        }else{
-            master.totals.push({"bcwpTotal": 0.00,"bcwpHrs":0.00,"curBcwpTotal": 0.00,"curBcwpHrs":0.00});//.toFixed(2)
+        } else {
+            master.totals.push({"bcwpTotal": 0.00, "bcwpHrs": 0.00, "curBcwpTotal": 0.00, "curBcwpHrs": 0.00});//.toFixed(2)
         }
 
-        var runningTotalEAC = 0,eacTotal = 0,eacHrs = 0;
+        var runningTotalACWP = 0, acwpTotal = 0, acwpHrs = 0, curAcwpTotal = 0,
+            curAcwpHrs = 0, acwpCOM = 0,curacwpCOM = 0;
+        if (_.isArray(ACWP) && !_.isEmpty(ACWP)) {
+
+            var ACWPdata = _.chain(ACWP).sortBy("Date").map(function (value) {
+                runningTotalACWP += parseFloat(value.IntValProjCurr);
+                if (value.PeriodType == "C" || value.PeriodType == "P") {
+                    acwpTotal += parseFloat(value.ACWP);
+                    acwpHrs += parseFloat(value.QuantityACWP);
+                    if (value.CostType == "COM") {
+                        acwpCOM += parseFloat(value.ACWP);
+                    }
+                }
+                if (value.PeriodType == "C") {
+                    curAcwpTotal += parseFloat(value.ACWP);
+                    curAcwpHrs += parseFloat(value.QuantityACWP);
+                    if (value.CostType == "COM") {
+                        curacwpCOM += parseFloat(value.ACWP);
+                    }
+                }
+                return {
+                    "ACWP": Number(value.IntValProjCurr),
+                    "QuantityACWP": Number(value.QuantityACWP),
+                    "runningACWP": Number(runningTotalACWP),
+                    "IntValProjCurr": Number(value.IntValProjCurr),
+                    "ExtValProjCurr": Number(value.ExtValProjCurr),
+                    "ObjectNumber": value.ObjectNumber,
+                    "Version": value.Version,
+                    "ValueType": value.ValueType,
+                    "Type": "ACWP",
+                    "Date": value.Date,
+                    "PeriodType": value.PeriodType,
+                    "Overhead": value.Overhead,
+                    "CostType": value.CostType
+                }
+            }).value();//convert IntValProjCurr key for Chart Series
+
+            master.totals.push({
+                "acwpTotal": App.Math.ceil10(acwpTotal, -2),
+                "acwpHrs": App.Math.ceil10(acwpHrs, -2),
+                "curAcwpTotal": App.Math.ceil10(curAcwpTotal, -2),
+                "curAcwpHrs": App.Math.ceil10(curAcwpHrs, -2),
+                "acwpCOM": App.Math.ceil10(acwpCOM, -2),
+                "curacwpCOM": App.Math.ceil10(curacwpCOM, -2)
+            });//.toFixed(2)
+            master.graph.push(ACWPdata);//add array to master array
+        } else {
+            master.totals.push({"acwpTotal": 0.00, "acwpHrs": 0.00, "curAcwpTotal": 0.00, "curAcwpHrs": 0.00});//.toFixed(2)
+        }
+
+        var runningTotalEAC = 0, eacTotal = 0, eacHrs = 0;
         if (_.isArray(EAC) && !_.isEmpty(EAC)) {
             var firstDate = _.chain(EAC).sortBy('Date').first().value();
             var len = EAC.length, editedbaseLine = [];
-           // console.log(firstDate);
-            var EACdata = _.chain(EAC).sortBy("Date").map(function (value,index) {
-                runningTotalEAC +=  parseFloat(value.IntValProjCurr);
+            // console.log(firstDate);
+            var EACdata = _.chain(EAC).sortBy("Date").map(function (value, index) {
+                runningTotalEAC += parseFloat(value.IntValProjCurr);
                 eacTotal += parseFloat(value.EAC);
                 eacHrs += parseFloat(value.QuantityEAC);
-                if(index === 0){
+                if (index === 0) {
                     // console.log(key + '--------' +value.Date);
                     editedbaseLine.push({
                         "Date": firstDate.Date,
-                        "baseLine":0,
-                        "Type":"baseline"
+                        "baseLine": 0,
+                        "Type": "baseline"
                     });
                 }
-                if (len-1 === index) {
+                if (len - 1 === index) {
                     //  console.log(key + '--------' + value.Date);
                     editedbaseLine.push({
                         "Date": value.Date,
                         "baseLine": eacTotal,
-                        "Type":"baseline"
+                        "Type": "baseline"
                     });
                 }
                 return {
@@ -2166,66 +2298,31 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
                     "QuantityEAC": Number(value.QuantityEAC),
                     "runningEAC": runningTotalEAC,
                     "IntValProjCurr": Number(value.IntValProjCurr),
-                    "ExtValProjCurr" : Number(value.ExtValProjCurr),
+                    "ExtValProjCurr": Number(value.ExtValProjCurr),
                     "ObjectNumber": value.ObjectNumber,
                     "Version": value.Version,
                     "ValueType": value.ValueType,
-                    "Type":"EAC",
-                    "Date": value.Date
+                    "Type": "EAC",
+                    "Date": value.Date,
+                    "PeriodType": value.PeriodType,
+                    "Overhead": value.Overhead,
+                    "CostType": value.CostType
                 }
             }).value(); //convert IntValProjCurr key for Chart Series
             master.graph.push(EACdata);//add array to master array
             master.graph.push(editedbaseLine);//add array to master array
-            master.totals.push({"eacTotal": App.Math.ceil10(eacTotal, -2),"eacHrs": App.Math.ceil10(eacHrs, -2)});//.toFixed(2)
-        }else{
-            master.totals.push({"eacTotal": 0.00,"eacHrs": 0.00});//.toFixed(2)
-        }
-
-        var runningTotalACWP = 0,acwpTotal = 0,acwpHrs = 0, curAcwpTotal = 0, curAcwpHrs = 0;
-        if (_.isArray(ACWP)&& !_.isEmpty(ACWP)) {
-
-            var ACWPdata = _.chain(ACWP).sortBy("Date").map(function (value) {
-                runningTotalACWP += parseFloat(value.IntValProjCurr);
-                var date = moment(value.Date).unix();
-                var snapDate = moment(value.SnapshotDate).unix();
-                //console.log('unix '+ date + ' '+ snapDate +' ' + moment(value.SnapshotDate).unix());
-                if(date < snapDate || date === snapDate) {
-                    acwpTotal += parseFloat(value.ACWP);
-                    acwpHrs += parseFloat(value.QuantityACWP);
-                }
-                if(date < snapDate){
-                    curAcwpTotal += parseFloat(value.ACWP);
-                    curAcwpHrs += parseFloat(value.QuantityACWP);
-                }
-                    return {
-                        "ACWP": Number(value.IntValProjCurr),
-                        "QuantityACWP": Number(value.QuantityACWP),
-                        "runningACWP":Number(runningTotalACWP),
-                        "IntValProjCurr": Number(value.IntValProjCurr),
-                        "ExtValProjCurr" : Number(value.ExtValProjCurr),
-                        "ObjectNumber": value.ObjectNumber,
-                        "Version": value.Version,
-                        "ValueType": value.ValueType,
-                        "Type":"ACWP",
-                        "Date": value.Date,
-                        "isSame":value.isSame,
-                        "isBefore":value.isBefore
-                    }
-            }).value();//convert IntValProjCurr key for Chart Series
-
-            master.totals.push({"acwpTotal": App.Math.ceil10(acwpTotal, -2),"acwpHrs": App.Math.ceil10(acwpHrs, -2),"curAcwpTotal": App.Math.ceil10(curAcwpTotal, -2),"curAcwpHrs": App.Math.ceil10(curAcwpHrs, -2)});//.toFixed(2)
-            master.graph.push(ACWPdata);//add array to master array
-        }else{
-            master.totals.push({"acwpTotal": 0.00,"acwpHrs":0.00,"curAcwpTotal":0.00,"curAcwpHrs":0.00});//.toFixed(2)
+            master.totals.push({"eacTotal": App.Math.ceil10(eacTotal, -2), "eacHrs": App.Math.ceil10(eacHrs, -2)});//.toFixed(2)
+        } else {
+            master.totals.push({"eacTotal": 0.00, "eacHrs": 0.00});//.toFixed(2)
         }
 
 
         if (_.isArray(ETC) && !_.isEmpty(ETC)) {
             var etcTotal = 0;
-            _.each(ETC, function(value) {
+            _.each(ETC, function (value) {
                 //var etccost = App.Math.ceil10(value.ETC, -2);
                 etcTotal += parseFloat(value.EAC);
-               // dateCheck =  moment(value.Date).isBefore(value.SnapshotDate);
+                // dateCheck =  moment(value.Date).isBefore(value.SnapshotDate);
             });//not used for chart, just calculations
         }
 
@@ -2233,46 +2330,75 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
             roundbcwsAll = App.Math.ceil10(bcwsAll, -2),
             roundbcwsTotal = App.Math.ceil10(bcwsTotal, -2),
             roundacwpTotal = App.Math.ceil10(acwpTotal, -2),
+
+            roundbcwsCOM = App.Math.ceil10(bcwsCOM, -2),
+            roundbcwpCOM = App.Math.ceil10(bcwpCOM, -2),
+            roundacwpCOM = App.Math.ceil10(acwpCOM, -2),
+
+            roundCurbcwsCOM = App.Math.ceil10(curbcwsCOM, -2),
+            roundCurbcwpCOM = App.Math.ceil10(curbcwpCOM, -2),
+            roundCuracwpCOM = App.Math.ceil10(curacwpCOM, -2),
+
+            roundcurBcwsTotal = App.Math.ceil10(curBcwsTotal, -2),
+            roundcurBcwpTotal = App.Math.ceil10(curBcwpTotal, -2),
+            roundcurAcwpTotal = App.Math.ceil10(curAcwpTotal, -2),
             roundetcTotal = App.Math.ceil10(etcTotal, -2);
 
 
         var eacCum = (parseFloat(roundacwpTotal) + parseFloat(roundetcTotal));
-       // console.log(roundacwpTotal+' '+roundetcTotal+' '+(parseFloat(roundacwpTotal) + parseFloat(roundetcTotal)));
-        master.totals.push({"eacCum": App.Math.ceil10(eacCum,-2)});
+        // console.log(roundacwpTotal+' '+roundetcTotal+' '+(parseFloat(roundacwpTotal) + parseFloat(roundetcTotal)));
+        master.totals.push({"eacCum": App.Math.ceil10(eacCum, -2)});
 
         var bac = App.Math.ceil10(roundbcwsAll, -2);
         master.totals.push({"bac": bac});
 
-            var bac_BCWP = bac - roundbcwpTotal;
-            var eacCum_ACWP = bac - roundacwpTotal;
-            var tcpi = bac_BCWP / eacCum_ACWP;
-            master.totals.push({"tcpi": App.Math.ceil10(tcpi, -2)});
+        var bac_BCWP = _.isNaN(bac - roundbcwpTotal) ? 0 : bac - roundbcwpTotal;
+        var eacCum_ACWP = _.isNaN(bac - roundacwpTotal) ? 0 : bac - roundacwpTotal;
 
-        var spiTotal = (roundbcwpTotal / roundbcwsTotal),
-            cpiTotal = (roundbcwpTotal / roundacwpTotal),
-            curSPITotal = (curBcwpTotal / curBcwsTotal),
-             curCPITotal = (curBcwpTotal / curAcwpTotal);
+        var tcpi = _.isNaN(bac_BCWP / eacCum_ACWP) ? 0 : bac_BCWP / eacCum_ACWP;
+        master.totals.push({"tcpi": App.Math.ceil10(tcpi, -2)});
+
+        var vac = _.isNaN(bac_BCWP - eacCum_ACWP) ? 0 : bac_BCWP - eacCum_ACWP;
+        master.totals.push({"vac": App.Math.ceil10(vac, -2)});
+
+        var CurrSV = _.isNaN(roundcurBcwpTotal - roundcurBcwsTotal) ? 0 : roundcurBcwpTotal - roundcurBcwsTotal;
+        master.totals.push({"CurrSV": App.Math.ceil10(CurrSV, -2)});
+        var CurrCV = _.isNaN(roundcurBcwpTotal - roundcurAcwpTotal) ? 0 : roundcurBcwpTotal - roundcurAcwpTotal;
+        master.totals.push({"CurrCV": App.Math.ceil10(CurrCV, -2)});
+
+        var sv = _.isNaN(bcwpTotal - bcwsTotal) ? 0 : bcwpTotal - bcwsTotal;
+        master.totals.push({"sv": App.Math.ceil10(sv, -2)});
+        var cv = _.isNaN(bcwpTotal - acwpTotal) ? 0 : bcwpTotal - acwpTotal;
+        master.totals.push({"cv": App.Math.ceil10(cv, -2)});
+
+        var svCom = _.isNaN(roundbcwpCOM - roundbcwsCOM) ? 0 : roundbcwpCOM - roundbcwsCOM;
+        master.totals.push({"svCom": App.Math.ceil10(svCom, -2)});
+        var cvCom = _.isNaN(roundbcwpCOM - roundacwpCOM) ? 0 : roundbcwpCOM - roundacwpCOM;
+        master.totals.push({"cvCom": App.Math.ceil10(cvCom, -2)});
+
+
+        var CurrSvCom = _.isNaN(roundCurbcwpCOM - roundCurbcwsCOM) ? 0 : roundCurbcwpCOM - roundCurbcwsCOM;
+        master.totals.push({"CurrSvCom": App.Math.ceil10(CurrSvCom, -2)});
+        var CurrCvCom = _.isNaN(roundCurbcwpCOM - roundCuracwpCOM) ? 0 : roundCurbcwpCOM - roundCuracwpCOM;
+        master.totals.push({"CurrCvCom": App.Math.ceil10(CurrCvCom, -2)});
+
+        var spiTotal = _.isNaN(roundbcwpTotal / roundbcwsTotal) ? 0 : (roundbcwpTotal / roundbcwsTotal),
+            cpiTotal = _.isNaN(roundbcwpTotal / roundacwpTotal) ? 0 :(roundbcwpTotal / roundacwpTotal),
+            curSPITotal = _.isNaN(curBcwpTotal / curBcwsTotal) ? 0 :(curBcwpTotal / curBcwsTotal),
+            curCPITotal = _.isNaN(curBcwpTotal / curAcwpTotal) ? 0 :(curBcwpTotal / curAcwpTotal);
         // console.log('Before Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
-        if (_.isNaN(spiTotal)) {
-            spiTotal = 0;
-        }
-        if (_.isNaN(cpiTotal)) {
-            cpiTotal = 0;
-        }
-        if (_.isNaN(curSPITotal)) {
-            curSPITotal = 0;
-        }
-        if (_.isNaN(curCPITotal)) {
-            curCPITotal = 0;
-        }
+
         // console.log('After Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
-        master.gauges.push({'spi': App.Math.ceil10(spiTotal, -2),'curSPI': App.Math.ceil10(curSPITotal, -2)});//master.gauges[0].spi
-        master.gauges.push({'cpi': App.Math.ceil10(cpiTotal, -3),'curCPI': App.Math.ceil10(curCPITotal, -3)});//master.gauges[1].cpi
+        master.gauges.push({'spi': App.Math.ceil10(spiTotal, -2), 'curSPI': App.Math.ceil10(curSPITotal, -2)});//master.gauges[0].spi
+        master.gauges.push({'cpi': App.Math.ceil10(cpiTotal, -3), 'curCPI': App.Math.ceil10(curCPITotal, -3)});//master.gauges[1].cpi
+
+        var ETC_CPI = _.isNaN(App.Math.ceil10(cpiTotal, -3) / eacCum_ACWP) ? 0 : (App.Math.ceil10(cpiTotal, -3) / eacCum_ACWP);
+        master.totals.push({"ETC_CPI": App.Math.ceil10(ETC_CPI, -2)});
 
         _.flatten(master.totals);
         _.flatten(master.graph);
         _.flatten(master.gauges);
-       // console.log(master.totals);
+        // console.log(master.totals);
         return master;
     };
 
@@ -2325,7 +2451,7 @@ var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2);
             },
             valueAxis: [
                 {labels: {
-                    format: "\u00a3{0}"
+                    format: "{0}"//\u00a3
                 }//title: {text: ' Total'},
                 }
             ],

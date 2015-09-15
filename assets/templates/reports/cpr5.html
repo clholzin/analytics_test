@@ -156,7 +156,7 @@
             <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Cost Variance (CV)</td>
             <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Schedule (SV)</td>
             <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Cost Perf (CPI)</td>
-            <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Shedule Perf (SPI)</td>
+            <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Schedule Perf (SPI)</td>
             <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Calculated (EAC)</td>
             <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>Budget Variance (VAR)</td>
             <td class="no-paint" style='text-align: center; background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>TCPI (BAC)</td>
@@ -166,17 +166,17 @@
         <tr>
             <td class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; font-weight: bold; border-right:1px solid black; font-size:12px; padding:2px'>Period</td>
             <td class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].curBcwsTotal%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].curBcwpTotal%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].curAcwpTotal%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].CurrSV%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].CurrSV%></td>
+            <td class="no-paint rag" data-colour="<%-combineData[1].curCPIColour%>" style='background-color:<%-combineData[1].curCPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].curCPI%></td>
+            <td class="no-paint rag" data-colour="<%-combineData[1].curSPIColour%>" style='background-color:<%-combineData[1].curSPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].curSPI%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].eacCum%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].vac%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].tcpi%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].tcpi%></td>
         </tr>
 
         <tr>
@@ -186,15 +186,15 @@
         <tr>
             <td class="no-paint" style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; font-weight: bold; border-right:1px solid black; font-size:12px; padding:2px'>Cum</td>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].bac%></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].bcwsTotal.toFixed(2)%></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].bcwpTotal.toFixed(2)%></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].acwpTotal.toFixed(2)%></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].cv.toFixed(2)%></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].sv.toFixed(2)%></td>
-            <td class="no-paint rag" data-colour="<%-combineData[1].spiColour%>" style='background-color:<%-combineData[1].cpiColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].cpi%></td>
-            <td class="no-paint rag" data-colour="<%-combineData[1].cpiColour%>" style='background-color:<%-combineData[1].spiColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].spi%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].bcwsTotal%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].bcwpTotal%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].acwpTotal%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].cv%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].sv%></td>
+            <td class="no-paint rag" data-colour="<%-combineData[1].cpiColour%>" style='background-color:<%-combineData[1].cpiColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].cpi%></td>
+            <td class="no-paint rag" data-colour="<%-combineData[1].spiColour%>" style='background-color:<%-combineData[1].spiColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].spi%></td>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].eacCum%></td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].vac.toFixed(2)%></td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].vac%></td>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].tcpi%></td>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-combineData[1].tcpi%></td>
         </tr>
