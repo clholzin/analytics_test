@@ -25,7 +25,7 @@ html, body {
     cursor:pointer;
 }
 
-.PD, .PR,.OB, .NP,.NV {
+.PD,.PR,.OB,.NP,.NV,.HC {
     width:27px;
     height:27px;
     padding:0 5px 0 10px;
@@ -41,6 +41,9 @@ html, body {
     background:url('../img/heirarchyIcons/WBS-26.png') transparent no-repeat  50% 50%;
 }
 .OB {
+    background:url('../img/heirarchyIcons/WBS-26.png') transparent no-repeat  50% 50%;
+}
+.HC {
     background:url('../img/heirarchyIcons/WBS-26.png') transparent no-repeat  50% 50%;
 }
 .NP {

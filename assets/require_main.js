@@ -15,7 +15,7 @@ requirejs.config({
         domReady:"js/domReady",
         FileSaver:"js/FileSaver",
         uglify:"js/uglify",
-        typedArrays:"js/typedArrays",
+        //typedArrays:"js/typedArrays",
         "jquery.table2excel":"js/jquery.table2excel",
         jszip:"js/jszip.min",
         moment:"js/moment",
@@ -55,7 +55,7 @@ requirejs.config({
             deps:["jquery","underscore","app"]
         },
         "jquery.table2excel":{
-            deps:["jquery","base64","Blob","FileSaver","typedArrays"]
+            deps:["jquery","base64","Blob","FileSaver"]
         },
         tpl: ["text"]
     }
