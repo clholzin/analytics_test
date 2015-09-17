@@ -943,13 +943,13 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
                     master[year].bcws[month] = {};
                 }
                 if (_.has(master[year].bcws[month], 'Quantity')) {
-                    master[year].bcws[month].Quantity += parseFloat(va.QuantityBCWS);
-                    master[year].bcws[month].Total += parseFloat(va.BCWS);
+                    master[year].bcws[month].Quantity += parseFloat(va.Quantity);
+                    master[year].bcws[month].Total += parseFloat(va.IntValProjCurr);
                 } else {
                     master[year].bcws[month] = {
                         "Month": monthTitle,
-                        "Quantity": App.Math.ceil10(va.QuantityBCWS, -2),
-                        "Total": App.Math.ceil10(va.BCWS, -2)
+                        "Quantity": App.Math.ceil10(va.Quantity, -2),
+                        "Total": App.Math.ceil10(va.IntValProjCurr, -2)
                     };
                 }
             });
@@ -968,13 +968,13 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
                     master[year].bcwp[month] = {};
                 }
                 if (_.has(master[year].bcwp[month], 'Quantity')) {
-                    master[year].bcwp[month].Quantity += parseFloat(vb.QuantityBCWP);
-                    master[year].bcwp[month].Total += parseFloat(vb.BCWP);
+                    master[year].bcwp[month].Quantity += parseFloat(vb.Quantity);
+                    master[year].bcwp[month].Total += parseFloat(vb.IntValProjCurr);
                 } else {
                     master[year].bcwp[month] = {
                         "Month": monthTitle,
-                        "Quantity": App.Math.ceil10(vb.QuantityBCWP, -2),
-                        "Total": App.Math.ceil10(vb.BCWP, -2)
+                        "Quantity": App.Math.ceil10(vb.Quantity, -2),
+                        "Total": App.Math.ceil10(vb.IntValProjCurr, -2)
                     };
                 }
             });
@@ -993,14 +993,14 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
                     master[year].eac[month] = {};
                 }
                 if (_.has(master[year].eac[month], 'Quantity')) {
-                    master[year].eac[month].Quantity += parseFloat(vc.QuantityEAC);
-                    master[year].eac[month].Total += parseFloat(vc.EAC);
+                    master[year].eac[month].Quantity += parseFloat(vc.Quantity);
+                    master[year].eac[month].Total += parseFloat(vc.IntValProjCurr);
                 } else {
                     //  console.log('hit else');
                     master[year].eac[month] = {
                         "Month": monthTitle,
-                        "Quantity": App.Math.ceil10(vc.QuantityEAC, -2),
-                        "Total": App.Math.ceil10(vc.EAC, -2)
+                        "Quantity": App.Math.ceil10(vc.Quantity, -2),
+                        "Total": App.Math.ceil10(vc.IntValProjCurr, -2)
                     };
                 }
             });
@@ -1019,13 +1019,13 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
                     master[year].acwp[month] = {};
                 }
                 if (_.has(master[year].acwp[month], 'Quantity')) {
-                    master[year].acwp[month].Quantity += parseFloat(vd.QuantityACWP);
-                    master[year].acwp[month].Total += parseFloat(vd.ACWP);
+                    master[year].acwp[month].Quantity += parseFloat(vd.Quantity);
+                    master[year].acwp[month].Total += parseFloat(vd.IntValProjCurr);
                 } else {
                     master[year].acwp[month] = {
                         "Month": monthTitle,
-                        "Quantity": App.Math.ceil10(vd.QuantityACWP, -2),
-                        "Total": App.Math.ceil10(vd.ACWP, -2)
+                        "Quantity": App.Math.ceil10(vd.Quantity, -2),
+                        "Total": App.Math.ceil10(vd.IntValProjCurr, -2)
                     };
                 }
             });

@@ -394,6 +394,27 @@
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 Baseline Plan (Period)
             </td>
+            <% for(var c = 1; c < 13;c++){%>
+            <%if(_.isUndefined(v.bcws)){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                -
+            </td>
+            <% }else if(_.isUndefined(v.bcws[c])){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <% }else{ %>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-v.bcws[c].Quantity.toFixed(2)%>
+            </td>
+            <% } %>
+            <% } %>
+        </tr>
+
+        <tr>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Earned
+            </td>
             <% for(var a = 1; a < 13;a++){ %>
             <%if(_.isUndefined(v.bcwp)){%>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
@@ -408,13 +429,12 @@
                 <%v.bcwp[a].Quantity.toFixed(2)%>
             </td>
             <% } %>
-
             <% } %>
         </tr>
 
         <tr>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                Earned
+                Actuals/Forecast Last Period
             </td>
             <% for(var b = 1; b < 13;b++){%>
             <%if(_.isUndefined(v.eac)){%>
@@ -431,28 +451,6 @@
             </td>
             <% } %>
             <% } %>
-        </tr>
-
-        <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                Actuals/Forecast Last Period
-            </td>
-            <% for(var c = 1; c < 13;c++){%>
-            <%if(_.isUndefined(v.bcws)){%>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                -
-            </td>
-            <% }else if(_.isUndefined(v.bcws[c])){%>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                0
-            </td>
-            <% }else{ %>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                <%-v.bcws[c].Quantity.toFixed(2)%>
-            </td>
-            <% } %>
-            <% } %>
-
         </tr>
 
         <tr>
