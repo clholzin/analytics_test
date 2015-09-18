@@ -259,11 +259,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
-                                //console.log(App.DataStore.chart);
-                                App.hierListInitialize(App.DataStore.hierarchy);
-                                //console.log(App.DataStore.gaugesData);
-                                //console.log(JSON.stringify(App.DataStore.chartTotals));
 
+                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
+                                App.DataStore.chart = App.AssignStore(refined.graph);
+                                App.hierListInitialize(App.DataStore.hierarchy);
                                 App.createChart(App.DataStore.chart, App.seriesSV, true);
 
                                 var projectName = _.first(App.DataStore.hierarchy).ExtID;
@@ -287,10 +286,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
-                                //console.log(App.DataStore.chart);
+
+                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
+                                App.DataStore.chart = App.AssignStore(refined.graph);
                                 App.hierListInitialize(App.DataStore.hierarchy);
-                                //console.log(App.DataStore.gaugesData);
-                                //console.log(JSON.stringify(App.DataStore.chartTotals));
                                 var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart.options.data);
                                 var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
                                 App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
@@ -318,9 +317,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
+                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
+                                App.DataStore.chart = App.AssignStore(refined.graph);
                                 App.hierListInitialize(App.DataStore.hierarchy);
-                                //console.log(App.DataStore.gaugesData);
-                                //console.log(JSON.stringify(App.DataStore.chartTotals));
                                 App.createChart(App.DataStore.chart, App.series, false);
 
                                 var projectName = App.DataStore.hierarchy[0].ExtID;
@@ -345,11 +344,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
-                                //console.log(App.DataStore.chart);
+                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
+                                App.DataStore.chart = App.AssignStore(refined.graph);
                                 App.hierListInitialize(App.DataStore.hierarchy);
-                                //console.log(App.DataStore.gaugesData);
-                                //console.log(JSON.stringify(App.DataStore.chartTotals));
-
                                 App.createChart(App.DataStore.chart, App.seriesSV, true);
 
                                 var projectName = _.first(App.DataStore.hierarchy).ExtID;
@@ -428,7 +425,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                          .first()
                          .value();
                          console.log(currentVersion);**/
-                        var defaultType = 'IntValProjCurr';
+                        var defaultType = 'Quantity';
                         switch (sheet) {
                             case 'CPR-1':
                                 console.log('hit 1');
@@ -583,105 +580,480 @@ define(['jquery', 'underscore', 'domReady', 'app',
             $('#clearRAGButton').show();
         });
 
-        doc.on('change', '#dataType', function (e) {
+        doc.on('change', '.dataType', function (e) {
             e.preventDefault();
             App.SpinnerTpl(loadingWheel, 1);
-           var dropdown =  $(this),
-               self = $(doc),
-               dateType = dropdown.val(),
-               reportType = dropdown.find(':selected').attr('data-temp');
-
-            console.log('type: '+dateType +' and Report: '+ reportType);
+            var self = $(this).find(':selected'),
+                dataType = self.val(),
+                logic = self.attr('data-sheet'),
+                reportType = self.attr('data-temp');
+            console.log('type: ' + dataType + ' and Report: ' + reportType);
+            if (dataType === 'Quantity') {
+                $('.costType').hide();
+            } else if (dataType === 'Costs') {
+                dataType = 'IntValProjCurr';
+                $('.costType').show();
+                //App.SpinnerTpl(loadingWheel, 0);
+                //return;
+            } else {
+            }
+            App.dataType = dataType;
             var retrieveTpl = 'tpl!templates/reports/' + reportType + '.html';
-
-            requirejs([retrieveTpl], function (tempTpl) {
-                var hier = App.DataStore.hierarchy;
-                var costs = App.DataStore.chart.options.data;
-                    switch(reportType){
-                        case 'cpr1':
-                            console.log('hit 1');
-                            if(dataType == 'Quantity'){
-                                alert(dataType);
-                            }
-                            combineData[0] = App.DataStore.project;
-                            combineData[1] = App.formatOneTotals(hier, costs, dateType);//Return Totals for format one
-                            /*********   Template Processing  *********/
-                            tplId = tempTpl;
-                            //tplFooter = reportFooterTpl;
-                            App.Project(tplId, tplFooter, combineData);
-                            //bkgChange.attr('id', 'cprBG');
-                            App.reportTplConfig(self);
-                            /*********   End Template Processing  *****/
-                            App.SpinnerTpl(loadingWheel, 0);
-                            break;
-                    }
-
-            });
-        });
-
-       /* doc.on('change', '#dataType', function (e) {
-            e.preventDefault();
             var hier = App.DataStore.hierarchy;
             var costs = App.DataStore.chart.options.data;
-            if (doc.find('#dataType').val() == "Cost") {
-                console.log("IntValProjCurr");
-                combineData[1] = App.formatOneTotals(hier, costs, 'IntValProjCurr');//Return Totals for format one
+            switch (logic) {
+                case 'CPR-1':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        console.log('hit 1');
+                        combineData[0] = App.DataStore.project;
+                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+                        /*********   Template Processing  *********/
+                        tplId = tempTpl;
+                        tplFooter = reportFooterTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        //bkgChange.attr('id', 'cprBG');
+                        App.reportTplConfig(self);
+                        console.log(dataType);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                            $('#units').html('HRS');
+                            $('#cpr1Title').html('CPR FORMAT 1 - WBS (MANHOURS)');
+                        } else {
+                            $('.costType').show();
+                            $('#units').html('&pound;');
+                            $('#cpr1Title').html('CPR FORMAT 1 - WBS (MATERIAL)');
+                            $('.dataType').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        /*********   End Template Processing  *****/
+                        App.SpinnerTpl(loadingWheel, 0);
 
-                tplId = cpr1;
-                tplFooter = reportFooterTpl;
-                App.Project(tplId, tplFooter, combineData);
-                bkgChange.attr('id', 'cprBG');
-                App.reportTplConfig(self);
-                $('#dataType').val('Cost');
-                $('#costType').val('Internal');
-                $('#costType').show();
-                $('#units').html('&pound;');
-                $('#cpr1Title').html('CPR FORMAT 1 - WBS (MATERIAL)');
-                $('#cpr2Title').html('CPR FORMAT 2 - OBS (MATERIAL)');
-                $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MATERIAL)');
-                $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MATERIAL)');
-                $('#cpr5Title').html('CPR FORMAT 5 - VAR (MATERIAL)');
-                $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MATERIAL)');
-                $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MATERIAL)');
+                    });
+                    break;
+                case 'CPR-2':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        console.log('hit 2');
+                        /*********   Data Processing  *************/
+                        combineData[0] = App.DataStore.project;
+                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+                        /*********   Template Processing  *********/
+                        tplId = tempTpl;
+                        tplFooter = reportFooterTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        //bkgChange.attr('id', 'cprBG');
+                        App.reportTplConfig(self);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                            $('#units').html('HRS');
+                            $('#cpr2Title').html('CPR FORMAT 2 - OBS (MANHOURS)');
+                        } else {
+                            $('.costType').show();
+                            $('#units').html('&pound;');
+                            $('#cpr2Title').html('CPR FORMAT 2 - OBS (MATERIAL)');
+                            $('.dataType').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        /*********   End Template Processing  *****/
+                        App.SpinnerTpl(loadingWheel, 0);
+                    });
+                    break;
+                case 'CPR-3':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        console.log('hit 3');
+                        /*********   Template Processing  *********/
+                        var totals = App.DataStore.chartTotals;
+                        var chartData = App.DataStore.chart.options.data;
+                        combineData[0] = App.formatThreeTotals(totals, chartData, costs);
+                        tplId = tempTpl;
+                        tplFooter = reportFooterTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        //bkgChange.attr('id', 'cprBG');
+                        App.reportTplConfig(self);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                            $('#units').html('HRS');
+                            $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MANHOURS)');
+                        } else {
+                            $('.costType').show();
+                            $('#units').html('&pound;');
+                            $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MATERIAL)');
+                            $('.dataType').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        /*********   End Template Processing  *****/
+                        App.SpinnerTpl(loadingWheel, 0);
+                    });
+                    break;
+                case 'CPR-4':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        console.log('hit 4');
+                        /*********   Template Processing  *********/
+                        combineData[0] = App.DataStore.project;
+                        combineData[1] = App.formatFourTotals(costs, dataType);
+                        combineData[2] = {"months": App.unit.months};
+                        console.log(combineData[1]);
+                        tplId = tempTpl;
+                        tplFooter = reportFooterTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        //bkgChange.attr('id', 'cprBG');
+                        App.reportTplConfig(self);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                            $('#units').html('HRS');
+                            $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
+                        } else {
+                            $('.costType').show();
+                            $('#units').html('&pound;');
+                            $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MATERIAL)');
+                            $('.dataType').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        /*********   End Template Processing  *****/
+                        App.SpinnerTpl(loadingWheel, 0);
+                    });
+                    break;
+                case 'CPR-5':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        console.log('hit 5');
 
-                App.SpinnerTpl(loadingWheel, 0);
-            } else {
-                console.log("Quantity");
-                combineData[1] = App.formatOneTotals(hier, costs, 'Quantity');//Return Totals for format one
-
-                tplId = cpr1;
-                tplFooter = reportFooterTpl;
-                App.Project(tplId, tplFooter, combineData);
-                bkgChange.attr('id', 'cprBG');
-                App.reportTplConfig(self);
-                $('#dataType').val('Hours');
-                $('#costType').hide();
-                $('#units').html('HRS');
-                $('#cpr1Title').html('CPR FORMAT 1 - WBS (MANHOURS)');
-                $('#cpr2Title').html('CPR FORMAT 2 - OBS (MANHOURS)');
-                $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MANHOURS)');
-                $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
-                $('#cpr5Title').html('CPR FORMAT 5 - VAR (MANHOURS)');
-                $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MANHOURS)');
-                $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MANHOURS)');
-
-                App.SpinnerTpl(loadingWheel, 0);
-            }
-        });*/
-
-        doc.on('change', '#costType', function (e) {
-            e.preventDefault();
-           // var hier = App.DataStore.hierarchy;
-           // var costs = App.DataStore.chart.options.data;
-            if (doc.find('#costType').val() == "Internal") {
-                console.log("IntValProjCurr");
-
-            } else {
-                console.log("ExtValProjCurr");
+                       /* var totals = App.DataStore.chartTotals;
+                        var gauges = App.DataStore.gaugesData;*/
+                        var data = App.FilterChartData(costs, dataType);
+                        var totals = data.totals;
+                        var gauges = data.gauges;
+                        combineData[0] = App.DataStore.project;
+                        combineData[1] = App.formatFiveTotals(totals, gauges);
+                        /*********   Template Processing  *********/
+                        tplId = tempTpl;
+                        tplFooter = reportFooterTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        //bkgChange.attr('id', 'cprBG');
+                        App.reportTplConfig(self);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                            $('#units').html('HRS');
+                            $('#cpr5Title').html('CPR FORMAT 5 - VAR (MANHOURS)');
+                        } else {
+                            $('.costType').show();
+                            $('#units').html('&pound;');
+                            $('#cpr5Title').html('CPR FORMAT 5 - VAR (MATERIAL)');
+                            $('.dataType').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        /*********   End Template Processing  *****/
+                        App.SpinnerTpl(loadingWheel, 0);
+                    });
+                    break;
+                case 'CPR-TWBS':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        console.log('hit TW');
+                        combineData[0] = App.DataStore.project;
+                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+                        /*********   Template Processing  *********/
+                        tplId = tempTpl;
+                        tplFooter = reportFooterTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        //bkgChange.attr('id', 'cprBG');
+                        App.reportTplConfig(self);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                            $('#units').html('HRS');
+                            $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MANHOURS)');
+                        } else {
+                            $('.costType').show();
+                            $('#units').html('&pound;');
+                            $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MATERIAL)');
+                            $('.dataType').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        /*********   End Template Processing  *****/
+                        App.SpinnerTpl(loadingWheel, 0);
+                    });
+                    break;
+                case 'CPR-TOBS':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        console.log('hit TO');
+                        combineData[0] = App.DataStore.project;
+                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+                        /*********   Template Processing  *********/
+                        tplId = tempTpl;
+                        tplFooter = reportFooterTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        //bkgChange.attr('id', 'cprBG');
+                        App.reportTplConfig(self);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                            $('#units').html('HRS');
+                            $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MANHOURS)');
+                        } else {
+                            $('.costType').show();
+                            $('#units').html('&pound;');
+                            $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MATERIAL)');
+                            $('.dataType').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        /*********   End Template Processing  *****/
+                        App.SpinnerTpl(loadingWheel, 0);
+                    });
+                    break;
+                default:
+                    console.log('hit default');
+                    break;
             }
         });
 
-        /*doc.on('click','a#clearPicker',function(e){
+
+        doc.on('change', '.dataTypeAnalytics', function (e) {
+            e.preventDefault();
+            App.SpinnerTpl(loadingWheel, 1);
+            var self = $(this).find(':selected'),
+                dataType = self.val(),
+                logic = self.attr('data-name'),
+                reportType = self.attr('data-temp');
+            console.log('type: ' + dataType + ' and Report: ' + reportType);
+            if (dataType === 'Quantity') {
+                $('.costType').hide();
+            } else if (dataType === 'Costs') {
+                dataType = 'IntValProjCurr';
+                $('.costType').show();
+            } else {
+            }
+
+            var retrieveTpl = 'tpl!templates/analytics/' + reportType + '.html';
+            var hier = App.DataStore.hierarchy;
+            var costs = App.DataStore.chart.options.data;
+
+            switch (logic) {
+                case 'projectAnalytics':
+                    tplFooter = analyticsFooterATpl;
+                    break;
+                default:
+                    tplFooter = analyticsFooterBTpl;
+                    break;
+            }
+
+            switch (logic) {
+                case 'spa':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        tplId = tempTpl;
+                        combineData[0] = App.DataStore.hierarchyList;
+                        App.Project(tplId, tplFooter, combineData);
+                        App.createSplittersFT();
+
+                        var refined = App.FilterChartData(costs, dataType);
+                        App.DataStore.chart = App.AssignStore(refined.graph);
+                        App.hierListInitialize(App.DataStore.hierarchy);
+                        App.createChart(App.DataStore.chart, App.series, false);
+
+                        var projectName = App.DataStore.hierarchy[0].ExtID;
+                        $(document).bind("kendo:skinChange", App.createChart);
+                        $(".chart-type-chooser").bind("change", App.refreshChart);
+                        var hierarchyList = $("div#treelist");
+                        App.hierEvent(hierarchyList,dataType);//event for changing chart data
+                        App.analyticsTplConfig(self);
+                        console.log("Selected Type " + dataType);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                        } else {
+                            $('.costType').show();
+                            $('.dataTypeAnalytics').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        _.debounce(App.expandTreeList(hierarchyList), 500);
+                        _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                    });
+                    break;
+                case 'earnedSchedule':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        tplId = tempTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        App.createSplittersFT();
+
+                        var refined = App.FilterChartData(costs, dataType);
+                        App.DataStore.chart = App.AssignStore(refined.graph);
+                        App.createChart(App.DataStore.chart, App.seriesSV, true);
+
+                        $(document).bind("kendo:skinChange", App.createChart);
+                        $(".chart-type-chooser").bind("change", App.refreshChart);
+                        App.analyticsTplConfig(self);
+                        console.log("Selected Type " + dataType);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                        } else {
+                            $('.costType').show();
+                            $('.dataTypeAnalytics').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                    });
+                    break;
+                case 'scheduleVAR':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        tplId = tempTpl;
+                        App.Project(tplId, tplFooter, combineData);
+                        App.createSplittersFT();
+
+                        var refined = App.FilterChartData(costs, dataType);
+                        App.DataStore.chart = App.AssignStore(refined.graph);
+                        App.createChart(App.DataStore.chart, App.seriesSV, true);
+
+                        var projectName = App.DataStore.hierarchy[0].ExtID;
+                        $(document).bind("kendo:skinChange", App.createChart);
+                        $(".chart-type-chooser").bind("change", App.refreshChart);
+                        App.analyticsTplConfig(self);
+                        console.log("Selected Type " + dataType);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                        } else {
+                            $('.costType').show();
+                            $('.dataTypeAnalytics').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                    });
+                    break;
+                case 'spiCPI':
+                    requirejs([retrieveTpl], function (tempTpl) {
+                        tplId = tempTpl;
+                        combineData[0] = App.DataStore.hierarchyList;
+                        App.Project(tplId, tplFooter, combineData);
+                        App.createSplittersFT();
+
+                        var refined = App.FilterChartData(costs, dataType);
+                        App.DataStore.chart = App.AssignStore(refined.graph);
+                        App.hierListInitialize(App.DataStore.hierarchy);
+                        var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart);
+                        var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
+                        App.createSpiCpiChart(App.DataStore.chart, App.CpiSpiSeries, false);
+
+                        var projectName = App.DataStore.hierarchy[0].ExtID;
+                        $(document).bind("kendo:skinChange", App.createChart);
+                        $(".chart-type-chooser").bind("change", App.refreshChart);
+                        var hierarchyList = $("div#treelist");
+                        App.hierEvent(hierarchyList,dataType);//event for changing chart data
+                        App.analyticsTplConfig(self);
+                        console.log("Selected Type " + dataType);
+                        if (dataType === 'Quantity') {
+                            $('.costType').hide();
+                        } else {
+                            $('.costType').show();
+                            $('.dataTypeAnalytics').val('Costs');
+                            if (dataType === 'IntValProjCurr') {
+                                $('.costType').val('IntValProjCurr');
+                            } else {
+                                $('.costType').val('ExtValProjCurr');
+                            }
+                        }
+                        _.debounce(App.expandTreeList(hierarchyList), 500);
+                        _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                    });
+                    break;
+                default:
+                    console.log('hit default');
+                    break;
+            }
+        });
+
+        /* doc.on('change', '#dataType', function (e) {
+         e.preventDefault();
+         var hier = App.DataStore.hierarchy;
+         var costs = App.DataStore.chart.options.data;
+         if (doc.find('#dataType').val() == "Cost") {
+         console.log("IntValProjCurr");
+         combineData[1] = App.formatOneTotals(hier, costs, 'IntValProjCurr');//Return Totals for format one
+
+         tplId = cpr1;
+         tplFooter = reportFooterTpl;
+         App.Project(tplId, tplFooter, combineData);
+         bkgChange.attr('id', 'cprBG');
+         App.reportTplConfig(self);
+         $('#dataType').val('Cost');
+         $('#costType').val('Internal');
+         $('#costType').show();
+         $('#units').html('&pound;');
+         $('#cpr1Title').html('CPR FORMAT 1 - WBS (MATERIAL)');
+         $('#cpr2Title').html('CPR FORMAT 2 - OBS (MATERIAL)');
+         $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MATERIAL)');
+         $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MATERIAL)');
+         $('#cpr5Title').html('CPR FORMAT 5 - VAR (MATERIAL)');
+         $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MATERIAL)');
+         $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MATERIAL)');
+
+         App.SpinnerTpl(loadingWheel, 0);
+         } else {
+         console.log("Quantity");
+         combineData[1] = App.formatOneTotals(hier, costs, 'Quantity');//Return Totals for format one
+
+         tplId = cpr1;
+         tplFooter = reportFooterTpl;
+         App.Project(tplId, tplFooter, combineData);
+         bkgChange.attr('id', 'cprBG');
+         App.reportTplConfig(self);
+         $('#dataType').val('Hours');
+         $('#costType').hide();
+         $('#units').html('HRS');
+         $('#cpr1Title').html('CPR FORMAT 1 - WBS (MANHOURS)');
+         $('#cpr2Title').html('CPR FORMAT 2 - OBS (MANHOURS)');
+         $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MANHOURS)');
+         $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
+         $('#cpr5Title').html('CPR FORMAT 5 - VAR (MANHOURS)');
+         $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MANHOURS)');
+         $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MANHOURS)');
+
+         App.SpinnerTpl(loadingWheel, 0);
+         }
+         });
+
+         doc.on('change', '#costType', function (e) {
+         e.preventDefault();
+         if (doc.find('#costType').val() == "Internal") {
+         console.log("IntValProjCurr");
+         } else {
+         console.log("ExtValProjCurr");
+         }
+         });
+
+         doc.on('click','a#clearPicker',function(e){
          e.preventDefault();
          doc.find('tr').removeClass('isTrColor');
          doc.find('td').each(function(i,v) {

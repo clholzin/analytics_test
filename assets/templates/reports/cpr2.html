@@ -21,15 +21,17 @@
     <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
         <form class="form-inline">
             <div class="col-xs-5 input-group">
-                <select class="col-xs-6 form-control" id="dataType">
-                    <option value="Cost">Cost</option>
-                    <option value="Hours">Hours</option>
+                <select class="col-xs-6 form-control dataType controller" id="dataType">
+                    <!--option>Select Type</option-->
+                    <option value="Quantity" data-id="orgCatTable" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">Hours</option>
+                    <option value="Costs" data-id="orgCatTable" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">Cost</option>
                 </select>
             </div>
             <div class="col-xs-5 input-group">
-                <select class="col-xs-6 form-control" id="costType">
-                    <option value="Internal">Internal Cost</option>
-                    <option value="External">External Cost</option>
+                <select class="col-xs-6 form-control dataType costType" id="costType" style="display: none;">
+                    <!--option>Select Cost</option-->
+                    <option value="IntValProjCurr" data-id="orgCatTable" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">Internal Cost</option>
+                    <option value="ExtValProjCurr" data-id="orgCatTable" data-temp="cpr2" data-name="CPR2_OBS" data-sheet="CPR-2">External Cost</option>
                 </select>
             </div>
         </form>
@@ -47,7 +49,7 @@
         <tr>
             <td id="cpr2Title" colspan='20'
                 style='text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                CPR FORMAT 2 - OBS (MATERIAL)
+                CPR FORMAT 2 - OBS (MANHOURS)
             </td>
         </tr>
 
@@ -186,7 +188,7 @@
             <td colspan='2'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='2' id="units"
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>&pound;</td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>HRS</td>
             <td colspan='8'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='2'
@@ -319,14 +321,19 @@
 
         <!-- FOR EACH ITEM -->
         <% $.each(combineData[1],function(key,value){ %>
-        <% if(value.isChild){ %>
-        <tr data-type="<%-value.Type%>" class="hide child">
-            <%}else{%>
-        <tr data-type="<%-value.Type%>" class="parent">
-            <%}%>
+        <% if(value.isChild || key === 0){ %>
+        <tr data-type="<%-value.Type%>" class="child<%-value.ParentObjNum%>">
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.ExtID%>
             </td>
+            <%}else{%>
+        <tr data-type="<%-value.Type%>" class="parent">
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <div class="getChildren" data-id="<%-value.ObjectNumber%>" role="button">
+                    <i class="glyphicon glyphicon-minus"></i> <%-value.ExtID%>
+                </div>
+            </td>
+            <%}%>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.Description%>
             </td>

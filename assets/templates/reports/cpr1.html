@@ -25,17 +25,17 @@
     <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
         <form class="form-inline">
             <div class="col-xs-5 input-group">
-                <select class="col-xs-6 form-control" id="dataType">
-                    <option>Select Type</option>
+                <select class="col-xs-6 form-control dataType controller" id="dataType">
+                    <!--option>Select Type</option-->
                     <option value="Quantity" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Hours</option>
-                    <option value="IntValProjCurr" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Cost</option>
+                    <option value="Costs" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Cost</option>
                 </select>
             </div>
             <div class="col-xs-5 input-group">
-                <select class="col-xs-6 form-control" id="costType" style="display: none;">
-                    <option>Select Type</option>
-                    <option value="Internal" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Internal Cost</option>
-                    <option value="External" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">External Cost</option>
+                <select class="col-xs-6 form-control dataType costType" id="costType" style="display: none;">
+                    <!--option>Select Cost</option-->
+                    <option value="IntValProjCurr" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">Internal Cost</option>
+                    <option value="ExtValProjCurr" data-id="wbsTable" data-temp="cpr1" data-name="CPR1_WBS" data-sheet="CPR-1">External Cost</option>
                 </select>
             </div>
         </form>
@@ -330,11 +330,10 @@
                 <%-value.ExtID%>
             </td>
             <%}else{%>
-
         <tr data-type="<%-value.Type%>" class="parent">
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                <div class="btn btn-primary btn-xs getChildren" data-id="<%-value.ObjectNumber%>" role="button">
-                    <i class="glyphicon glyphicon-plus"></i>
+                <div class="getChildren" data-id="<%-value.ObjectNumber%>" role="button">
+                    <i class="glyphicon glyphicon-minus"></i> <%-value.ExtID%>
                 </div>
             </td>
             <%}%>

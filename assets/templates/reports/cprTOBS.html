@@ -21,15 +21,17 @@
     <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
         <form class="form-inline">
             <div class="col-xs-5 input-group">
-                <select class="col-xs-6 form-control" id="dataType">
-                    <option value="Cost">Cost</option>
-                    <option value="Hours">Hours</option>
+                <select class="col-xs-6 form-control dataType controller" id="dataType">
+                    <!--option>Select Type</option-->
+                    <option value="Quantity" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-sheet="CPR-TOBS">Hours</option>
+                    <option value="Costs" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-sheet="CPR-TOBS">Cost</option>
                 </select>
             </div>
             <div class="col-xs-5 input-group">
-                <select class="col-xs-6 form-control" id="costType">
-                    <option value="Internal">Internal Cost</option>
-                    <option value="External">External Cost</option>
+                <select class="col-xs-6 form-control dataType costType" id="costType" style="display: none;">
+                    <!--option>Select Cost</option-->
+                    <option value="IntValProjCurr" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-sheet="CPR-TOBS">Internal Cost</option>
+                    <option value="ExtValProjCurr" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-sheet="CPR-TOBS">External Cost</option>
                 </select>
             </div>
         </form>
@@ -47,7 +49,7 @@
         <tr>
             <td id="cprTOTitle" colspan='27'
                 style='text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                CPR FORMAT TREND - OBS (MATERIAL)
+                CPR FORMAT TREND - OBS (MANHOURS)
             </td>
         </tr>
 
@@ -186,7 +188,7 @@
             <td colspan='4'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='4' id="units"
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>&pound;</td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>HRS</td>
             <td colspan='8'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='4'
@@ -379,15 +381,19 @@
 
         <!-- FOR EACH ITEM -->
         <% _.each(combineData[1],function(value,index){ %>
-        <% if(value.isChild){ %>
-        <tr data-type="<%-value.Type%>" class="hide child">
+        <% if(value.isChild || index === 0){ %>
+        <tr data-type="<%-value.Type%>" class="child<%-value.ParentObjNum%>">
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-value.ExtID%>
+            </td>
             <%}else{%>
         <tr data-type="<%-value.Type%>" class="parent">
-            <%}%>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                <%-value.ExtID%> - <%-value.Description%>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <div class="getChildren" data-id="<%-value.ObjectNumber%>" role="button">
+                    <i class="glyphicon glyphicon-minus"></i> <%-value.ExtID%> - <%-value.Description%>
+                </div>
             </td>
+            <%}%>
             <td colspan='1'
                 style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.totals.curBcwsTotal%>
