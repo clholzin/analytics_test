@@ -98,17 +98,14 @@ define(['jquery', 'underscore', 'domReady', 'app',
             }
         });
 
-        /**
-         *
-         * You were right Tom, 'Change' works better here, good lookin out
-         *
-         * **/
+
         doc.on('change', '#hChange', function (e) {
             e.preventDefault();
             var selected = $(this),
                 Hier = selected.val(),
                 chartType = selected.find(':selected').attr('data-chartType'),
                 selectedTitle = selected.find(':selected').attr('data-title'),
+                hierarchyList = doc.find("div#treelist"),
                 chartDataSource,
                 self = $(this),
                 $treeList = doc.find("div#treelist").data("kendoTreeList"),
@@ -141,30 +138,40 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 /** Error handler **/
 
                 /**
-                 *
                  * New Global Datastore set function
-                 *
                  **/
+
                 App.DataStore.setData(cData, hData);
 
                 /** Clear Hierarchy and Chart **/
-                if (!_.isUndefined($treeList)) {
+                /**/if (!_.isUndefined($treeList)) {  }
                     $treeList.destroy();
                     $chartGraph.destroy();
                     doc.find("div#chart").empty();
-                    doc.find("div#treelist").empty();
+                    hierarchyList.empty();
+                 //  hierarchyList.off('click');
+
+
+               // $chartGraph.dataSource = App.DataStore.chart;
+                if(chartType.toUpperCase() === 'SPICPI'){
+                    var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart.options.data, 'Quantity');
+                    var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
+                    App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
+                }else{
+                    var refined = App.FilterChartData(App.DataStore.chart.options.data, 'Quantity');
+                    App.DataStore.chart = App.AssignStore(refined.graph);
+                    App.createChart(App.DataStore.chart, App.series, false,  'Quantity');
                 }
 
-                //$chartGraph.dataSource = App.AssignStore(chartDataSource.graph);
-                //$treeList.dataSource.data(App.DataStore.hierarchy);
-                App.createChart(App.DataStore.chart, App.series, false);
                 App.hierListInitialize(App.DataStore.hierarchy);
                 /** Clear Hierarchy and Chart **/
-                    // $(document).bind("kendo:skinChange", App.createChart);
-                    // $(".chart-type-chooser").bind("change", App.refreshChart);
-                App.refreshChart();
-                var hierarchyList = doc.find("div#treelist");
-                App.hierEvent(hierarchyList);//event for changing chart data
+                 $(document).bind("kendo:skinChange", App.createChart);
+                 $(".chart-type-chooser").bind("change", App.refreshChart);
+
+                $('.dataTypeAnalytics').val('Quantity');
+                $('.costType').hide();
+                /*App.refreshChart();*/
+              // App.hierEvent(hierarchyList,'Quantity',chartType.toUpperCase());//event for changing chart data
                 App.analyticsTplConfig(self);
                 _.debounce(App.expandTreeList(hierarchyList), 500);
                 _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
@@ -205,7 +212,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 chartDataSource = '',
                 id = self.data('temp'),//Name of DIV
                 name = self.data('name');//File Name to Export As
-
+            /* this is to reset global dataType upon entry*/;
+            App.dataType = 'Quantity';
             App.setHierarchySelection(id.toUpperCase());
             var List = App.HierarchyListSet();
             App.HierarchySelectionID = '';
@@ -251,112 +259,114 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         case 'earnedSchedule':
                             $.when(hierData, chartData).done(function (hData, cData) {
                                 App.createSplittersFT();
-                                /** Error handler **/
                                 if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
                                     return;
                                 }
-                                /** Error handler **/
+
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
+                                    tplId = tempTpl;
+                                    App.Project(tplId, tplFooter, combineData);
+                                    App.createSplittersFT();
+                                    App.hierListInitialize(App.DataStore.hierarchy);
+                                    var refined = App.FilterChartData(App.DataStore.chart.options.data, App.dataType);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.createChart(App.DataStore.chart, App.seriesSV, true, App.dataType);
 
-                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
-                                App.DataStore.chart = App.AssignStore(refined.graph);
-                                App.hierListInitialize(App.DataStore.hierarchy);
-                                App.createChart(App.DataStore.chart, App.seriesSV, true);
+                                    var projectName = App.DataStore.hierarchy[0].ExtID;
+                                    $(document).bind("kendo:skinChange", App.createChart);
+                                    //$(".chart-type-chooser").bind("change", App.refreshChart);
+                                    App.analyticsTplConfig(self);
+                                    //_.debounce(App.expandTreeList(hierarchyList), 500);
+                                    _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
 
-                                var projectName = _.first(App.DataStore.hierarchy).ExtID;
-                                $(document).bind("kendo:skinChange", App.createChart);
-                                $(".chart-type-chooser").bind("change", App.refreshChart);
-                                /** Changed Refresh Chart Name for clarity**/
-                                var hierarchyList = $("div#treelist");
-                                App.hierEvent(hierarchyList);//event for changing chart data
-                                App.analyticsTplConfig(self);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
                             });
                             break;
                         case 'spiCPI':
                             $.when(hierData, chartData).done(function (hData, cData) {
                                 App.createSplittersFT();
-                                /** Error handler **/
                                 if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
                                     return;
                                 }
-                                /** Error handler **/
+
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
+                                    tplId = tempTpl;
+                                    App.Project(tplId, tplFooter, combineData);
+                                    App.createSplittersFT();
+                                    App.hierListInitialize(App.DataStore.hierarchy);
+                                    var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart.options.data,App.dataType);
+                                    var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
+                                    App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
 
-                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
-                                App.DataStore.chart = App.AssignStore(refined.graph);
-                                App.hierListInitialize(App.DataStore.hierarchy);
-                                var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart.options.data);
-                                var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
-                                App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
+                                    var projectName = App.DataStore.hierarchy[0].ExtID;
+                                    $(document).bind("kendo:skinChange", App.createChart);
+                                    //$(".chart-type-chooser").bind("change", App.refreshChart);
+                                    var hierarchyList = $("div#treelist");
+                                    App.hierEvent(hierarchyList, App.dataType,name);//event for changing chart data
+                                    App.analyticsTplConfig(self);
+                                    $('#hChange').val(App.HierarchySelectionID);
+                                    _.debounce(App.expandTreeList(hierarchyList), 500);
+                                    _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                                });
 
-                                var projectName = _.first(App.DataStore.hierarchy).ExtID;
-                                $(document).bind("kendo:skinChange", App.createSpiCpiChart);
-                                $(".chart-type-chooser").bind("change", App.refreshChart);
-                                /** Changed Refresh Chart Name for clarity**/
-                                var hierarchyList = $("div#treelist");
-                                App.hierEvent(hierarchyList);//event for changing chart data
-                                App.analyticsTplConfig(self);
-                                _.debounce(App.expandTreeList(hierarchyList), 500);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
-                            });
                             break;
                         case 'spa':
                             $.when(hierData, chartData).done(function (hData, cData) {
                                 App.createSplittersFT();
-                                /** Error handler **/
                                 if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
                                     return;
                                 }
-                                /** Error handler **/
 
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
-                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
-                                App.DataStore.chart = App.AssignStore(refined.graph);
-                                App.hierListInitialize(App.DataStore.hierarchy);
-                                App.createChart(App.DataStore.chart, App.series, false);
+                                    tplId = tempTpl;
+                                    App.Project(tplId, tplFooter, combineData);
+                                    App.createSplittersFT();
+                                    var refined = App.FilterChartData(App.DataStore.chart.options.data, App.dataType);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.hierListInitialize(App.DataStore.hierarchy);
+                                    App.createChart(App.DataStore.chart, App.series, false, App.dataType);
+                                    var projectName = App.DataStore.hierarchy[0].ExtID;
+                                    $(document).bind("kendo:skinChange", App.createChart);
+                                    //$(".chart-type-chooser").bind("change", App.refreshChart);
+                                    var hierarchyList = $("div#treelist");
+                                    App.hierEvent(hierarchyList,App.dataType,name);//event for changing chart data
+                                    App.analyticsTplConfig(self);
+                                    $('#hChange').val(App.HierarchySelectionID);
+                                    _.debounce(App.expandTreeList(hierarchyList), 500);
+                                    _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                                });
 
-                                var projectName = App.DataStore.hierarchy[0].ExtID;
-                                $(document).bind("kendo:skinChange", App.createChart);
-                                $(".chart-type-chooser").bind("change", App.refreshChart);
-                                /** Changed Refresh Chart Name for clarity**/
-                                var hierarchyList = $("div#treelist");
-                                App.hierEvent(hierarchyList);//event for changing chart data
-                                App.analyticsTplConfig(self);
-                                _.debounce(App.expandTreeList(hierarchyList), 500);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
-                            });
                             break;
                         case 'scheduleVAR':
                             $.when(hierData, chartData).done(function (hData, cData) {
                                 App.createSplittersFT();
-                                /** Error handler **/
                                 if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
                                     return;
                                 }
-                                /** Error handler **/
+
                                 if (!_.isEmpty(cData)) {
                                     App.DataStore.setData(cData, hData);
                                 }
-                                var refined = App.FilterChartData(App.DataStore.chart.options.data, dataType);
-                                App.DataStore.chart = App.AssignStore(refined.graph);
-                                App.hierListInitialize(App.DataStore.hierarchy);
-                                App.createChart(App.DataStore.chart, App.seriesSV, true);
+                                    tplId = tempTpl;
+                                    App.Project(tplId, tplFooter, combineData);
+                                    App.createSplittersFT();
+                                    App.hierListInitialize(App.DataStore.hierarchy);
+                                    var refined = App.FilterChartData(App.DataStore.chart.options.data,App.dataType);
+                                    App.DataStore.chart = App.AssignStore(refined.graph);
+                                    App.createChart(App.DataStore.chart, App.seriesSV, true,App.dataType);
 
-                                var projectName = _.first(App.DataStore.hierarchy).ExtID;
-                                $(document).bind("kendo:skinChange", App.createChart);
-                                $(".chart-type-chooser").bind("change", App.refreshChart);
-                                /** Changed Refresh Chart Name for clarity**/
-                                var hierarchyList = $("div#treelist");
-                                App.hierEvent(hierarchyList);//event for changing chart data
-                                App.analyticsTplConfig(self);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+                                    var projectName = App.DataStore.hierarchy[0].ExtID;
+                                    $(document).bind("kendo:skinChange", App.createChart);
+                                    //$(".chart-type-chooser").bind("change", App.refreshChart);
+                                    App.analyticsTplConfig(self);
+                                    //_.debounce(App.expandTreeList(hierarchyList), 500);
+                                    _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
+
                             });
                             break;
                         default:
@@ -372,6 +382,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
             if (App.CheckProdId()) {
                 return;
             }
+            /* this is to reset global dataType upon entry*/;
             App.addSpinner(e.currentTarget);//bkg loading
             App.SpinnerTpl(loadingWheel, 1);
             var combineData = [],
@@ -419,18 +430,13 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         hier = App.DataStore.hierarchy;
                         costs = App.DataStore.chart.options.data;
-                        /**  currentVersion[0] = _.chain(App.DataStore.filtered)
-                         .filter({"Type":App.DataStore.versionSelection})
-                         //.map(function(item){ return item.data })
-                         .first()
-                         .value();
-                         console.log(currentVersion);**/
-                        var defaultType = 'Quantity';
+
+                        App.dataType = 'Quantity';
                         switch (sheet) {
                             case 'CPR-1':
                                 console.log('hit 1');
                                 combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatOneTotals(hier, costs, defaultType);//Return Totals for format one
+                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
                                 tplFooter = reportFooterTpl;
@@ -443,7 +449,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             case 'CPR-2':
                                 console.log('hit 2');
                                 /*********   Data Processing  *************/
-                                combineData[1] = App.formatOneTotals(hier, costs, defaultType);//Return Totals for format one
+                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
                                 tplFooter = reportFooterTpl;
@@ -464,7 +470,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 App.Project(tplId, tplFooter, combineData);
                                 bkgChange.attr('id', 'cprBG');
                                 App.reportTplConfig(self);
-
                                 /*********   End Template Processing  *****/
                                 App.SpinnerTpl(loadingWheel, 0);
                                 break;
@@ -480,16 +485,14 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 App.Project(tplId, tplFooter, combineData);
                                 bkgChange.attr('id', 'cprBG');
                                 App.reportTplConfig(self);
-
                                 /*********   End Template Processing  *****/
                                 App.SpinnerTpl(loadingWheel, 0);
                                 break;
                             case 'CPR-5':
                                 console.log('hit 5');
-                                totals = App.DataStore.chartTotals;
-                                gauges = App.DataStore.gaugesData;
+                                var data = App.FilterChartData(costs, App.dataType);
                                 combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatFiveTotals(totals, gauges);
+                                combineData[1] = App.formatFiveTotals(data);
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
                                 tplFooter = reportFooterTpl;
@@ -503,7 +506,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             case 'CPR-TWBS':
                                 console.log('hit TW');
                                 combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatOneTotals(hier, costs, defaultType);//Return Totals for format one
+                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
                                 tplFooter = reportFooterTpl;
@@ -516,7 +519,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             case 'CPR-TOBS':
                                 console.log('hit TO');
                                 combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatOneTotals(hier, costs, defaultType);//Return Totals for format one
+                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
                                 tplFooter = reportFooterTpl;
@@ -588,6 +591,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 logic = self.attr('data-sheet'),
                 reportType = self.attr('data-temp');
             console.log('type: ' + dataType + ' and Report: ' + reportType);
+            App.dataType = dataType;
             if (dataType === 'Quantity') {
                 $('.costType').hide();
             } else if (dataType === 'Costs') {
@@ -597,13 +601,13 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 //return;
             } else {
             }
-            App.dataType = dataType;
+
             var retrieveTpl = 'tpl!templates/reports/' + reportType + '.html';
             var hier = App.DataStore.hierarchy;
             var costs = App.DataStore.chart.options.data;
-            switch (logic) {
-                case 'CPR-1':
-                    requirejs([retrieveTpl], function (tempTpl) {
+            requirejs([retrieveTpl], function (tempTpl) {
+                switch (logic) {
+                    case 'CPR-1':
                         console.log('hit 1');
                         combineData[0] = App.DataStore.project;
                         combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
@@ -632,10 +636,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         /*********   End Template Processing  *****/
                         App.SpinnerTpl(loadingWheel, 0);
 
-                    });
-                    break;
-                case 'CPR-2':
-                    requirejs([retrieveTpl], function (tempTpl) {
+
+                        break;
+                    case 'CPR-2':
+
                         console.log('hit 2');
                         /*********   Data Processing  *************/
                         combineData[0] = App.DataStore.project;
@@ -663,10 +667,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         /*********   End Template Processing  *****/
                         App.SpinnerTpl(loadingWheel, 0);
-                    });
-                    break;
-                case 'CPR-3':
-                    requirejs([retrieveTpl], function (tempTpl) {
+
+                        break;
+                    case 'CPR-3':
                         console.log('hit 3');
                         /*********   Template Processing  *********/
                         var totals = App.DataStore.chartTotals;
@@ -694,10 +697,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         /*********   End Template Processing  *****/
                         App.SpinnerTpl(loadingWheel, 0);
-                    });
-                    break;
-                case 'CPR-4':
-                    requirejs([retrieveTpl], function (tempTpl) {
+
+                        break;
+                    case 'CPR-4':
+
                         console.log('hit 4');
                         /*********   Template Processing  *********/
                         combineData[0] = App.DataStore.project;
@@ -726,19 +729,15 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         /*********   End Template Processing  *****/
                         App.SpinnerTpl(loadingWheel, 0);
-                    });
-                    break;
-                case 'CPR-5':
-                    requirejs([retrieveTpl], function (tempTpl) {
-                        console.log('hit 5');
 
-                       /* var totals = App.DataStore.chartTotals;
-                        var gauges = App.DataStore.gaugesData;*/
+                        break;
+                    case 'CPR-5':
+                        console.log('hit 5');
+                        /* var totals = App.DataStore.chartTotals;
+                         var gauges = App.DataStore.gaugesData;*/
                         var data = App.FilterChartData(costs, dataType);
-                        var totals = data.totals;
-                        var gauges = data.gauges;
                         combineData[0] = App.DataStore.project;
-                        combineData[1] = App.formatFiveTotals(totals, gauges);
+                        combineData[1] = App.formatFiveTotals(data);
                         /*********   Template Processing  *********/
                         tplId = tempTpl;
                         tplFooter = reportFooterTpl;
@@ -762,10 +761,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         /*********   End Template Processing  *****/
                         App.SpinnerTpl(loadingWheel, 0);
-                    });
-                    break;
-                case 'CPR-TWBS':
-                    requirejs([retrieveTpl], function (tempTpl) {
+                        break;
+                    case 'CPR-TWBS':
                         console.log('hit TW');
                         combineData[0] = App.DataStore.project;
                         combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
@@ -792,10 +789,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         /*********   End Template Processing  *****/
                         App.SpinnerTpl(loadingWheel, 0);
-                    });
-                    break;
-                case 'CPR-TOBS':
-                    requirejs([retrieveTpl], function (tempTpl) {
+                        break;
+                    case 'CPR-TOBS':
                         console.log('hit TO');
                         combineData[0] = App.DataStore.project;
                         combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
@@ -822,24 +817,27 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         /*********   End Template Processing  *****/
                         App.SpinnerTpl(loadingWheel, 0);
-                    });
-                    break;
-                default:
-                    console.log('hit default');
-                    break;
-            }
+                        break;
+                    default:
+                        console.log('hit default');
+                        break;
+                }
+            });
         });
-
 
         doc.on('change', '.dataTypeAnalytics', function (e) {
             e.preventDefault();
+
             App.SpinnerTpl(loadingWheel, 1);
             var self = $(this).find(':selected'),
                 dataType = self.val(),
+                $chartGraph = doc.find("div#chart"),
                 logic = self.attr('data-name'),
+                combineData = [],
                 reportType = self.attr('data-temp');
             console.log('type: ' + dataType + ' and Report: ' + reportType);
-            if (dataType === 'Quantity') {
+            App.dataType = dataType;
+             if (dataType === 'Quantity') {
                 $('.costType').hide();
             } else if (dataType === 'Costs') {
                 dataType = 'IntValProjCurr';
@@ -850,7 +848,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
             var retrieveTpl = 'tpl!templates/analytics/' + reportType + '.html';
             var hier = App.DataStore.hierarchy;
             var costs = App.DataStore.chart.options.data;
-
+            /* send hierarchy list to template*/
+            combineData[0] = App.DataStore.hierarchyList;
             switch (logic) {
                 case 'projectAnalytics':
                     tplFooter = analyticsFooterATpl;
@@ -864,22 +863,20 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 case 'spa':
                     requirejs([retrieveTpl], function (tempTpl) {
                         tplId = tempTpl;
-                        combineData[0] = App.DataStore.hierarchyList;
+                        console.log(combineData);
                         App.Project(tplId, tplFooter, combineData);
                         App.createSplittersFT();
-
+                        App.hierListInitialize(hier);
                         var refined = App.FilterChartData(costs, dataType);
                         App.DataStore.chart = App.AssignStore(refined.graph);
-                        App.hierListInitialize(App.DataStore.hierarchy);
-                        App.createChart(App.DataStore.chart, App.series, false);
-
+                        App.createChart(App.DataStore.chart, App.series, false, dataType);
                         var projectName = App.DataStore.hierarchy[0].ExtID;
                         $(document).bind("kendo:skinChange", App.createChart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         var hierarchyList = $("div#treelist");
-                        App.hierEvent(hierarchyList,dataType);//event for changing chart data
+                        App.hierEvent(hierarchyList, dataType);//event for changing chart data
                         App.analyticsTplConfig(self);
-                        console.log("Selected Type " + dataType);
+                        console.warn("Selected Type " + dataType);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
                         } else {
@@ -891,6 +888,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 $('.costType').val('ExtValProjCurr');
                             }
                         }
+                        $('#hChange').val(App.HierarchySelectionID);
                         _.debounce(App.expandTreeList(hierarchyList), 500);
                         _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
                     });
@@ -900,11 +898,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         tplId = tempTpl;
                         App.Project(tplId, tplFooter, combineData);
                         App.createSplittersFT();
-
                         var refined = App.FilterChartData(costs, dataType);
                         App.DataStore.chart = App.AssignStore(refined.graph);
-                        App.createChart(App.DataStore.chart, App.seriesSV, true);
-
+                        App.createChart(App.DataStore.chart, App.seriesSV, true, dataType);
                         $(document).bind("kendo:skinChange", App.createChart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         App.analyticsTplConfig(self);
@@ -928,11 +924,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         tplId = tempTpl;
                         App.Project(tplId, tplFooter, combineData);
                         App.createSplittersFT();
-
                         var refined = App.FilterChartData(costs, dataType);
                         App.DataStore.chart = App.AssignStore(refined.graph);
-                        App.createChart(App.DataStore.chart, App.seriesSV, true);
-
+                        App.createChart(App.DataStore.chart, App.seriesSV, true, dataType);
                         var projectName = App.DataStore.hierarchy[0].ExtID;
                         $(document).bind("kendo:skinChange", App.createChart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
@@ -955,22 +949,17 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 case 'spiCPI':
                     requirejs([retrieveTpl], function (tempTpl) {
                         tplId = tempTpl;
-                        combineData[0] = App.DataStore.hierarchyList;
                         App.Project(tplId, tplFooter, combineData);
                         App.createSplittersFT();
-
-                        var refined = App.FilterChartData(costs, dataType);
-                        App.DataStore.chart = App.AssignStore(refined.graph);
-                        App.hierListInitialize(App.DataStore.hierarchy);
-                        var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart);
+                        App.hierListInitialize(hier);
+                        var cpiSpiTrendData = App.cpiSpiTrend(costs,dataType);
                         var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
-                        App.createSpiCpiChart(App.DataStore.chart, App.CpiSpiSeries, false);
-
+                        App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
                         var projectName = App.DataStore.hierarchy[0].ExtID;
                         $(document).bind("kendo:skinChange", App.createChart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         var hierarchyList = $("div#treelist");
-                        App.hierEvent(hierarchyList,dataType);//event for changing chart data
+                        App.hierEvent(hierarchyList, dataType,logic);//event for changing chart data
                         App.analyticsTplConfig(self);
                         console.log("Selected Type " + dataType);
                         if (dataType === 'Quantity') {
@@ -984,6 +973,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 $('.costType').val('ExtValProjCurr');
                             }
                         }
+                        $('#hChange').val(App.HierarchySelectionID);
                         _.debounce(App.expandTreeList(hierarchyList), 500);
                         _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
                     });
