@@ -254,30 +254,14 @@
                 style='text-align: center; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 REPORT
             </td>
-            <td colspan='1'
-                style='text-align: center; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                SEP
+
+            <%_.each(combineData[0].forcast,function(value,key){ %>
+            <%if(value.order < 7){%>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%-value.month%>
             </td>
-            <td colspan='1'
-                style='text-align: center; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                OCT
-            </td>
-            <td colspan='1'
-                style='text-align: center; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                NOV
-            </td>
-            <td colspan='1'
-                style='text-align: center; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                DEC
-            </td>
-            <td colspan='1'
-                style='text-align: center; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                JAN
-            </td>
-            <td colspan='1'
-                style='text-align: center; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                FEB
-            </td>
+            <%}%>
+            <%});%>
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1'
@@ -518,70 +502,81 @@
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
         </tr>
+        <!--
+         "start": start,
+                    "end": end,
+                    "bcwsTotalRate": bcwsHrRate.toFixed(2) + ' Hourly Rate',
+                    "bcwpTotalRate": bcwpHrRate.toFixed(2) + ' Hourly Rate',
+                    "eacTotalRate": eacHrRate.toFixed(2) + ' Hourly Rate',
+                    "acwpTotalRate": acwpHrRate.toFixed(2) + ' Hourly Rate',
 
+                    bac:total.bac,
+
+                    bcwsAll: total.bcwsAll,
+                    bcwsTotal: total.bcwsTotal,
+                    curBcwsHrs: total.curBcwsHrs,
+                    curBcwsTotal: total.curBcwsTotal,
+                    bcwsCOM:total.bcwsCOM,
+                    bcwsGA:total.bcwsGA,
+                    bcwsHrs: total.bcwsHrs,
+                    bcwsOH:total.bcwsOH,
+                    allbcwsCOM:total.allbcwsCOM,
+                    allbcwsGA:total.allbcwsGA,
+                    allbcwsOH:total.allbcwsOH,
+                    curbcwsCOM:total.curbcwsCOM,
+                    curbcwsGA:total.curbcwsGA,
+                    curbcwsOH:total.curbcwsOH,
+
+                    curBcwpHrs: total.curBcwpHrs,
+                    curBcwpTotal: total.curBcwpTotal,
+                    bcwpTotal: total.bcwpTotal,
+                    bcwpCOM:total.bcwpCOM,
+                    bcwpGA:total.bcwpGA,
+                    bcwpHrs: total.bcwpHrs,
+                    bcwpOH:total.bcwpOH,
+                    curbcwpCOM:total.curbcwpCOM,
+                    curbcwpGA:total.curbcwpGA,
+                    curbcwpOH:total.curbcwpOH
+        -->
         <tr>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 [Beginning of Period]
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%-combineData[0].bcwsTotal%>
+            </td>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%-combineData[0].curBcwsTotal%>
+            </td>
+
+
+            <%_.each(combineData[0].forcast,function(value,key){ %>
+            <%if(value.order < 7){%>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%-value.total%>
+            </td>
+            <%}%>
+            <%});%>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
         </tr>
@@ -887,61 +882,40 @@
             </td>
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                72,480
+                <%-combineData[0].bac%>
             </td>
-            <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                154,159
+            <td colspan='1' class="no-paint" style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+
+            <%_.each(combineData[0].forcast,function(value,key){ %>
+            <%if(value.order < 7){%>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%-value.total%>
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                129,686
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                64,958
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                24,900
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <%}%>
+            <%});%>
+
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 0
             </td>
+
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
-            </td>
-            <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                446,183
+                <%-combineData[0].bac%>
             </td>
         </tr>
 
@@ -1058,7 +1032,7 @@
                 style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1'
                 style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                446,183
+                <%-combineData[0].bac%>
             </td>
         </tr>
 

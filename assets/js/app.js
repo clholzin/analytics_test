@@ -2,8 +2,9 @@
  * Created by Craig on 7/14/2015.
  * Update by Tom on 7/27/2015
  */
-define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'FileSaver',
-    'jquery.table2excel'], function ($, _, moment) {
+define(['jquery', 'underscore', 'moment','' +
+    'tpl!templates/spinner.html', 'kendo', 'Blob', 'base64', 'jszip', 'FileSaver',
+    'jquery.table2excel'], function ($, _, moment,spinnerTpl) {
     var App = App || {};
     App.projectID = "";
     App.HierarchySelectionID = '';
@@ -144,6 +145,14 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
          markers: {type: "circle"}
          }*/
     ];
+    App.seriesES = [{
+            name: "ES",
+            type: "column",
+            field: "ES",
+            categoryField: "Date",
+            color: "#000099",
+            markers: {type: "circle"}
+        }];
     App.seriesCombo = [
         {
             name: "Planned (BCWS)",
@@ -234,17 +243,20 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
 
     App.DataStore = {
         chart: {},
+        spiCpiChart:{},
         filtered: [],
         chartTotals: [],
+        rawspiCpiChartdata: [],
         rawChartdata: [],
         gaugesData: [],
         project: {},
         hierarchy: [],
+        hierarchySv:[],
         versions: [],
         versionSelection: '',
         hierarchyList: [],
         snapShotList: [],
-        empty: function () {
+        clearChartData: function () {
             this.chart = {};
             this.filtered = [];
             this.chartTotals = [];
@@ -255,17 +267,28 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
           //  this.hierarchyList = {};
             this.snapShotList = [];
         },
-        setData: function (cData, hData) {
-            this.rawChartdata = _.first(cData).d.results;
+        setData: function (Data, hData) {
+            this.rawChartdata = _.first(Data).d.results;
             this.filtered = App.VersionFilter(this.versions, this.rawChartdata);
-            console.log(this.filtered);
+            //console.log(this.filtered);
             var chartDataSource = App.FilterData(this.filtered, this.rawChartdata, this.versionSelection);
             var refined = App.FilterChartData(chartDataSource.graph, App.dataType);
             this.chart = App.AssignStore(refined.graph);
             this.chartTotals = refined.totals;
             this.gaugesData = refined.gauges;
             this.hierarchy = _.first(hData).d.results;
-        }
+        },
+        setSpiCpiData: function (Data, hData) {
+            this.rawspiCpiChartdata = _.first(Data).d.results;
+            var cpiSpiTrendData = App.cpiSpiTrend(this.rawspiCpiChartdata,App.dataType);
+            this.spiCpiChart = App.AssignStore(cpiSpiTrendData);
+            this.hierarchySv = _.first(hData).d.results;
+        },
+        clearSpiCpiData: function () {
+            this.rawspiCpiChartdata = [];
+            this.spiCpiChart = [];
+            this.hierarchySv = [];
+        },
     };
 
     App.unit = {
@@ -303,17 +326,19 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         App.DataStore.versionSelection = '';
         $.when(versionData).done(function (vData) {
             App.DataStore.versions = vData.d.results;
-
             var defVersion = $.grep(App.DataStore.versions, function (item) {
                 return item.Default === "X";
             });
+            // console.log(App.defaultVersion);
             console.log(defVersion);
-            if (defVersion.length > 1) {
-                App.DataStore.versionSelection = _.first(defVersion).VersionSelection;
-            } else {
-                App.DataStore.versionSelection = defVersion.VersionSelection;
-            }
-            console.log('Version Selection: ' + App.DataStore.versionSelection);
+            App.DataStore.versionSelection = defVersion
+            /* if (defVersion.length > 1) {
+             App.DataStore.versionSelection = _.first(defVersion).VersionSelection;
+             } else {
+             App.DataStore.versionSelection = defVersion.VersionSelection;
+             }*/
+            console.log('Default Version Selection: ' + _.first(App.DataStore.versionSelection).VersionSelection + ' - '+
+                _.last(App.DataStore.versionSelection).VersionSelection);
         });
     };
 
@@ -374,15 +399,14 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
 
     App.setHierarchySelection = function (ChartType) {
         this.ChartType = ChartType;
-        //HierarchySelectionSet(ChartType='SPA',ProjectSelection='PMR-T01')?$format=json
         this.urlHierarchyListSet = "/HierarchySelectionSet(ChartType='" + this.ChartType + "',ProjectSelection='" + this.projectID + "')?$format=json";
     };
 
     App.setDataSelection = function () {
-        //SnapshotDataSet(ProjectSelection='PMR-T01',HierarchySelection='OB0000265594',SnapshotType='M')?$format=json
         this.urlSnapshotSet = "/SnapshotDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',SnapshotType='M')?$format=json";
-        //HierarchyDataSet(ProjectSelection='PMR-T01',HierarchySelection='OB0000265594')?$format=json
         this.urlHierarchySet = "/HierarchyDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "')?$format=json";
+        this.urlESSet = "/EarnedScheduleDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
+        this.urlSVSet = "/BcwsBcwpAcwpDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',EACVersionSelection='" + _.last(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
     };
 
     App.CheckProdId = function () {
@@ -393,7 +417,6 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
     };
 
     App.CheckHierarchyId = function () {
-
         if (_.isEmpty(this.HierarchySelectionID) || _.isUndefined(this.HierarchySelectionID)) {
             alert('Please select a Hierarchy');
             return true;
@@ -401,7 +424,7 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
     };
 
     App.ClearDataStore = function () {
-        this.DataStore.empty();
+        this.DataStore.clearChartData();
     };
 
     App.UpdateHierarchy = function () {
@@ -850,35 +873,80 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         return hierarchy;
     };
 
-    App.formatThreeTotals = function (totals, chartData, rawData) {
-        var rawSortedDate = _.sortBy(rawData, 'Date');
-        if (_.isUndefined(totals)) {
+    App.formatThreeTotals = function (chartData,dataType) {
+
+        var refined = App.FilterChartData(chartData, dataType);
+        var rawSortedData = _.chain(refined.graph).flatten().sortBy('Date').value();
+        if (_.isUndefined(refined.totals)) {
             var total = undefined;
+            return;
         } else {
-            total = App.convertArraytoObject(totals);
+            total = _.first(refined.totals);
         }
-        var array = [],
-            start = moment(_.first(rawSortedDate).Date).format('YYYY/MM'),
-            end = moment(_.last(rawSortedDate).Date).format('YYYY/MM'),
-            bcwsHrRate = parseFloat(total.bcwsTotal) / parseFloat(total.bcwsHrs),
-            bcwpHrRate = parseFloat(total.bcwpTotal) / parseFloat(total.bcwpHrs),
-            eacHrRate = parseFloat(total.eacTotal) / parseFloat(total.eacHrs),
-            acwpHrRate = parseFloat(total.acwpTotal) / parseFloat(total.acwpHrs);
-        array.push({
+        var obj = {},forcast = {},
+            start = moment(_.first(rawSortedData).Date).format('YYYY/MM'),
+            end = moment(_.last(rawSortedData).Date).format('YYYY/MM'),
+            snapShotDate = moment(_.first(rawSortedData).snapShotDate);
+        var dataAfter = $.grep(rawSortedData,function(value){
+            if(value.Type === 'BCWS'){
+                return value.PeriodType === 'F';
+            }
+        });
+        _.each(dataAfter,function(value,index){
+            var month = moment(value.Date).format('MM');
+            var targetYear = moment(value.SnapshotDate).format('YY');
+            var targetYearPlus = moment(value.SnapshotDate).add(1, 'y').format('YY');
+            var valueYear = moment(value.Date).format('YY');
+
+            var unit = App.unit.months[month-1];
+            if(targetYear === valueYear || targetYearPlus === valueYear){
+                var keys = _.keys(forcast);
+                if(keys.length === 7)return;
+                if(!_.has(forcast,unit)){
+                    forcast[unit] = {};
+                    forcast[unit].data = [];
+                    forcast[unit].total = 0;
+                    forcast[unit].order = _.keys(forcast).length;
+                    forcast[unit].month = unit;
+                }
+                forcast[unit].data.push(value);
+            }
+        });
+
+        _.each(forcast,function(value,index){
+            var sum = 0;
+            _.each(value.data,function(item,key){
+                sum += parseFloat(item[dataType]);
+            });
+            value.total = sum.toFixed(0);
+        });
+        obj = {
             "start": start,
             "end": end,
-            "bcwsTotal": bcwsHrRate.toFixed(2) + ' Hourly Rate',
-            "bcwsHrs": total.bcwsHrs.toFixed(2),
-            "bcwpTotal": bcwpHrRate.toFixed(2) + ' Hourly Rate',
-            "bcwpHrs": total.bcwpHrs.toFixed(2),
-            "eacTotal": eacHrRate.toFixed(2) + ' Hourly Rate',
-            "eacHrs": total.eacHrs.toFixed(2),
-            "acwpTotal": acwpHrRate.toFixed(2) + ' Hourly Rate',
-            "acwpHrs": total.acwpHrs.toFixed(2),
-            "eacCum": total.eacCum.toFixed(2),
-            "bac": total.bac.toFixed(2)
+            bac:total.bcwsAll,
+            bcwsAll: total.bcwsAll,
+            bcwsTotal: total.bcwsTotal,
+            curBcwsHrs: total.curBcwsHrs,
+            curBcwsTotal: total.curBcwsTotal,
+            bcwsCOM:total.bcwsCOM,
+            bcwsGA:total.bcwsGA,
+            bcwsHrs: total.bcwsHrs,
+            bcwsOH:total.bcwsOH,
+            allbcwsCOM:total.allbcwsCOM,
+            allbcwsGA:total.allbcwsGA,
+            allbcwsOH:total.allbcwsOH,
+            curbcwsCOM:total.curbcwsCOM,
+            curbcwsGA:total.curbcwsGA,
+            curbcwsOH:total.curbcwsOH,
+            forcast:forcast
+
+
+        };
+        _.each(obj,function(value,key){
+            if(key === 'start' || key === 'end' || key ==='forcast')return;
+            obj[key] = value.toFixed(0);
         });
-        return array[0];
+        return obj;
     };
 
     App.formatFourTotals = function (costs,dataType) {
@@ -1042,6 +1110,8 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
             cpiColour = App.ragCpi(cpi),
             curSPIColour = App.ragSpi(curSPI),
             curCPIColour = App.ragCpi(curCPI);
+        console.info('Info! curCPIColour', curCPIColour);
+        console.info('Info! curSPIColour', curSPIColour);
         var amounts = {
             "bcwsTotal": total.bcwsTotal,
             "curBcwsTotal": total.curBcwsTotal,
@@ -1401,7 +1471,7 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         }
     };
 
-    App.hierEvent = function (selector,type,chartType) {
+    App.hierEvent = function (selector,type) {
         /*********** New Hierarchy Button View Click Event ***************/
 
         selector.on('click', 'tr span.js-hier', function (e) {
@@ -1463,11 +1533,6 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
                 var chartFilteredByParentId = _.flatten(chartFiltered.graph);
                 console.log(chartFilteredByParentId.length);
 
-              if(!_.isUndefined(chartType)){
-                  if(chartType == 'spiCPI'){
-                      chartFilteredByParentId = App.cpiSpiTrend(chartFilteredByParentId,type);
-                  }
-              }
                 $chartGraph.dataSource.data(chartFilteredByParentId);
                 $chartGraph.refresh();
 
@@ -1482,6 +1547,71 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         });
     };
 
+    App.hierSpiCpiEvent = function (selector,dataType) {
+        /*********** New Hierarchy Button View Click Event ***************/
+        if(dataType === 'Quanitity'){
+            dataType = 'H';
+        }else if(dataType ==='IntValProjCurr'){
+            dataType = 'I';
+        }else{
+            dataType = 'E';
+        }
+        selector.on('click', 'tr span.js-hier', function (e) {
+            e.preventDefault();
+            $('.noData').remove();
+            var chartdata = App.DataStore.rawspiCpiChartdata,
+                filteredSnapByParentId = '',
+                filteredSnapByIndex = [],
+                collectIndexes = [],
+                chartFiltered = '';
+            console.log('hit selected row');
+            var $target = $(e.currentTarget),
+                $treeList = $("div#treelist").data("kendoTreeList"),
+                $chartGraph = $("div#chart").data("kendoChart"),
+                $trParent = $target.parent().parent(),
+                $rowIndex = $trParent.index(),
+              //  $objectNumber = $treeList.dataSource.options.data[$rowIndex].ObjectNumber,//data-objectNumber='#=data.ObjectNumber#'
+                $children = $target.data('children');
+
+            $target.closest('tr').siblings().removeClass('k-state-selected');
+            if ($target.hasClass('animated')) {
+                $target.removeClass('fadeIn');
+            }
+            $target.closest('tr').addClass('k-state-selected');
+            console.log($rowIndex);
+            switch ($rowIndex) {
+                case 0:
+                    //  case 1:
+                    chartFiltered = App.cpiSpiTrend(chartdata,dataType);
+                    break;
+                default:
+                    if ($children) {
+
+                        filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[$rowIndex].ObjectNumber});
+                        // console.log('single ' + JSON.stringify(filteredSnapByIndex));
+                        filteredSnapByParentId = App.FilterByHierList(filteredSnapByIndex, chartdata);
+                        chartFiltered = App.cpiSpiTrend(filteredSnapByParentId,dataType);
+                    }
+                    break;
+            }
+            if (_.isUndefined(chartFiltered) || _.isEmpty(chartFiltered)) {
+                $chartGraph.dataSource.data([]);
+                $chartGraph.refresh();
+                // App.refreshChart();
+                $('<div class="noData"><p id="noDataMessage">No data available</p></div>').appendTo("#chart");
+                $target.addClass('animated fadeIn').css('color', 'red');
+            } else {
+                //var cpiSpiTrendData = App.cpiSpiTrend(chartFiltered);
+                console.log(chartFiltered.length);
+                $chartGraph.dataSource.data(chartFiltered);
+                $chartGraph.refresh();
+
+                $target.addClass('animated fadeIn');
+            }
+
+       });//when request is done
+
+    };
     /**********Added Initilized Hiearchy expaneded**********/
     App.expandTreeList = function (selector) {
         $(document).find(selector).data("kendoTreeList").expand(".k-treelist-group");
@@ -1542,6 +1672,38 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         return Source;
     };
 
+    App.ESSet = function () {
+        var Source = $.ajax({
+            url: this.serviceRoot + this.urlESSet,
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            // hierSource = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('ESSet complete ');
+        });
+        return Source;
+    };
+
+    App.SVSet = function () {
+        var Source = $.ajax({
+            url: this.serviceRoot + this.urlSVSet,
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            // hierSource = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('SVSet complete ');
+        });
+        return Source;
+    };
+
     /** New Function ChartData 072815**/
     App.SnapshotListSet = function () {
         var rawData = $.ajax({
@@ -1590,7 +1752,6 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         });
         return rawData;
     };
-
 
     App.hierListInitialize = function (data) {
         $(document).find("#treelist").kendoTreeList({
@@ -1650,12 +1811,13 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         var findParentIds = '';
         var addValues = [];
         var sendData = '';
-        if (_.isArray(hierArray)) {
+        if (_.isArray(hierArray) && !_.isEmpty(hierArray)) {
             //  console.log('nodes used'+ hierArray);
-            $.each(hierArray, function (k, v) {
-                findParentIds = $.grep(data, function (item) {
-                    return item.ObjectNumber === v.ObjectNumber;
-                });
+          _.each(hierArray, function (v,k) {
+                findParentIds = _.chain(data)
+                                .filter(function(item) {
+                                   return _.contains(item,v.ObjectNumber);
+                                }).value();
                 addValues.push(findParentIds);
             });
             //console.log('FilterByHierList length' + JSON.stringify(_.flatten(addValues).length));
@@ -1663,9 +1825,7 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         } else {
             return console.log('nothing in array');
         }
-        sendData = _.chain(addValues)
-            .flatten(addValues)
-            .value();
+        sendData = _.flatten(addValues);
         return sendData;
     };
 
@@ -1702,62 +1862,6 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
     App.Math.ceil10 = function (value, exp) {
         return App.decimalAdjust('ceil', value, exp);
     };
-
-    App.cpiSpiTrend = function (costs,type) {
-        var master,
-            spiTotal,
-            cpiTotal;
-        var bcws = _.chain(costs)
-            .sortBy('Date')
-            .where({"Type": "BCWS"})
-            .value();
-
-        var bcwp = _.chain(costs)
-            .sortBy('Date')
-            .where({"Type": "BCWP"})
-            .value();
-
-        var acwp = _.chain(costs)
-            .sortBy('Date')
-            .where({"Type": "ACWP"})
-            .value();
-
-        console.log("BCWS length " + bcws.length);
-        console.log("BCWP length " + bcwp.length);
-        console.log("ACWP length " + acwp.length);
-
-        master = _.map(acwp, function (item, index) {
-            if (!_.isUndefined(bcws[index]) || (!_.isEmpty(bcws[index]))) {
-                var bcwsCost = bcws[index][type];
-            }
-            if (!_.isUndefined(bcwp[index]) || (!_.isEmpty(bcwp[index]))) {
-                var bcwpCost = bcwp[index][type];
-            }
-            if (!_.isUndefined(acwp[index]) || (!_.isEmpty(acwp[index]))) {
-                var acwpCost = acwp[index][type];
-            }
-            //console.log(index+' bcwsCost '+bcwsCost+' bcwpCost '+bcwpCost+' acwpCost '+acwpCost);
-            if (_.isNaN(bcwsCost)) bcwsCost = 0;
-            if (_.isNaN(bcwpCost)) bcwpCost = 0;
-            if (_.isNaN(acwpCost)) acwpCost = 0;
-            //  console.log(parseFloat(bcwp[index].IntValProjCurr).toFixed(2));
-            spiTotal = (bcwpCost / bcwsCost);
-            cpiTotal = (bcwpCost / acwpCost);
-            if(_.isNaN(spiTotal)) spiTotal = 0;
-            if(_.isNaN(cpiTotal)) cpiTotal = 0;
-            if(spiTotal === Infinity) spiTotal = 0;
-            if(cpiTotal === Infinity) cpiTotal = 0;
-            if (index === 0 || index === (acwp.length - 1)) {
-                return {"CPI": cpiTotal, "SPI": spiTotal, "Date": new Date(acwp[index].Date), "baseline": 1};
-            }
-            return {"CPI": cpiTotal, "SPI": spiTotal, "Date": new Date(acwp[index].Date)};
-        });
-        // console.log(master);
-        return master;
-
-
-    };
-
 
     App.VersionFilter = function (versions, results) {
         // console.log(versions);
@@ -2453,7 +2557,159 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
         return master;
     };
 
-    App.createSpiCpiChart = function (dataSource, series) {
+    App.cpiSpiTrend = function (costs,dataType) {
+        if(dataType === 'Quantity'){
+            dataType = 'H';
+        }else if(dataType ==='IntValProjCurr'){
+            dataType = 'I';
+        }else{
+            dataType = 'E';
+        }
+
+        var master,
+            spiTotal,
+            cpiTotal;
+        var bcws = _.chain(costs)
+            .sortBy('SnapshotDate')
+            .filter('BCWS')
+            .where({'RecordType':dataType})
+            .map(function(item){
+                return {
+                    BCWS: item.BCWS,
+                    type:'BCWS',
+                    EACVersionSelection: item.EACVersionSelection,
+                    FundApproved: item.FundApproved,
+                    HierarchyObjectNumber: item.HierarchyObjectNumber,
+                    HierarchySelection: item.HierarchySelection,
+                    PlanVersionSelection: item.PlanVersionSelection,
+                    ProjectSelection: item.ProjectSelection,
+                    RecordType: item.RecordType,
+                    SnapshotDate: item.SnapshotDate,
+                    SnapshotType: item.SnapshotType
+                };
+            }).value();
+
+        var bcwp = _.chain(costs)
+            .sortBy('SnapshotDate')
+            .filter('BCWP')
+            .where({'RecordType':dataType})
+            .map(function(item){
+                return {
+                    BCWP:item.BCWP,
+                    type:'BCWP',
+                    EACVersionSelection: item.EACVersionSelection,
+                    FundApproved: item.FundApproved,
+                    HierarchyObjectNumber: item.HierarchyObjectNumber,
+                    HierarchySelection: item.HierarchySelection,
+                    PlanVersionSelection: item.PlanVersionSelection,
+                    ProjectSelection: item.ProjectSelection,
+                    RecordType: item.RecordType,
+                    SnapshotDate: item.SnapshotDate,
+                    SnapshotType: item.SnapshotType
+                };
+            }).value();
+
+        var acwp = _.chain(costs)
+            .sortBy('SnapshotDate')
+            .filter('ACWP')
+            .where({'RecordType':dataType})
+            .map(function(item){
+                return {
+                    ACWP: item.ACWP,
+                    type:'ACWP',
+                    EACVersionSelection: item.EACVersionSelection,
+                    FundApproved: item.FundApproved,
+                    HierarchyObjectNumber: item.HierarchyObjectNumber,
+                    HierarchySelection: item.HierarchySelection,
+                    PlanVersionSelection: item.PlanVersionSelection,
+                    ProjectSelection: item.ProjectSelection,
+                    RecordType: item.RecordType,
+                    SnapshotDate: item.SnapshotDate,
+                    SnapshotType: item.SnapshotType
+                };
+            }).value();
+
+        console.info("BCWS length " + bcws.length);
+        console.info("BCWP length " + bcwp.length);
+        console.info("ACWP length " + acwp.length);
+
+        master = _.map(acwp, function (item, index) {
+            if (!_.isUndefined(bcws[index]) || (!_.isEmpty(bcws[index]))) {
+                var bcwsCost = bcws[index][bcws[index].type];
+            }
+            if (!_.isUndefined(bcwp[index]) || (!_.isEmpty(bcwp[index]))) {
+                var bcwpCost = bcwp[index][bcwp[index].type];
+            }
+            if (!_.isUndefined(acwp[index]) || (!_.isEmpty(acwp[index]))) {
+                var acwpCost = acwp[index][acwp[index].type];
+            }
+            //console.log(index+' bcwsCost '+bcwsCost+' bcwpCost '+bcwpCost+' acwpCost '+acwpCost);
+            if (_.isNaN(bcwsCost)) bcwsCost = 0;
+            if (_.isNaN(bcwpCost)) bcwpCost = 0;
+            if (_.isNaN(acwpCost)) acwpCost = 0;
+            //  console.log(parseFloat(bcwp[index].IntValProjCurr).toFixed(2));
+            spiTotal = (bcwpCost / bcwsCost);
+            cpiTotal = (bcwpCost / acwpCost);
+            if(_.isNaN(spiTotal)) spiTotal = 0;
+            if(_.isNaN(cpiTotal)) cpiTotal = 0;
+            if(spiTotal === Infinity) spiTotal = 0;
+            if(cpiTotal === Infinity) cpiTotal = 0;
+
+            return {
+                "CPI": App.Math.ceil10(cpiTotal, -2),
+                "SPI": App.Math.ceil10(spiTotal, -3),
+                "BCWS":bcwsCost,
+                "BCWP":bcwpCost,
+                "ACWP":acwpCost,
+                "ObjectNumber":item.HierarchyObjectNumber,
+                "Date": new Date(item.SnapshotDate),
+                "SnapshotDate": item.SnapshotDate,
+                "baseLine": 1
+            };
+        });
+        console.log(master);
+        return master;
+    };
+
+    App.ESfilter = function (costs,dataType) {
+        if(dataType === 'Quantity'){
+            dataType = 'H';
+        }else if(dataType ==='IntValProjCurr'){
+            dataType = 'I';
+        }else{
+            dataType = 'E';
+        }
+
+        var master = _.chain(costs)
+            .sortBy('SnapshotDate')
+            .where({'RecordType':dataType})
+            .map(function(item){
+                return {
+                    "ProjectSelection": item.ProjectSelection,
+                    "HierarchySelection": item.HierarchySelection,
+                    "HierarchyObjectNumber": item.HierarchyObjectNumber,
+                    "PlanVersionSelection": item.PlanVersionSelection,
+                    "FundApproved": item.FundApproved,
+                    "SnapshotType": item.SnapshotType,
+                    "Date": new Date(item.SnapshotDate),
+                    "RecordType": item.RecordType,
+                    "ES": item.ES
+                };
+            }).value();
+
+        console.log(master);
+        return master;
+    };
+
+    App.createSpiCpiChart = function (dataSource, series, reverse, dataType) {
+        if(_.isUndefined(reverse)){
+            reverse = false;
+        }
+        if (dataType === 'Quantity') {
+            dataType = "{0}hrs";
+        } else {
+            dataType = "\u00a3{0}";
+        }
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -2501,16 +2757,16 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
                 }
             },
             valueAxis: [
-                {
+                {   reverse: reverse,
                     labels: {
-                        format: "{0}"//\u00a3
+                        format: dataType//\u00a3
                     }//title: {text: ' Total'},
                 }
             ],
             tooltip: {
                 visible: true,
                 shared: true,
-                template: "#= kendo.format('{0}',value.toFixed(2)) #"
+                template: "#= kendo.format('{0}',value) #"
             }
         });
     };
@@ -2572,7 +2828,7 @@ define(['jquery', 'underscore', 'moment', 'kendo', 'Blob', 'base64', 'jszip', 'F
                 maxDateGroups: 45,
                 crosshair: {
                     tooltip: {
-                        format: "{0:MM-yyyy}",
+                        format: "M-yyyy",
                         visible: false
                     },
                     visible: false
