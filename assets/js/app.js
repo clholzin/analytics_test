@@ -704,32 +704,28 @@ define(['jquery', 'underscore', 'moment','' +
                     cpi = gauge.cpi,
                     curSPI = gauge.curSPI,
                     curCPI = gauge.curCPI,
-                spiColour = App.ragSpi(spi),
-                cpiColour = App.ragCpi(cpi),
-                curSPIColour = App.ragSpi(curSPI),
-                curCPIColour = App.ragCpi(curCPI);
-                total['curSPI'] = curSPI;
-                total['curCPI'] = curCPI;
-                total['spi'] = spi;
-                total['cpi'] = cpi;
-                total['spiColour'] = spiColour;
-                total['cpiColour'] = cpiColour;
-                total['curSPIColour'] = curSPIColour;
-                total['curCPIColour'] = curCPIColour;
-                total['hasData'] = true;
+                    spiColour = App.ragSpi(spi),
+                    cpiColour = App.ragCpi(cpi),
+                    curSPIColour = App.ragSpi(curSPI),
+                    curCPIColour = App.ragCpi(curCPI);
+                    total['curSPI'] = curSPI;
+                    total['curCPI'] = curCPI;
+                    total['spi'] = spi;
+                    total['cpi'] = cpi;
+                    total['spiColour'] = spiColour;
+                    total['cpiColour'] = cpiColour;
+                    total['curSPIColour'] = curSPIColour;
+                    total['curCPIColour'] = curCPIColour;
+                    total['hasData'] = true;
+
                 if (k === 0) {
                     com = total;
                     total.sv  = (total.sv - total.svCom);
                     total.cv  = (total.cv - total.cvCom);
                     total.CurrSV  = (total.CurrSV - total.CurrSvCom);
                     total.CurrCV  = (total.CurrCV - total.CurrCvCom);
-
                     var vac = _.isNaN(total.bac - total.eacTotal) ? 0 : (total.bac - total.eacTotal);
                     total.vac = vac;
-                   /* var eacTotal = _.isNaN((total.eacTotal  + acwpTotal)- total.eacOH) ? 0 : (total.eacTotal + acwpTotal)- total.eacOH;
-                    var bcwsAll = _.isNaN(total.bac - total.allbcwsOH) ? 0 : (total.bac - total.allbcwsOH);
-                    var vac = _.isNaN(bcwsAll - eacTotal) ? 0 : (bcwsAll - eacTotal);
-                    total.vac = vac;*/
                     com['bacAllBelow'] = _.isNaN(com.bac + com.allbcwsCOM) ? 0 : (com.bac + com.allbcwsCOM);
                     com['eacAllBelow'] = _.isNaN((com.eacTotal + com.eacCOM) + com.acwpOH) ? 0 : (com.eacTotal + com.eacCOM) + com.acwpCOM;
                     com['bcwsBelow'] = _.isNaN(com.bcwsTotal + com.bcwsCOM) ? 0 : (com.bcwsTotal + com.bcwsCOM);
@@ -745,6 +741,7 @@ define(['jquery', 'underscore', 'moment','' +
                     com['vacBelow'] = _.isNaN(com.vac + com.vacCOM) ? 0 : (com.vac + com.vacCOM);
                 } else {
                     var bcwsAll = _.isNaN(total.bac - total.allbcwsOH) ? 0 : (total.bac - total.allbcwsOH),
+                        eacTotal = _.isNaN(total.eacTotal - total.eacOH) ? 0 : (total.eacTotal - total.eacOH),
                         bcwsTotal = _.isNaN(total.bcwsTotal - total.bcwsOH) ? 0 : (total.bcwsTotal - total.bcwsOH),
                         bcwpTotal = _.isNaN(total.bcwpTotal - total.bcwpOH) ? 0 : (total.bcwpTotal - total.bcwpOH),
                         acwpTotal = _.isNaN(total.acwpTotal - total.acwpOH) ? 0 : (total.acwpTotal - total.acwpOH),
@@ -755,18 +752,15 @@ define(['jquery', 'underscore', 'moment','' +
                      //   var eacTotal = _.isNaN((total.eacTotal  + acwpTotal)- total.eacOH) ? 0 : (total.eacTotal + acwpTotal)- total.eacOH;
 
                      var vac = _.isNaN(total.bac - total.eacTotal) ? 0 : (total.bac - total.eacTotal);
-                    total.vac = vac;
-                      //total.bac = bcwsAll;
-                    // total.eacTotal = eacTotal;
-                     total.vac = vac;
+                    total.vac = (vac - total.vacOH);
+                    total.bac = bcwsAll;
+                    total.eacTotal = eacTotal;
                     total.bcwsTotal = bcwsTotal;
                     total.bcwpTotal = bcwpTotal;
                     total.acwpTotal = acwpTotal;
                     total.curBcwsTotal = curBcwsTotal;
                     total.curBcwpTotal = curBcwpTotal;
                     total.curAcwpTotal = curAcwpTotal;
-                    var bac_BCWP = _.isNaN(bcwsAll - bcwpTotal) ? 0 : bcwsAll - bcwpTotal,
-                        eacCum_ACWP = _.isNaN(bcwsAll - acwpTotal) ? 0 : bcwsAll - acwpTotal;
                     /*this order matters*/
                     var CurrSV = _.isNaN(curBcwpTotal - curBcwsTotal) ? 0 : (curBcwpTotal - curBcwsTotal);
                     var CurrCV = _.isNaN(curBcwpTotal - curAcwpTotal) ? 0 : (curBcwpTotal - curAcwpTotal);
@@ -2498,7 +2492,7 @@ define(['jquery', 'underscore', 'moment','' +
         var tcpi = _.isNaN(bac_BCWP / eacCum_ACWP) ? 0 : bac_BCWP / eacCum_ACWP;
         master.totals.push({"tcpi": App.Math.ceil10(tcpi, -2)});
 
-        var vac = _.isNaN(bac - roundetcTotal) ? 0 : bac - roundetcTotal;
+        var vac = _.isNaN(bac - eacCum) ? 0 : (bac - eacCum);
         master.totals.push({"vac": App.Math.ceil10(vac, -2)});
         var vacOH = _.isNaN(allbcwsOH - eacOH) ? 0 : allbcwsOH - eacOH;
         master.totals.push({"vacOH": App.Math.ceil10(vacOH, -2)});
@@ -2553,8 +2547,13 @@ define(['jquery', 'underscore', 'moment','' +
         master.gauges.push({'spi': App.Math.ceil10(spiTotal, -2), 'curSPI': App.Math.ceil10(curSPITotal, -2)});//master.gauges[0].spi
         master.gauges.push({'cpi': App.Math.ceil10(cpiTotal, -3), 'curCPI': App.Math.ceil10(curCPITotal, -3)});//master.gauges[1].cpi
 
-        var ETC_CPI = _.isNaN(cpiTotal / roundetcTotal) ? 0 : (cpiTotal / roundetcTotal);
-        master.totals.push({"ETC_CPI": App.Math.ceil10(ETC_CPI, -1)});
+        //var ETC_CPI = _.isNaN(cpiTotal / roundetcTotal) ? 0 : (cpiTotal / roundetcTotal);
+        var ETC_CPI = _.isNaN((curCPITotal/(bac - curBcwsTotal))) ? 0 : (curCPITotal/(bac - curBcwsTotal));
+        //(BAC – Cumulative BCWP) / Cumulative CPI.
+        if(ETC_CPI === Infinity){
+            ETC_CPI = 0;
+        }
+        master.totals.push({"ETC_CPI": App.Math.ceil10(ETC_CPI, 0)});
 
         _.flatten(master.totals);
         _.flatten(master.graph);
