@@ -723,6 +723,13 @@ define(['jquery', 'underscore', 'moment','' +
                     total.cv  = (total.cv - total.cvCom);
                     total.CurrSV  = (total.CurrSV - total.CurrSvCom);
                     total.CurrCV  = (total.CurrCV - total.CurrCvCom);
+
+                    var vac = _.isNaN(total.bac - total.eacTotal) ? 0 : (total.bac - total.eacTotal);
+                    total.vac = vac;
+                   /* var eacTotal = _.isNaN((total.eacTotal  + acwpTotal)- total.eacOH) ? 0 : (total.eacTotal + acwpTotal)- total.eacOH;
+                    var bcwsAll = _.isNaN(total.bac - total.allbcwsOH) ? 0 : (total.bac - total.allbcwsOH);
+                    var vac = _.isNaN(bcwsAll - eacTotal) ? 0 : (bcwsAll - eacTotal);
+                    total.vac = vac;*/
                     com['bacAllBelow'] = _.isNaN(com.bac + com.allbcwsCOM) ? 0 : (com.bac + com.allbcwsCOM);
                     com['eacAllBelow'] = _.isNaN((com.eacTotal + com.eacCOM) + com.acwpOH) ? 0 : (com.eacTotal + com.eacCOM) + com.acwpCOM;
                     com['bcwsBelow'] = _.isNaN(com.bcwsTotal + com.bcwsCOM) ? 0 : (com.bcwsTotal + com.bcwsCOM);
@@ -744,15 +751,14 @@ define(['jquery', 'underscore', 'moment','' +
                         curBcwsTotal = _.isNaN(total.curBcwsTotal - total.curbcwsOH) ? 0 : (total.curBcwsTotal - total.curbcwsOH),
                         curBcwpTotal = _.isNaN(total.curBcwpTotal - total.curbcwpOH) ? 0 : (total.curBcwpTotal - total.curbcwpOH),
                         curAcwpTotal = _.isNaN(total.curAcwpTotal - total.curacwpOH) ? 0 : (total.curAcwpTotal - total.curacwpOH);
-                    if(total.eacTotal === 0){
-                        var eacTotal = _.isNaN((total.eacTotal - total.eacOH) + acwpTotal) ? 0 : (total.eacTotal - total.eacOH) + acwpTotal;
-                    }else{
-                        eacTotal = _.isNaN((total.eacTotal) + acwpTotal) ? 0 : (total.eacTotal - total.eacOH);
-                    }
-                    var vac = _.isNaN(bcwsAll - eacTotal) ? 0 : (bcwsAll - eacTotal);
-                    total.bac = bcwsAll;
-                    total.eacTotal = eacTotal;
+
+                     //   var eacTotal = _.isNaN((total.eacTotal  + acwpTotal)- total.eacOH) ? 0 : (total.eacTotal + acwpTotal)- total.eacOH;
+
+                     var vac = _.isNaN(total.bac - total.eacTotal) ? 0 : (total.bac - total.eacTotal);
                     total.vac = vac;
+                      //total.bac = bcwsAll;
+                    // total.eacTotal = eacTotal;
+                     total.vac = vac;
                     total.bcwsTotal = bcwsTotal;
                     total.bcwpTotal = bcwpTotal;
                     total.acwpTotal = acwpTotal;
@@ -2734,7 +2740,7 @@ define(['jquery', 'underscore', 'moment','' +
             series: series,
             categoryAxis: {
                 baseUnit: "fit",
-                //title: { text: "Date" },
+                baseUnitStep: "fit",
                 field: "Date",
                 labels: {
                     rotation: -60,
@@ -2743,9 +2749,11 @@ define(['jquery', 'underscore', 'moment','' +
                     }
                 },
                 autoBaseUnitSteps: {
-                    months: [1]
+                    days: [0],
+                    weeks: [0],
+                    months: [1],
+                    years: []
                 },
-                //maxDateGroups: 45,
                 crosshair: {
                     visible: false
                 },
@@ -2757,10 +2765,11 @@ define(['jquery', 'underscore', 'moment','' +
                 }
             },
             valueAxis: [
-                {   reverse: reverse,
+                {
+                    reverse: reverse,
                     labels: {
-                        format: dataType//\u00a3
-                    }//title: {text: ' Total'},
+                        format: dataType
+                    }
                 }
             ],
             tooltip: {
@@ -2809,7 +2818,7 @@ define(['jquery', 'underscore', 'moment','' +
             series: series,
             categoryAxis: {
                 baseUnit: "fit",
-                baseUnitStep: "auto",
+                baseUnitStep: "fit",
                 //title: { text: "Date" },
                 field: "Date",
                 labels: {
@@ -2821,8 +2830,9 @@ define(['jquery', 'underscore', 'moment','' +
                     }
                 },
                 autoBaseUnitSteps: {
-                    days: [],
-                    weeks: [],
+                    days: [0],
+                    weeks: [0],
+                    months: [1],
                     years: []
                 },
                 maxDateGroups: 45,
