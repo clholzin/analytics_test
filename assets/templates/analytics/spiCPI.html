@@ -1,8 +1,100 @@
-<div class="panel panel-default" style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">
-    <div class="panel-heading" style="margin-bottom: 20px">
+
+<div class="animated fadeIn panel panel-default" style="height: Calc(100vh - 176px); border: none">
+    <div class="panel-heading">
         <span class="pull-left">
-            <a class="homeTpl" data-id="wbsTable" data-temp="home" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>
+            <a class="homeTpl" data-id="wbsTable" data-temp="#indexTpl" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>
         </span>
-        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">SPI CPI Chart</h1>
+        <h1 class="panel-title" style="font-size: 24px; font-weight: bold; text-align: center">SPI CPI Chart
+    <span class="pull-right dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span
+            class="k-icon k-i-hbars"></span></a>
+    <ul class="dropdown-menu" role="menu" style="min-width: 180px; padding: 5px 2px">
+        <li style="padding-bottom: 2px">
+            <form>
+                <select class="form-control selectpicker" tabindex="-1"
+                        style="padding: 3px 6px 3px 6px; cursor: pointer">
+                    <option value="baseline">Baseline Version</option>
+                    <option value="">Baseline Version 1</option>
+                    <option value="">Baseline Version 2</option>
+                </select>
+            </form>
+        </li>
+        <li style="padding-bottom: 2px">
+            <form>
+                <select tabindex="-1" class="form-control selectpicker" id="eac"
+                        style="padding: 3px 6px 3px 6px; cursor: pointer">
+                    <option value="eac">EAC Version 1</option>
+                    <option value="">EAC Version 2</option>
+                    <option value="">EAC Version 3</option>
+                </select>
+            </form>
+        </li>
+        <li>
+            <form>
+                <select tabindex="-1" class="form-control selectpicker" id="snapshot"
+                        style="padding: 3px 6px 3px 6px; cursor: pointer">
+                    <option value="snapshot">Snapshot Selection</option>
+                    <option value="">Snapshot Selection</option>
+                    <option value="">Snapshot Selection</option>
+                </select></select>
+            </form>
+        </li>
+        <li class="divider"></li>
+        <li><a tabindex="-1" href="#">Refresh</a></li>
+    </ul>
+    </span>
+        </h1>
+    </div>
+
+    <div id="horizontal">
+        <div>
+            <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
+                <form class="form-inline">
+                    <div class="input-group">
+                        <div class="input-group-addon dashboardTitle">Hierachy</div>
+                        <select class="form-control" id="cpiSpiChange" >
+                            <% if (combineData[0].length < 2) { %>
+                            <% $.each(combineData[0],function(key,value){ %>
+                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPICPI"><%-value.HierarchyDescription%></option>
+                            <%});
+                            } else { %>
+                            <option value="">Select Hierarchy</option>
+                            <% $.each(combineData[0],function(key,value){ %>
+                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPICPI"><%-value.HierarchyDescription%></option>
+                            <%});
+                            }%>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div id="treelist" style="height: 92%; border: 0"></div>
+        </div>
+        <div>
+            <div id="vertical">
+                <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
+                    <form class="form-inline">
+                        <div class="col-xs-5 input-group">
+                            <select class="col-xs-6 form-control dataTypeAnalytics controller" id="dataType">
+                                <!--option>Select Type</option-->
+                                <option value="Quantity" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">Hours</option>
+                                <option value="Costs" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">Cost</option>
+                            </select>
+                        </div>
+                        <div class="col-xs-5 input-group">
+                            <select class="col-xs-6 form-control dataTypeAnalytics costType" id="costType" style="display: none;">
+                                <!--option>Select Cost</option-->
+                                <option value="IntValProjCurr" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">Internal Cost</option>
+                                <option value="ExtValProjCurr" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">External Cost</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div>
+                    <div id="chart"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

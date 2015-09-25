@@ -1,4 +1,8 @@
 compare/
+
+assets__ch_current_1/
+assets__ch_current_2/
+
 resources/
 .idea/
 !index.html

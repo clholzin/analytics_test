@@ -1,91 +1,198 @@
-<div class="panel panel-default" style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">
+
+<div class="panel panel-default"
+     style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">
     <div class="panel-heading" style="margin-bottom: 20px">
     <span class="pull-left">
-        <a class="homeTpl" data-id="staffingTable" data-temp="#indexTpl" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a>
+        <a class="homeTpl" data-id="staffingTable" data-temp="#indexTpl" data-name="home" role="button" href="#"><img
+                src="./assets/img/home.png"></a>
     </span>
-        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">CPR4 - Staffing/Forecast
-        <span class="pull-right dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="k-icon k-i-hbars"></span></a>
-        <ul class="dropdown-menu" role="menu">
-            <li><input id="picker" /></li>
-            <li><a tabindex="-1" href="#" id="clearPicker" style="cursor: pointer">Clear All Color</a></li>
-        </ul>
-        </span></h1>
+
+        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">CPR4 -
+            Staffing/Forecast</h1>
     </div>
 
-    <table class="animated fadeIn" id="staffingTable" align="center" border='0' cellspacing='0' cellpadding='0'>
+    <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
+        <form class="form-inline">
+            <div class="col-xs-5 input-group">
+                <select class="col-xs-6 form-control dataType controller" id="dataType">
+                    <!--option>Select Type</option-->
+                    <option value="Quantity" data-id="staffingTable" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">Hours</option>
+                    <option value="Costs" data-id="staffingTable" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">Cost</option>
+                </select>
+            </div>
+            <div class="col-xs-5 input-group">
+                <select class="col-xs-6 form-control dataType costType" id="costType" style="display: none;">
+                    <!--option>Select Cost</option-->
+                    <option value="IntValProjCurr" data-id="staffingTable" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">Internal Cost</option>
+                    <option value="ExtValProjCurr" data-id="staffingTable" data-temp="cpr4" data-name="CPR4_Staffing_Forecast" data-sheet="CPR-4">External Cost</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <table class="animated fadeIn exportTable" id="staffingTable" align="center" border='0' cellspacing='0'
+           cellpadding='0'>
         <tr>
-            <td colspan='14' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='14'
+                style='text-align: center; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+
                 CLASSIFICATION (when filled in)
             </td>
         </tr>
 
         <tr>
-            <td colspan='14' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                CPR FORMAT 4 - STAFFING/FORECAST
+
+            <td id="cpr4Title" colspan='14'
+                style='text-align: center; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)
+
             </td>
         </tr>
 
         <tr>
-            <td colspan='14' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+
+            <td colspan='14'
+                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
         </tr>
 
         <tr>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>CONTRACTOR</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>CONT. TYPE</td>
-            <td colspan='3' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>PROGRAMME NAME</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>PROGRAMME NO.</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>REPORT PERIOD</td>
-            <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>FROM</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>15-May-2015</td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                CONTRACTOR
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                CONT. TYPE
+            </td>
+            <td colspan='3'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                PROGRAMME NAME
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                PROGRAMME NO.
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                REPORT PERIOD
+            </td>
+            <td colspan='1'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                FROM
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                15-May-2015
+            </td>
         </tr>
 
         <tr>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>BAE SYSTEMS</td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='3' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Successor</td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>TO</td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>19-Jun-2015</td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                BAE SYSTEMS
+            </td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='3'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Successor
+            </td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='1'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>
+                TO
+            </td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                19-Jun-2015
+            </td>
         </tr>
 
         <tr>
-            <td colspan='14' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='14'
+                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
         </tr>
 
         <tr>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>LOCATION</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>NEGOTIATED COST</td>
-            <td colspan='3' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>EST. COST AUTH UNPRICED WORK</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>TARGET PROFIT</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>TARGET PRICE</td>
-            <td colspan='3' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>ESTIMATED PRICE</td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                LOCATION
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                NEGOTIATED COST
+            </td>
+            <td colspan='3'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                EST. COST AUTH UNPRICED WORK
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                TARGET PROFIT
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                TARGET PRICE
+            </td>
+            <td colspan='3'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                ESTIMATED PRICE
+            </td>
         </tr>
 
         <tr>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Barrow</td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='3' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='3' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Barrow
+            </td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='3'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='3'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
         </tr>
 
         <tr>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>QUANTITY</td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>UNITS</td>
-            <td colspan='4' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
-            <td colspan='2' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>CONTRACT CEILING</td>
-            <td colspan='4' style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>EST. CONT. CEILING</td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                QUANTITY
+            </td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                UNITS
+            </td>
+            <td colspan='4'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+            <td colspan='2'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                CONTRACT CEILING
+            </td>
+            <td colspan='4'
+                style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                EST. CONT. CEILING
+            </td>
         </tr>
 
         <tr>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>HRS</td>
-            <td colspan='4' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='2' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='4' style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='2' id="units"
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>HRS</td>
+            <td colspan='4'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='2'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='4'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+
         </tr>
 
         <tr>
@@ -93,96 +200,184 @@
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Hours</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>FY11/12</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>FY12/13</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>FY13/14Q123</td>
-            <td colspan="2" style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Hours
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                FY11/12
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                FY12/13
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                FY13/14Q123
+            </td>
+            <td colspan="2"
+                style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Cumulative</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>in Year</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Cumulative
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                in Year
+            </td>
             <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>FY15/16</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                FY15/16
+            </td>
+
             <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> Baseline Plan (Period)</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td colspan="2" style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Planned</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Baseline Plan (Period)
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td colspan="2"
+                style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Planned
+            </td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Baseline Plan (Period)</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
-        </tr>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Baseline Plan (Period)
+            </td>
 
-        <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Earned</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td colspan="2" style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Earned</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Earned</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
-        </tr>
-
-        <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Actuals/Forecast Last Period</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td colspan="2" style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Actuals/Forecast Last Period</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
-        </tr>
-
-        <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Actual/Forecast, this period</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td colspan="2" style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Actuals</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Actual/Forecast, this period</td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Change</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
-            <td colspan="2" style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Change</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Earned
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td colspan="2"
+                style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Earned
+            </td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Change</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Earned
+            </td>
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
+        </tr>
+
+        <tr>
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Actuals/Forecast Last Period
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td colspan="2"
+                style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Actuals/Forecast Last Period
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
+        </tr>
+
+        <tr>
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Actual/Forecast, this period
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td colspan="2"
+                style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Actuals
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Actual/Forecast, this period
+            </td>
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
+        </tr>
+
+        <tr>
+
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Change
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <td colspan="2"
+                style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Change
+            </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Change
+            </td>
+
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
@@ -193,80 +388,123 @@
         </tr>
 
         <% $.each(combineData[1],function(k,v){ %>
-            <%if(_.isEmpty(v)){return}%>
+
+        <%if(_.isEmpty(v)){return}%>
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Hours</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Hours
+            </td>
             <% for(var i = 0; i < 12;i++){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                    <%-combineData[2].months[i]%>-<%-k%>
-                </td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[2].months[i]%>-<%-k%>
+            </td>
             <% } %>
 
             <%var len = k+1; if(len === combineData[1].length){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>At-<%-combineData[2].months[11]%>-<%-k%></td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                At-<%-combineData[2].months[11]%>-<%-k%>
+            </td>
             <% }else{ %>
-                <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
+            <td style='border-top:none; border-bottom:none; border-left:1px solid black; border-right:none; font-size:12px; padding:2px'></td>
+
             <% } %>
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> Baseline Plan (Period)</td>
-            <% for(var a = 1; a < 13;a++){ %>
-                <%if(_.isUndefined(v.bcwp)){%>
-                    <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> - </td>
-                <%  }else if(_.isUndefined(v.bcwp[a])){%>
-                    <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> 0 </td>
-                <%  }else{  %>
-                    <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%v.bcwp[a].Quantity.toFixed(2)%></td>
-                <% }  %>
 
-            <% }  %>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Baseline Plan (Period)
+            </td>
+            <% for(var a = 1; a < 13;a++){%>
+            <%if(_.isUndefined(v.bcws)){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                -
+            </td>
+            <% }else if(_.isUndefined(v.bcws[a])){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <% }else{ %>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-v.bcws[a].Quantity.toFixed(0)%>
+            </td>
+            <% } %>
+            <% } %>
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Earned</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Earned
+            </td>
             <% for(var b = 1; b < 13;b++){%>
-                <%if(_.isUndefined(v.eac)){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> - </td>
-                <%  }else if(_.isUndefined(v.eac[b])){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> 0 </td>
-                <%  }else{  %>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-v.eac[b].Quantity.toFixed(2)%></td>
-                <% }  %>
+            <%if(_.isUndefined(v.bcwp)){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                -
+            </td>
+            <% }else if(_.isUndefined(v.bcwp[b])){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <% }else{ %>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-v.bcwp[b].Quantity.toFixed(0)%>
+            </td>
+            <% } %>
             <% } %>
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Actuals/Forecast Last Period</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Actuals/Forecast Last Period
+            </td>
             <% for(var c = 1; c < 13;c++){%>
-                <%if(_.isUndefined(v.bcws)){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> - </td>
-                <%  }else if(_.isUndefined(v.bcws[c])){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> 0 </td>
-                <%  }else{  %>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-v.bcws[c].Quantity.toFixed(2)%></td>
-                <% }  %>
+            <%if(_.isUndefined(v.eac)){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                -
+            </td>
+            <% }else if(_.isUndefined(v.eac[c])){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <% }else{ %>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-v.eac[c].Quantity.toFixed(0)%>
+            </td>
             <% } %>
-
+            <% } %>
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Actual/Forecast, this period</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Actual/Forecast, this period
+            </td>
             <% for(var d = 1; d < 13;d++){%>
-                <%if(_.isUndefined(v.acwp)){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> - </td>
-                <%  }else if(_.isUndefined(v.acwp[d])){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'> 0 </td>
-                <%  }else{  %>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-v.acwp[d].Quantity.toFixed(2)%></td>
-                <% }  %>
+            <%if(_.isUndefined(v.acwp)){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                -
+            </td>
+            <% }else if(_.isUndefined(v.acwp[d])){%>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+            <% }else{ %>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-v.acwp[d].Quantity.toFixed(0)%>
+            </td>
+            <% } %>
+
             <% } %>
         </tr>
 
         <tr>
-            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>Change</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                Change
+            </td>
             <% for(var e = 1; e < 13;e++){%>
-                <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>0</td>
+            <td style='border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                0
+            </td>
+
             <% } %>
         </tr>
 
@@ -277,19 +515,26 @@
         <% }); %>
 
         <tr>
-            <td colspan='8' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+
+            <td colspan='8'
+                style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 DD FORM 2734/1, APR 2005
             </td>
-            <td colspan='3' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='3'
+                style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 PREVIOUS EDITION IS OBSOLETE.
             </td>
-            <td colspan='3' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+            <td colspan='3'
+                style='text-align: right; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+
                 LOCAL REPRODUCTION AUTHORIZED.
             </td>
         </tr>
 
         <tr>
-            <td colspan='14' style='border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
+
+            <td colspan='14'
+                style='text-align: center; border-top:none; border-left:none; border-bottom:none; border-right:none; font-size:12px; font-weight: bold; padding:2px'>
                 CLASSIFICATION (when filled in)
             </td>
         </tr>
