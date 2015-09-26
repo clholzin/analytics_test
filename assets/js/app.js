@@ -153,6 +153,14 @@ define(['jquery', 'underscore', 'moment','' +
             color: "#000099",
             markers: {type: "circle"}
         }];
+    App.seriesSV = [{
+        name: "SV",
+        type: "column",
+        field: "SV",
+        categoryField: "Date",
+        color: "#009933",
+        markers: {type: "circle"}
+    }];
     App.seriesCombo = [
         {
             name: "Planned (BCWS)",
@@ -475,7 +483,6 @@ define(['jquery', 'underscore', 'moment','' +
         }
     };
 
-    /** Updated Project Tpl Function**/
     App.Project = function (id, foot, data) {
         var pageBody = $('div.mainBody'),
             pageFooter = $('div.footer');
@@ -2107,10 +2114,12 @@ define(['jquery', 'underscore', 'moment','' +
     };
 
     App.FilterChartData = function (results, type) {
-        if(_.isUndefined(type)){
-           var dataType = 'Quantity';
+        if(_.isUndefined(type) || type === 'Quantity'){
+           var dataType = type;
+        }else if(type === 'Costs'){
+             dataType = 'IntValProjCurr';
         }else{
-            var dataType = type;
+            dataType = type;
         }
         var master = {};
         master.graph = [];
@@ -2564,7 +2573,7 @@ define(['jquery', 'underscore', 'moment','' +
 
     App.cpiSpiTrend = function (costs,dataType) {
         if(dataType === 'Quantity'){
-            dataType = 'H';
+           var dataType = 'H';
         }else if(dataType ==='IntValProjCurr'){
             dataType = 'I';
         }else{
@@ -2584,7 +2593,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'BCWS',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.HierarchyObjectNumber,
+                    HierarchyObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2604,7 +2613,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'BCWP',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.HierarchyObjectNumber,
+                    HierarchyObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2624,7 +2633,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'ACWP',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.HierarchyObjectNumber,
+                    HierarchyObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2666,7 +2675,7 @@ define(['jquery', 'underscore', 'moment','' +
                 "BCWS":bcwsCost,
                 "BCWP":bcwpCost,
                 "ACWP":acwpCost,
-                "ObjectNumber":item.HierarchyObjectNumber,
+                "ObjectNumber":item.ObjectNumber,
                 "Date": new Date(item.SnapshotDate),
                 "SnapshotDate": item.SnapshotDate,
                 "baseLine": 1
@@ -2676,9 +2685,117 @@ define(['jquery', 'underscore', 'moment','' +
         return master;
     };
 
+    App.SVfilter = function (costs,dataType) {
+        if(dataType === 'Quantity'){
+           var dataType = 'H';
+        }else if(dataType ==='IntValProjCurr'){
+            dataType = 'I';
+        }else{
+            dataType = 'E';
+        }
+
+        var master,
+            spiTotal,
+            cpiTotal;
+        var bcws = _.chain(costs)
+            .sortBy('SnapshotDate')
+            .filter('BCWS')
+            .where({'RecordType':dataType})
+            .map(function(item){
+                return {
+                    BCWS: item.BCWS,
+                    type:'BCWS',
+                    EACVersionSelection: item.EACVersionSelection,
+                    FundApproved: item.FundApproved,
+                    HierarchyObjectNumber: item.ObjectNumber,
+                    HierarchySelection: item.HierarchySelection,
+                    PlanVersionSelection: item.PlanVersionSelection,
+                    ProjectSelection: item.ProjectSelection,
+                    RecordType: item.RecordType,
+                    SnapshotDate: item.SnapshotDate,
+                    SnapshotType: item.SnapshotType
+                };
+            }).value();
+
+        var bcwp = _.chain(costs)
+            .sortBy('SnapshotDate')
+            .filter('BCWP')
+            .where({'RecordType':dataType})
+            .map(function(item){
+                return {
+                    BCWP:item.BCWP,
+                    type:'BCWP',
+                    EACVersionSelection: item.EACVersionSelection,
+                    FundApproved: item.FundApproved,
+                    HierarchyObjectNumber: item.ObjectNumber,
+                    HierarchySelection: item.HierarchySelection,
+                    PlanVersionSelection: item.PlanVersionSelection,
+                    ProjectSelection: item.ProjectSelection,
+                    RecordType: item.RecordType,
+                    SnapshotDate: item.SnapshotDate,
+                    SnapshotType: item.SnapshotType
+                };
+            }).value();
+
+        var acwp = _.chain(costs)
+            .sortBy('SnapshotDate')
+            .filter('ACWP')
+            .where({'RecordType':dataType})
+            .map(function(item){
+                return {
+                    ACWP: item.ACWP,
+                    type:'ACWP',
+                    EACVersionSelection: item.EACVersionSelection,
+                    FundApproved: item.FundApproved,
+                    HierarchyObjectNumber: item.ObjectNumber,
+                    HierarchySelection: item.HierarchySelection,
+                    PlanVersionSelection: item.PlanVersionSelection,
+                    ProjectSelection: item.ProjectSelection,
+                    RecordType: item.RecordType,
+                    SnapshotDate: item.SnapshotDate,
+                    SnapshotType: item.SnapshotType
+                };
+            }).value();
+
+        console.info("BCWS length " + bcws.length);
+        console.info("BCWP length " + bcwp.length);
+        console.info("ACWP length " + acwp.length);
+
+        master = _.map(acwp, function (item, index) {
+            if (!_.isUndefined(bcws[index]) || (!_.isEmpty(bcws[index]))) {
+                var bcwsCost = bcws[index][bcws[index].type];
+            }
+            if (!_.isUndefined(bcwp[index]) || (!_.isEmpty(bcwp[index]))) {
+                var bcwpCost = bcwp[index][bcwp[index].type];
+            }
+            if (!_.isUndefined(acwp[index]) || (!_.isEmpty(acwp[index]))) {
+                var acwpCost = acwp[index][acwp[index].type];
+            }
+            //console.log(index+' bcwsCost '+bcwsCost+' bcwpCost '+bcwpCost+' acwpCost '+acwpCost);
+            if (_.isNaN(bcwsCost)) bcwsCost = 0;
+            if (_.isNaN(bcwpCost)) bcwpCost = 0;
+            if (_.isNaN(acwpCost)) acwpCost = 0;
+            //  console.log(parseFloat(bcwp[index].IntValProjCurr).toFixed(2));
+            var SV = _.isNaN(bcwpCost - bcwsCost) ? 0 : bcwpCost - bcwsCost;
+
+
+            return {
+                "SV": App.Math.ceil10(SV, -0),
+                "BCWS":bcwsCost,
+                "BCWP":bcwpCost,
+                "ACWP":acwpCost,
+                "ObjectNumber":item.ObjectNumber,
+                "Date": new Date(item.SnapshotDate),
+                "SnapshotDate": item.SnapshotDate
+            };
+        });
+        console.log(master);
+        return master;
+    };
+
     App.ESfilter = function (costs,dataType) {
         if(dataType === 'Quantity'){
-            dataType = 'H';
+           var dataType = 'H';
         }else if(dataType ==='IntValProjCurr'){
             dataType = 'I';
         }else{
@@ -2692,7 +2809,7 @@ define(['jquery', 'underscore', 'moment','' +
                 return {
                     "ProjectSelection": item.ProjectSelection,
                     "HierarchySelection": item.HierarchySelection,
-                    "HierarchyObjectNumber": item.HierarchyObjectNumber,
+                    "HierarchyObjectNumber": item.ObjectNumber,
                     "PlanVersionSelection": item.PlanVersionSelection,
                     "FundApproved": item.FundApproved,
                     "SnapshotType": item.SnapshotType,
@@ -2706,12 +2823,12 @@ define(['jquery', 'underscore', 'moment','' +
         return master;
     };
 
-    App.createSpiCpiChart = function (dataSource, series, reverse, dataType) {
+    App.createEV_SV_SPICPI_Chart = function (dataSource, series, reverse, dataType) {
         if(_.isUndefined(reverse)){
-            reverse = false;
+            var reverse = false;
         }
-        if (dataType === 'Quantity') {
-            dataType = "{0}hrs";
+        if (_.isUndefined(dataType) || dataType === 'Quantity') {
+            var dataType = "{0}hrs";
         } else {
             dataType = "\u00a3{0}";
         }
@@ -2780,9 +2897,11 @@ define(['jquery', 'underscore', 'moment','' +
     };
 
     App.createChart = function (dataSource, series, reverse, dataType) {
-        console.log(dataType);
+        if(_.isUndefined(reverse)){
+            var reverse = false;
+        }
         if (dataType === 'Quantity') {
-            dataType = "{0}hrs";
+            var dataType = "{0}hrs";
         } else {
             dataType = "\u00a3{0}";
         }

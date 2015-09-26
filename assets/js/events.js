@@ -157,7 +157,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 if (chartType.toUpperCase() === 'SPICPI') {
                     var cpiSpiTrendData = App.cpiSpiTrend(App.DataStore.chart.options.data, 'Quantity');
                     var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
-                    App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
+                    App.createEV_SV_SPICPI_Chart(cpiSpiTrend, App.CpiSpiSeries, false);
                 } else {
                     var refined = App.FilterChartData(App.DataStore.chart.options.data, 'Quantity');
                     App.DataStore.chart = App.AssignStore(refined.graph);
@@ -225,10 +225,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 hierarchyList.empty();
                 //  hierarchyList.off('click');
 
-                App.createSpiCpiChart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
+                App.createEV_SV_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
                 App.hierListInitialize(App.DataStore.hierarchySv);
                 /** Clear Hierarchy and Chart **/
-                $(document).bind("kendo:skinChange", App.createSpiCpiChart);
+                $(document).bind("kendo:skinChange", App.createEV_SV_SPICPI_Chart);
                 $(".chart-type-chooser").bind("change", App.refreshChart);
 
                 $('.dataTypeAnalytics').val('Quantity');
@@ -325,9 +325,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 var filteredEs = App.ESfilter(eData.d.results,App.dataType);
                                 var dataStore = App.AssignStore(filteredEs);
 
-                                App.createSpiCpiChart(dataStore, App.seriesES, true, App.dataType);
+                                App.createEV_SV_SPICPI_Chart(dataStore, App.seriesES, true, App.dataType);
 
-                                $(document).bind("kendo:skinChange", App.createSpiCpiChart);
+                                $(document).bind("kendo:skinChange", App.createEV_SV_SPICPI_Chart);
                                  $(".chart-type-chooser").bind("change", App.refreshChart);
                                 App.analyticsTplConfig(self);
                                 //_.debounce(App.expandTreeList(hierarchyList), 500);
@@ -345,11 +345,13 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     return;
                                 }
                                 App.DataStore.setSpiCpiData(sData,hData);
+
+
                                 App.hierListInitialize(App.DataStore.hierarchySv);
-                                App.createSpiCpiChart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
+                                App.createEV_SV_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
 
                                 var projectName = App.DataStore.hierarchySv[0].ExtID;
-                                $(document).bind("kendo:skinChange", App.createSpiCpiChart);
+                                $(document).bind("kendo:skinChange", App.createEV_SV_SPICPI_Chart);
                                 //$(".chart-type-chooser").bind("change", App.refreshChart);
                                 var hierarchyList = $("div#treelist");
                                 App.hierSpiCpiEvent(hierarchyList);//event for changing chart data
@@ -392,29 +394,20 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
                             break;
                         case 'scheduleVAR':
-                            if (_.isEmpty(App.DataStore.chart)) {
-                                console.log('hit empty chart request');
-                                App.setDataSelection();
-                                chartData = App.SnapshotSet();// get SnapShot Cost Data
-                            }
-                            hierData = App.HierarchySet();//get hierarchy Data
-                            $.when(hierData, chartData).done(function (hData, cData) {
+                            App.setDataSelection();
+                            var svData = App.SVSet();
+                            $.when(svData).done(function (sData) {
                                 App.createSplittersFT();
-                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
+                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, sData)) {
                                     return;
                                 }
-                                if (!_.isEmpty(cData)) {
-                                    App.DataStore.setData(cData, hData);
-                                }
-                                App.DataStore.hierarchy = _.first(hData).d.results;
-                                App.hierListInitialize(App.DataStore.hierarchy);
-                                var refined = App.FilterChartData(App.DataStore.chart.options.data, App.dataType);
-                                App.DataStore.chart = App.AssignStore(refined.graph);
-                                App.createChart(App.DataStore.chart, App.seriesSV, true, App.dataType);
+                                var filteredSv = App.SVfilter(sData.d.results,App.dataType);
+                                var dataStoreSv = App.AssignStore(filteredSv);
 
-                                var projectName = App.DataStore.hierarchy[0].ExtID;
-                                $(document).bind("kendo:skinChange", App.createChart);
-                                //$(".chart-type-chooser").bind("change", App.refreshChart);
+                                App.createEV_SV_SPICPI_Chart(dataStoreSv, App.seriesSV, false, App.dataType);
+
+                                $(document).bind("kendo:skinChange", App.createEV_SV_SPICPI_Chart);
+                                $(".chart-type-chooser").bind("change", App.refreshChart);
                                 App.analyticsTplConfig(self);
                                 //_.debounce(App.expandTreeList(hierarchyList), 500);
                                 _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
@@ -884,8 +877,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 $chartGraph = doc.find("div#chart"),
                 logic = self.attr('data-name'),
                 combineData = [],
-                hier = '';
-                costs = '';
+                hier = '',
+                costs = '',
                 reportType = self.attr('data-temp');
             console.log('type: ' + dataType + ' and Report: ' + reportType);
             App.dataType = dataType;
@@ -915,17 +908,15 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 case 'spa':
                      hier = App.DataStore.hierarchy;
                      costs = App.DataStore.chart.options.data;
-                        console.log(combineData);
                         App.createSplittersFT();
                         App.hierListInitialize(hier);
-                        var refined = App.FilterChartData(costs, dataType);
+                        var refined = App.FilterChartData(costs, App.dataType);
                         App.DataStore.chart = App.AssignStore(refined.graph);
-                        App.createChart(App.DataStore.chart, App.series, false, dataType);
-                        var projectName = App.DataStore.hierarchy[0].ExtID;
+                        App.createChart(App.DataStore.chart, App.series, false, App.dataType);
                         $(document).bind("kendo:skinChange", App.createChart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
-                        var hierarchyList = $("div#treelist");
-                        App.hierEvent(hierarchyList, dataType);//event for changing chart data
+                        hierarchyList = $("div#treelist");
+                        App.hierEvent(hierarchyList, App.dataType);//event for changing chart data
                         App.analyticsTplConfig(self);
                         console.warn("Selected Type " + dataType);
                         if (dataType === 'Quantity') {
@@ -952,15 +943,15 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         if (App.apiErrorHandler(e.currentTarget, loadingWheel, eData)) {
                             return;
                         }
-                        var filteredEs = App.ESfilter(eData.d.results, dataType);
+                        var filteredEs = App.ESfilter(eData.d.results, App.dataType);
                         var dataStore = App.AssignStore(filteredEs);
 
-                        App.createSpiCpiChart(dataStore, App.seriesES, true, dataType);
+                        App.createEV_SV_SPICPI_Chart(dataStore, App.seriesES, true, App.dataType);
 
-                        $(document).bind("kendo:skinChange", App.createSpiCpiChart);
+                        $(document).bind("kendo:skinChange", App.createEV_SV_SPICPI_Chart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         App.analyticsTplConfig(self);
-                        console.log("Selected Type " + dataType);
+                        console.info("Selected Type " + dataType);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
                         } else {
@@ -977,17 +968,22 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
                     break;
                 case 'scheduleVAR':
-                    hier = App.DataStore.hierarchy;
-                    costs = App.DataStore.chart.options.data;
+                    App.setDataSelection();
+                    var svData = App.SVSet();
+                    $.when(svData).done(function (sData) {
                         App.createSplittersFT();
-                        var refined = App.FilterChartData(costs, dataType);
-                        App.DataStore.chart = App.AssignStore(refined.graph);
-                        App.createChart(App.DataStore.chart, App.seriesSV, true, dataType);
-                        var projectName = App.DataStore.hierarchy[0].ExtID;
-                        $(document).bind("kendo:skinChange", App.createChart);
+                        if (App.apiErrorHandler(e.currentTarget, loadingWheel, sData)) {
+                            return;
+                        }
+                        var filteredSv = App.SVfilter(sData.d.results,App.dataType);
+                        var dataStoreSv = App.AssignStore(filteredSv);
+
+                        App.createEV_SV_SPICPI_Chart(dataStoreSv, App.seriesSV, false, App.dataType);
+
+                        $(document).bind("kendo:skinChange", App.createEV_SV_SPICPI_Chart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         App.analyticsTplConfig(self);
-                        console.log("Selected Type " + dataType);
+
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
                         } else {
@@ -1001,6 +997,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
 
+                    });
                     break;
                 case 'spiCPI':
                         hier = App.DataStore.hierarchySv;
@@ -1009,7 +1006,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.hierListInitialize(hier);
                         var cpiSpiTrendData = App.cpiSpiTrend(costs, dataType);
                         var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
-                        App.createSpiCpiChart(cpiSpiTrend, App.CpiSpiSeries, false);
+                        App.createEV_SV_SPICPI_Chart(cpiSpiTrend, App.CpiSpiSeries, false,App.dataType);
                         var projectName = App.DataStore.hierarchySv[0].ExtID;
                         $(document).bind("kendo:skinChange", App.createChart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
