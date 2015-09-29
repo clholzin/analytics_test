@@ -731,8 +731,7 @@ define(['jquery', 'underscore', 'moment','' +
                     total.cv  = (total.cv - total.cvCom);
                     total.CurrSV  = (total.CurrSV - total.CurrSvCom);
                     total.CurrCV  = (total.CurrCV - total.CurrCvCom);
-                    var vac = _.isNaN(total.bac - total.eacTotal) ? 0 : (total.bac - total.eacTotal);
-                    total.vac = vac;
+                    total.vac = _.isNaN(total.bac - total.eacTotal) ? 0 : (total.bac - total.eacTotal);
                     com['bacAllBelow'] = _.isNaN(com.bac + com.allbcwsCOM) ? 0 : (com.bac + com.allbcwsCOM);
                     com['eacAllBelow'] = _.isNaN((com.eacTotal + com.eacCOM) + com.acwpOH) ? 0 : (com.eacTotal + com.eacCOM) + com.acwpCOM;
                     com['bcwsBelow'] = _.isNaN(com.bcwsTotal + com.bcwsCOM) ? 0 : (com.bcwsTotal + com.bcwsCOM);
@@ -1554,16 +1553,10 @@ define(['jquery', 'underscore', 'moment','' +
         });
     };
 
-    App.hierSpiCpiEvent = function (selector,dataType) {
+    App.hierSpiCpiEvent = function (selector) {
         /*********** New Hierarchy Button View Click Event ***************/
-        if(dataType === 'Quanitity'){
-            dataType = 'H';
-        }else if(dataType ==='IntValProjCurr'){
-            dataType = 'I';
-        }else{
-            dataType = 'E';
-        }
-        selector.on('click', 'tr span.js-hier', function (e) {
+        var dataType = this.dataType;
+         selector.on('click', 'tr span.js-hier', function (e) {
             e.preventDefault();
             $('.noData').remove();
             var chartdata = App.DataStore.rawspiCpiChartdata,
@@ -1612,7 +1605,7 @@ define(['jquery', 'underscore', 'moment','' +
                 console.log(chartFiltered.length);
                 $chartGraph.dataSource.data(chartFiltered);
                 $chartGraph.refresh();
-
+               // $("div#treelist").off('click');//remove event listener from obj
                 $target.addClass('animated fadeIn');
             }
 
@@ -2571,6 +2564,58 @@ define(['jquery', 'underscore', 'moment','' +
         return master;
     };
 
+    App.setTrendToChartData = function(chartData, trendData){
+        var check = [],saveEach = [],parent = [],trend = trendData;
+        _.each(chartData,function(value,key){
+             check =  _.filter(trendData,function(item){
+               return  item.ObjectNumber === value.ObjectNumber;
+            });
+            if(!_.isEmpty(check)){
+                saveEach.push(check);
+            }
+            chartData[key]['trend'] = check;
+
+        });
+         _.each(saveEach,function(value,key){
+            //if(saveEach.length > 1 && key != 0){
+                _.each(value,function(v,k){
+                    parent = chartData[0]['trend'];
+                    if(_.isUndefined(parent[k])){
+                        parent[k] ={};
+                        parent[k]['SPI'] = 0;
+                        parent[k]['CPI'] = 0;
+                        parent[k].BCWP = 0;
+                        parent[k].BCWS = 0;
+                        parent[k].ACWP = 0;
+                    }
+                        parent[k].BCWP += Number(v.BCWP),
+                        parent[k].BCWS += Number(v.BCWS),
+                        parent[k].ACWP += Number(v.ACWP),
+                      spi = (parent[k].BCWP / parent[k].BCWS),
+                      cpi = (parent[k].BCWP / parent[k].ACWP);
+
+
+                    parent[k].SPI += App.Math.ceil10(spi,-2);
+                    parent[k].CPI += App.Math.ceil10(cpi,-3);
+                    parent[k].SPIColour = App.ragSpi(spi);
+                    parent[k].CPIColour = App.ragCpi(cpi);
+                });
+           // }
+        });
+     /*   ACWP: "112.000"
+        BCWP: "20.283"
+        BCWS: "57.493"
+        CPI: 0.182
+        CPIColour: "#FF0000"
+        Date: Thu Jan 29 2015 17:00:00 GMT-0700 (US Mountain Standard Time)
+        ObjectNumber: "OB0000266433"
+        SPI: 0.36
+        SPIColour: "#FF0000"
+        SnapshotDate: "2015-01-30T00:00:00"
+        baseLine: 1*/
+    return chartData;
+    }
+
     App.cpiSpiTrend = function (costs,dataType) {
         if(dataType === 'Quantity'){
            var dataType = 'H';
@@ -2593,7 +2638,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'BCWS',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.ObjectNumber,
+                    ObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2613,7 +2658,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'BCWP',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.ObjectNumber,
+                    ObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2633,7 +2678,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'ACWP',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.ObjectNumber,
+                    ObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2668,14 +2713,16 @@ define(['jquery', 'underscore', 'moment','' +
             if(_.isNaN(cpiTotal)) cpiTotal = 0;
             if(spiTotal === Infinity) spiTotal = 0;
             if(cpiTotal === Infinity) cpiTotal = 0;
-
             return {
-                "CPI": App.Math.ceil10(cpiTotal, -2),
-                "SPI": App.Math.ceil10(spiTotal, -3),
+                "CPI": App.Math.ceil10(cpiTotal, -3),
+                "SPI": App.Math.ceil10(spiTotal, -2),
+                "SPIColour" : App.ragSpi(spiTotal),
+                "CPIColour" : App.ragCpi(cpiTotal),
                 "BCWS":bcwsCost,
                 "BCWP":bcwpCost,
                 "ACWP":acwpCost,
                 "ObjectNumber":item.ObjectNumber,
+                "RecordType": item.RecordType,
                 "Date": new Date(item.SnapshotDate),
                 "SnapshotDate": item.SnapshotDate,
                 "baseLine": 1
@@ -2827,11 +2874,6 @@ define(['jquery', 'underscore', 'moment','' +
         if(_.isUndefined(reverse)){
             var reverse = false;
         }
-        if (_.isUndefined(dataType) || dataType === 'Quantity') {
-            var dataType = "{0}hrs";
-        } else {
-            dataType = "\u00a3{0}";
-        }
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -2884,7 +2926,7 @@ define(['jquery', 'underscore', 'moment','' +
                 {
                     reverse: reverse,
                     labels: {
-                        format: dataType
+                        format: "{0}"
                     }
                 }
             ],

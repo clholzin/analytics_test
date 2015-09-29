@@ -44,7 +44,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
         var hierarchySets = App.projectData();
         $.when(hierarchySets).done(function (hData) {
-
             if (_.isObject(hData)) {
                 combineData.push(hData.d.results);
                 console.log(combineData);
@@ -219,10 +218,11 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 }
                 App.DataStore.setSpiCpiData(sData,hData);
 
-               $treeList.destroy();
-               $chartGraph.destroy();
                 doc.find("div#chart").empty();
                 hierarchyList.empty();
+                $treeList.destroy();
+                $chartGraph.destroy();
+
                 //  hierarchyList.off('click');
 
                 App.createEV_SV_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
@@ -279,6 +279,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
             /* this is to reset global dataType upon entry*/
             console.log(id);
             App.dataType = 'Quantity';
+
             App.setHierarchySelection(id.toUpperCase());
             var List = App.HierarchyListSet();
             App.HierarchySelectionID = '';
@@ -435,8 +436,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 self = $(this),
                 id = self.data('temp'),
                 sheet = self.data('sheet'),//Worksheet Name
-                version = '', projectData = '', hierData = '', vData = '', hier = '', costs = '', chartData = '',
-                totals = '', gauges = '', chartDataSource = '', currentVersion = [],
+                version = '', projectData = '', hierData = '',svData='', vData = '', hier = '', costs = '', chartData = '',
+                totals = '', gauges = '', chartDataSource = '', currentVersion = [],chartTotals = '', trendData = '',
                 retrieveTpl = 'tpl!templates/reports/' + id + '.html';
             console.log(id);
             App.setHierarchySelection(id.toUpperCase());
@@ -454,17 +455,23 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 if (defList.length >= 1) {
                     App.HierarchySelectionID = _.first(defList).HierarchySelection;
                 }
-                console.log('HierarchySelectionID Selection: ' + App.HierarchySelectionID);
+                console.log('HierarchySelection Selection: ' + App.HierarchySelectionID);
+
                 App.setDataSelection();
+
                 requirejs([retrieveTpl], function (tempTpl) {
                     /*********   Data Processing  *************/
+                    hierData = App.HierarchySet();//always get hierarchy Data for now
+                    projectData = App.projectData();//always get project Data for now
+                    svData = App.SVSet();
+                    App.DataStore.clearSpiCpiData();//clear out data sv request data stored
                     if (_.isEmpty(App.DataStore.chart)) {
-                        console.log('hit empty chart request');
+                        console.log('hit empty DataStore.chart request');
                         chartData = App.SnapshotSet();// get SnapShot Cost Data
-                        projectData = App.projectData();//get project Data
-                        hierData = App.HierarchySet();//get hierarchy Data
+
                     }
-                    $.when(projectData, hierData, chartData).done(function (pData, hData, cData) {//holds on for async data calls
+
+                    $.when(projectData, hierData, chartData, svData).done(function (pData, hData, cData, sData) {//holds on for async data calls
                         /** Error handler **/
                         if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
                             return;
@@ -472,12 +479,19 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         /** Error handler **/
                         if (!_.isEmpty(cData)) {
                             App.DataStore.project = _.first(pData).d.results;
-                            App.DataStore.setData(cData, hData);
+                            App.DataStore.setData(cData, hData);//adds data to data store
                         }
+
+                        //if(!_.isEmpty(sData)){
+                            App.DataStore.setSpiCpiData(sData,hData);//adds data to data store
+                            //from here we can use the raw data and apply it to the function filter
+                            // default raw data is stored "App.DataStore.rawspiCpiChartdata"
+                       // }
+
                         hier = App.DataStore.hierarchy;
                         costs = App.DataStore.chart.options.data;
+                        App.dataType = 'Quantity';//set or reset upon entry as default
 
-                        App.dataType = 'Quantity';
                         switch (sheet) {
                             case 'CPR-1':
                                 console.log('hit 1');
@@ -529,7 +543,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 App.Project(tplId, tplFooter, combineData);
                                 bkgChange.attr('id', 'cprBG');
                                 App.reportTplConfig(self);
-
                                 /*********   End Template Processing  *****/
                                 App.SpinnerTpl(loadingWheel, 0);
                                 break;
@@ -551,7 +564,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             case 'CPR-TWBS':
                                 console.log('hit TW');
                                 combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
+                                 chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
+                                 trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,App.dataType);
+                                combineData[1] = App.setTrendToChartData(chartTotals,trendData);
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
                                 tplFooter = reportFooterTpl;
@@ -564,7 +579,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             case 'CPR-TOBS':
                                 console.log('hit TO');
                                 combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
+                                 chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
+                                 trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,App.dataType);
+                                combineData[1] = App.setTrendToChartData(chartTotals,trendData);
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
                                 tplFooter = reportFooterTpl;
@@ -634,7 +651,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
             var self = $(this).find(':selected'),
                 dataType = self.val(),
                 logic = self.attr('data-sheet'),
-                reportType = self.attr('data-temp');
+                reportType = self.attr('data-temp'),
+                chartTotals = '',
+                trendData = '';
             console.log('type: ' + dataType + ' and Report: ' + reportType);
             App.dataType = dataType;
             if (dataType === 'Quantity') {
@@ -697,12 +716,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.reportTplConfig(self);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
-                            $('#units').html('HRS');
-                            $('#cpr2Title').html('CPR FORMAT 2 - OBS (MANHOURS)');
+                            $('#units').text('HRS');
+                            $('#cpr2Title').text('CPR FORMAT 2 - OBS (MANHOURS)');
                         } else {
                             $('.costType').show();
                             $('#units').html('&pound;');
-                            $('#cpr2Title').html('CPR FORMAT 2 - OBS (MATERIAL)');
+                            $('#cpr2Title').text('CPR FORMAT 2 - OBS (MATERIAL)');
                             $('.dataType').val('Costs');
                             if (dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
@@ -725,12 +744,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.reportTplConfig(self);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
-                            $('#units').html('HRS');
-                            $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MANHOURS)');
+                            $('#units').text('HRS');
+                            $('#cpr3Title').text('CPR FORMAT 3 - BASELINE (MANHOURS)');
                         } else {
                             $('.costType').show();
-                            $('#units').html('&pound;');
-                            $('#cpr3Title').html('CPR FORMAT 3 - BASELINE (MATERIAL)');
+                            $('#units').text('&pound;');
+                            $('#cpr3Title').text('CPR FORMAT 3 - BASELINE (MATERIAL)');
                             $('.dataType').val('Costs');
                             if (dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
@@ -757,12 +776,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.reportTplConfig(self);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
-                            $('#units').html('HRS');
-                            $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
+                            $('#units').text('HRS');
+                            $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
                         } else {
                             $('.costType').show();
-                            $('#units').html('&pound;');
-                            $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MATERIAL)');
+                            $('#units').text('&pound;');
+                            $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (MATERIAL)');
                             $('.dataType').val('Costs');
                             if (dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
@@ -789,12 +808,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.reportTplConfig(self);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
-                            $('#units').html('HRS');
-                            $('#cpr5Title').html('CPR FORMAT 5 - VAR (MANHOURS)');
+                            $('#units').text('HRS');
+                            $('#cpr5Title').text('CPR FORMAT 5 - VAR (MANHOURS)');
                         } else {
                             $('.costType').show();
-                            $('#units').html('&pound;');
-                            $('#cpr5Title').html('CPR FORMAT 5 - VAR (MATERIAL)');
+                            $('#units').text('&pound;');
+                            $('#cpr5Title').text('CPR FORMAT 5 - VAR (MATERIAL)');
                             $('.dataType').val('Costs');
                             if (dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
@@ -808,7 +827,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
                     case 'CPR-TWBS':
                         console.log('hit TW');
                         combineData[0] = App.DataStore.project;
-                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+                         chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
+                         trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
+                        combineData[1] = App.setTrendToChartData(chartTotals,trendData);
                         /*********   Template Processing  *********/
                         tplId = tempTpl;
                         tplFooter = reportFooterTpl;
@@ -817,12 +838,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.reportTplConfig(self);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
-                            $('#units').html('HRS');
-                            $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MANHOURS)');
+                            $('#units').text('HRS');
+                            $('#cprTWTitle').text('CPR FORMAT TREND - WBS (MANHOURS)');
                         } else {
                             $('.costType').show();
-                            $('#units').html('&pound;');
-                            $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MATERIAL)');
+                            $('#units').text('&pound;');
+                            $('#cprTWTitle').text('CPR FORMAT TREND - WBS (MATERIAL)');
                             $('.dataType').val('Costs');
                             if (dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
@@ -836,7 +857,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
                     case 'CPR-TOBS':
                         console.log('hit TO');
                         combineData[0] = App.DataStore.project;
-                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+
+                         chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
+                         trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
+                        combineData[1] = App.setTrendToChartData(chartTotals,trendData);
                         /*********   Template Processing  *********/
                         tplId = tempTpl;
                         tplFooter = reportFooterTpl;
@@ -845,12 +869,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.reportTplConfig(self);
                         if (dataType === 'Quantity') {
                             $('.costType').hide();
-                            $('#units').html('HRS');
-                            $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MANHOURS)');
+                            $('#units').text('HRS');
+                            $('#cprTOTitle').text('CPR FORMAT TREND - OBS (MANHOURS)');
                         } else {
                             $('.costType').show();
-                            $('#units').html('&pound;');
-                            $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MATERIAL)');
+                            $('#units').text('&pound;');
+                            $('#cprTOTitle').text('CPR FORMAT TREND - OBS (MATERIAL)');
                             $('.dataType').val('Costs');
                             if (dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
@@ -880,12 +904,13 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 hier = '',
                 costs = '',
                 reportType = self.attr('data-temp');
+            $("div#treelist").off()
             console.log('type: ' + dataType + ' and Report: ' + reportType);
             App.dataType = dataType;
-            if (dataType === 'Quantity') {
+            if (App.dataType === 'Quantity') {
                 $('.costType').hide();
-            } else if (dataType === 'Costs') {
-                dataType = 'IntValProjCurr';
+            } else if (App.dataType === 'Costs') {
+                App.dataType = 'IntValProjCurr';
                 $('.costType').show();
             } else {
             }
@@ -919,12 +944,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.hierEvent(hierarchyList, App.dataType);//event for changing chart data
                         App.analyticsTplConfig(self);
                         console.warn("Selected Type " + dataType);
-                        if (dataType === 'Quantity') {
+                        if (App.dataType === 'Quantity') {
                             $('.costType').hide();
                         } else {
                             $('.costType').show();
                             $('.dataTypeAnalytics').val('Costs');
-                            if (dataType === 'IntValProjCurr') {
+                            if (App.dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
                             } else {
                                 $('.costType').val('ExtValProjCurr');
@@ -952,12 +977,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         App.analyticsTplConfig(self);
                         console.info("Selected Type " + dataType);
-                        if (dataType === 'Quantity') {
+                        if (App.dataType === 'Quantity') {
                             $('.costType').hide();
                         } else {
                             $('.costType').show();
                             $('.dataTypeAnalytics').val('Costs');
-                            if (dataType === 'IntValProjCurr') {
+                            if (App.dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
                             } else {
                                 $('.costType').val('ExtValProjCurr');
@@ -984,12 +1009,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         App.analyticsTplConfig(self);
 
-                        if (dataType === 'Quantity') {
+                        if (App.dataType === 'Quantity') {
                             $('.costType').hide();
                         } else {
                             $('.costType').show();
                             $('.dataTypeAnalytics').val('Costs');
-                            if (dataType === 'IntValProjCurr') {
+                            if (App.dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
                             } else {
                                 $('.costType').val('ExtValProjCurr');
@@ -1004,22 +1029,22 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         costs = App.DataStore.rawspiCpiChartdata;
                         App.createSplittersFT();
                         App.hierListInitialize(hier);
-                        var cpiSpiTrendData = App.cpiSpiTrend(costs, dataType);
+                        var cpiSpiTrendData = App.cpiSpiTrend(costs, App.dataType);
                         var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
                         App.createEV_SV_SPICPI_Chart(cpiSpiTrend, App.CpiSpiSeries, false,App.dataType);
                         var projectName = App.DataStore.hierarchySv[0].ExtID;
                         $(document).bind("kendo:skinChange", App.createChart);
                         $(".chart-type-chooser").bind("change", App.refreshChart);
                         var hierarchyList = $("div#treelist");
-                        App.hierSpiCpiEvent(hierarchyList, dataType);//event for changing chart data
+                        App.hierSpiCpiEvent(hierarchyList);//event for changing chart data
                         App.analyticsTplConfig(self);
-                        console.log("Selected Type " + dataType);
-                        if (dataType === 'Quantity') {
+                        console.log("Selected Type " + App.dataType);
+                        if (App.dataType === 'Quantity') {
                             $('.costType').hide();
                         } else {
                             $('.costType').show();
                             $('.dataTypeAnalytics').val('Costs');
-                            if (dataType === 'IntValProjCurr') {
+                            if (App.dataType === 'IntValProjCurr') {
                                 $('.costType').val('IntValProjCurr');
                             } else {
                                 $('.costType').val('ExtValProjCurr');

@@ -450,30 +450,50 @@
                 style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.totals.vac%>
             </td>
-            <td class="no-paint rag" data-colour="<%-value.totals.curSPIColour%>" colspan='1'
-                style='background-color:<%-value.totals.curSPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.totals.curSPI%></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td class="no-paint rag" data-colour="<%-value.totals.curCPIColour%>" colspan='1'
-                style='background-color:<%-value.totals.curCPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.totals.curCPI%></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='1'
-                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+          <!--  <td class="no-paint rag" data-colour="<%-value.totals.curSPIColour%>" colspan='1' style='background-color:<%-value.totals.curSPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-value.totals.curSPI%>
+            </td>-->
+        <% if(!_.isEmpty(value.trend)){ %>
+        <%  for (var i = value.trend.length - 1; i >= 0; i--) { %>
+            <% if(i >= (value.trend.length -6)){%>
+                <td colspan='1' class="no-paint rag" data-colour="<%-value.trend[i].SPIColour%>" style='background-color:<%-value.trend[i].SPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.trend[i].SPI%></td>
+            <% }else{ %>
+            <% } %>
+        <% } %>
+        <% }else{ %>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <% } %>
+       <!-- <td class="no-paint rag" data-colour="<%-value.totals.curCPIColour%>" colspan='1' style='background-color:<%-value.totals.curCPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+            <%-value.totals.curCPI%>
+        </td>-->
+        <% if(!_.isEmpty(value.trend)){ %>
+        <%  for (var i = value.trend.length - 1; i >= 0; i--) { %>
+            <% if(i >= (value.trend.length -6)){%>
+                <td colspan='1' class="no-paint rag" data-colour="<%-value.trend[i].CPIColour%>" style='background-color:<%-value.trend[i].CPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.trend[i].CPI%></td>
+            <% }else{ %>
+            <% } %>
+        <% } %>
+        <% }else{ %>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        <% } %>
+
+            <!--
+
+            <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+            <td colspan='1' style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>-->
         </tr>
         <%});%>
         <!-- END OF FOR EACH -->
