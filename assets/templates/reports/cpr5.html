@@ -25,18 +25,17 @@
         <form class="form-inline">
             <div class="col-xs-5 input-group">
                 <select class="col-xs-6 form-control dataType controller" id="dataType">
-                    <!--option>Select Type</option-->
                     <option value="Quantity" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Hours</option>
-                    <option value="Costs" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Cost</option>
+                    <option value="Material" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Material</option>
+                    <option value="Costs" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Total Cost</option>
                 </select>
             </div>
-            <div class="col-xs-5 input-group">
+            <!--div class="col-xs-5 input-group">
                 <select class="col-xs-6 form-control dataType costType" id="costType" style="display: none;">
-                    <!--option>Select Cost</option-->
                     <option value="IntValProjCurr" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">Internal Cost</option>
                     <option value="ExtValProjCurr" data-id="eAndPAnalysesTable" data-temp="cpr5" data-name="CPR5_VAR" data-sheet="CPR-5">External Cost</option>
                 </select>
-            </div>
+            </div-->
         </form>
     </div>
 
@@ -242,7 +241,6 @@
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='9'
                 style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-weight: bold; font-size:12px; padding:2px'>
-                OBS SEEAA Propulsion
             </td>
             <td class="no-paint"
                 style='background-color:#FF9933; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
@@ -451,6 +449,20 @@
                 style='background-color:#999; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td class="no-paint"
                 style='background-color:#999; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+        </tr>
+
+        <tr>
+            <td colspan='13'
+                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                EVALUATION
+            </td>
+        </tr>
+
+        <tr>
+            <td id="cpr5Eval" colspan='13'
+                style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%=combineData[2].ReportText%>
+            </td>
         </tr>
 
         <tr>

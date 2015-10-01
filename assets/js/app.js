@@ -12,7 +12,7 @@ define(['jquery', 'underscore', 'moment','' +
     App.ChartType = '';
     App.reportData = "/DSN/PMR_01_SRV";
     App.serviceRoot = window.location.protocol + '//' + window.location.host + '/pmr01srv' + App.reportData;
-    App.dataType = 'Quantity';
+    App.dataType = 'Quantity';//constant
     App.Math = {};
     /*
      See function setProjectID for other API's
@@ -47,7 +47,7 @@ define(['jquery', 'underscore', 'moment','' +
             field: "runningEAC",
             categoryField: "Date",
             // aggregate: "sum",
-            color: "#FF0000",
+            color: "#000000",
             markers: {type: "circle"}
         },
         {
@@ -415,6 +415,7 @@ define(['jquery', 'underscore', 'moment','' +
         this.urlHierarchySet = "/HierarchyDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "')?$format=json";
         this.urlESSet = "/EarnedScheduleDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
         this.urlSVSet = "/BcwsBcwpAcwpDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',EACVersionSelection='" + _.last(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
+        this.urlCPR5Set = "/CPR5DetailSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',SnapshotSelection='" + App.SnapshotSelectionID + "',SnapshotType='M',ExternalCost='')?$format=json";
     };
 
     App.CheckProdId = function () {
@@ -740,10 +741,10 @@ define(['jquery', 'underscore', 'moment','' +
                     com['currbcwsBelow'] = _.isNaN(com.curBcwsTotal + com.curbcwsCOM) ? 0 : (com.curBcwsTotal + com.curbcwsCOM);
                     com['currbcwpBelow'] = _.isNaN(com.curBcwpTotal + com.curbcwpCOM) ? 0 : (com.curBcwpTotal + com.curbcwpCOM);
                     com['curracwsBelow'] = _.isNaN(com.curAcwpTotal + com.curacwpCOM) ? 0 : (com.curAcwpTotal + com.curacwpCOM);
-                    com['CurrSVBelow'] =  _.isNaN(com.CurrSV + com.CurrSvCom) ? 0 : (com.CurrSV - com.CurrSvCom);
-                    com['CurrCVBelow'] = _.isNaN(com.CurrCV + com.CurrCvCom) ? 0 : (com.CurrCV + com.CurrCvCom);
-                    com['svBelow'] = _.isNaN(com.sv + com.svCom) ? 0 : (com.sv + com.svCom);
-                    com['cvBelow'] = _.isNaN(com.cv + com.cvCom) ? 0 : (com.cv + com.cvCom);
+                    com['CurrSVBelow'] =  _.isNaN(com.CurrSV + (com.CurrSvCom)) ? 0 : (com.CurrSV + com.CurrSvCom);
+                    com['CurrCVBelow'] = _.isNaN(com.CurrCV + (com.CurrCvCom)) ? 0 : (com.CurrCV + com.CurrCvCom);
+                    com['svBelow'] = _.isNaN(com.sv + (com.svCom)) ? 0 : (com.sv + com.svCom);
+                    com['cvBelow'] = _.isNaN(com.cv + (com.cvCom)) ? 0 : (com.cv + com.cvCom);
                     com['vacBelow'] = _.isNaN(com.vac + com.vacCOM) ? 0 : (com.vac + com.vacCOM);
                 } else {
                     var bcwsAll = _.isNaN(total.bac - total.allbcwsOH) ? 0 : (total.bac - total.allbcwsOH),
@@ -1391,10 +1392,12 @@ define(['jquery', 'underscore', 'moment','' +
             series = '',
             ValueAxis = '',
             type = $("input[name=seriesType]:checked").val();
-        if (this.dataType === 'Quantity') {
-            dataType = "{0}hrs";
+        if (dataType === 'Quantity') {
+            var dataType = "{0}hrs";
+            var dataTypeTitle = "Hours";
         } else {
-            dataType = "\u00a3{0}";
+            var dataType = "\u00a3{0}";
+            var dataTypeTitle = "\u00a3";
         }
         //stack = $("#stack").prop("checked");
         if (type === 'combo') {
@@ -1412,11 +1415,11 @@ define(['jquery', 'underscore', 'moment','' +
         } else {
             ValueAxis = [{
                 //reverse: reverse,
-               // title: {
-                //        text: ' Total'
-                //    },
+                title: {
+                       text: dataTypeTitle
+                    },
                 labels: {
-                    format: dataType
+                    format: "{0}"
                 }
             }];
             series = App.series;
@@ -1672,6 +1675,22 @@ define(['jquery', 'underscore', 'moment','' +
         return Source;
     };
 
+    App.CPR5DetailSet = function () {
+        var Source = $.ajax({
+            url: this.serviceRoot + this.urlCPR5Set,
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            // hierSource = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('CPR5DetailSet complete ');
+        });
+        return Source;
+    };
+
     App.ESSet = function () {
         var Source = $.ajax({
             url: this.serviceRoot + this.urlESSet,
@@ -1909,6 +1928,7 @@ define(['jquery', 'underscore', 'moment','' +
 
                     return {
                         "Quantity": value.Quantity,
+                        "TransactionType": value.TransactionType,
                         "IntValProjCurr": value.IntValProjCurr,
                         "ExtValProjCurr": value.ExtValProjCurr,
                         "ObjectNumber": value.ObjectNumber,
@@ -1975,7 +1995,6 @@ define(['jquery', 'underscore', 'moment','' +
                         return item.ValueType === 'P2';
                     });//filter data
 
-
                     if (_.isArray(obj.BCWS) && (!_.isEmpty(obj.BCWS))) {
                         var BCWSdata = _.chain(obj.BCWS).sortBy("Date").map(function (value) {
                             //console.log(value);
@@ -1984,6 +2003,7 @@ define(['jquery', 'underscore', 'moment','' +
                             return {
                                 "BCWS": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
+                                "TransactionType": value.TransactionType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2009,6 +2029,7 @@ define(['jquery', 'underscore', 'moment','' +
                             return {
                                 "BCWP": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
+                                "TransactionType": value.TransactionType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2031,7 +2052,7 @@ define(['jquery', 'underscore', 'moment','' +
 
                 if (value.Type === 'E' && value.Default === 'X') {//|| index === 2
                     obj.EAC = $.grep(costs, function (item) {
-                        return item;
+                        return item.ValueType != '04';
                     });//filter data
                     obj.ACWP = $.grep(costs, function (item) {
                         //ValueType = 01 04
@@ -2051,6 +2072,7 @@ define(['jquery', 'underscore', 'moment','' +
                             return {
                                 "EAC": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
+                                "TransactionType": value.TransactionType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2071,6 +2093,7 @@ define(['jquery', 'underscore', 'moment','' +
                             return {
                                 "ACWP": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
+                                "TransactionType": value.TransactionType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2199,6 +2222,7 @@ define(['jquery', 'underscore', 'moment','' +
                 return {
                     "BCWS": value.IntValProjCurr,
                     "Quantity": value.Quantity,
+                    "TransactionType": value.TransactionType,
                     "runningBCWS": runningTotalBCWS,
                     "IntValProjCurr": value.IntValProjCurr,
                     "ExtValProjCurr": value.ExtValProjCurr,
@@ -2269,6 +2293,7 @@ define(['jquery', 'underscore', 'moment','' +
                 return {
                     "BCWP": value.IntValProjCurr,
                     "Quantity": value.Quantity,
+                    "TransactionType": value.TransactionType,
                     "runningBCWP": runningTotalBCWP,
                     "IntValProjCurr": value.IntValProjCurr,
                     "ExtValProjCurr": value.ExtValProjCurr,
@@ -2335,6 +2360,7 @@ define(['jquery', 'underscore', 'moment','' +
                 return {
                     "ACWP": value.IntValProjCurr,
                     "Quantity": value.Quantity,
+                    "TransactionType": value.TransactionType,
                     "runningACWP": runningTotalACWP,
                     "IntValProjCurr": value.IntValProjCurr,
                     "ExtValProjCurr": value.ExtValProjCurr,
@@ -2402,6 +2428,7 @@ define(['jquery', 'underscore', 'moment','' +
                 return {
                     "EAC": value.IntValProjCurr,
                     "Quantity": value.Quantity,
+                    "TransactionType": value.TransactionType,
                     "runningEAC": runningTotalEAC,
                     "IntValProjCurr": value.IntValProjCurr,
                     "ExtValProjCurr": value.ExtValProjCurr,
@@ -2874,6 +2901,13 @@ define(['jquery', 'underscore', 'moment','' +
         if(_.isUndefined(reverse)){
             var reverse = false;
         }
+        if (dataType === 'Quantity') {
+            var dataType = "{0}hrs";
+            var dataTypeTitle = "Hours";
+        } else {
+            var dataType = "\u00a3{0}";
+            var dataTypeTitle = "\u00a3";
+        }
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -2903,7 +2937,8 @@ define(['jquery', 'underscore', 'moment','' +
                 labels: {
                     rotation: -60,
                     dateFormats: {
-                        days: "M/YYYY"
+                        // months: "MMM-yy"
+                        months: "M-yyyy"
                     }
                 },
                 autoBaseUnitSteps: {
@@ -2925,6 +2960,9 @@ define(['jquery', 'underscore', 'moment','' +
             valueAxis: [
                 {
                     reverse: reverse,
+                    title: {
+                        text: dataTypeTitle
+                    },
                     labels: {
                         format: "{0}"
                     }
@@ -2944,8 +2982,10 @@ define(['jquery', 'underscore', 'moment','' +
         }
         if (dataType === 'Quantity') {
             var dataType = "{0}hrs";
+            var dataTypeTitle = "Hours";
         } else {
-            dataType = "\u00a3{0}";
+            var dataType = "\u00a3{0}";
+            var dataTypeTitle = "\u00a3";
         }
         $("#chart").kendoChart({
             pdf: {
@@ -2972,7 +3012,7 @@ define(['jquery', 'underscore', 'moment','' +
                 },
                 tooltip: {
                     visible: true,
-                    format: "({0:M-yy})"
+                    format: "M-yyyy"
                 }
             },
             series: series,
@@ -3013,9 +3053,12 @@ define(['jquery', 'underscore', 'moment','' +
             valueAxis: [
                 {
                     reverse: reverse,
+                    title: {
+                        text: dataTypeTitle
+                    },
                     labels: {
-                        format: dataType
-                    }//title: {text: ' Total'},
+                        format: "{0}"
+                    }
                 }
             ],
             tooltip: {
@@ -3029,12 +3072,10 @@ define(['jquery', 'underscore', 'moment','' +
                     width: 2,
                     color: "black"
                 },
-                template: "#= kendo.format('"+dataType+"',value.toFixed(0)) #"
-                // template: "#: value.x # - #: value.y # (#: value.size #)"
+                template: "#= kendo.format('"+dataType+"', value.toFixed(0)) #"
+                 //template: "#: value.x # - #: value.y # (#: value.size #)"
             }
         });
     };
-
-
     return App;
 });
