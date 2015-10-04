@@ -2,7 +2,6 @@
     <div class="panel-heading">
         <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">Analytics Dashboard</h1>
     </div>
-
     <div class="panel-body animated fadeIn" style="margin-left: 10px; margin-right: 10px">
         <div class="row" style="margin: 15px 0">
             <div class="col-sm-6 col-md-4">
@@ -10,7 +9,6 @@
                     <div class="input-group">
                         <div class="input-group-addon dashboardTitle">Project</div>
                         <select class="form-control" id="projectSets">
-
                             <% if (combineData[0].length < 2) { %>
                                 <% $.each(combineData[0],function(key,value){ %>
                                 <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
@@ -66,6 +64,9 @@
             </div>
             <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
                 <div class="menuItem getReport" data-id="trendTable" data-temp="cprTOBS" data-name="CPR_TrendOBS" data-sheet="CPR-TOBS" role="button"><h4 class="menuTitle">CPR Trend - OBS</h4><img class="menuItemImg" src="./assets/img/trendOBS.png"></div>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 menuItemMarginBottom">
+                <div class="menuItem getReport" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT" role="button"><h4 class="menuTitle">FOO Report</h4><img class="menuItemImg" src="./assets/img/trendOBS.png"></div>
             </div>
         </div>
     </div>

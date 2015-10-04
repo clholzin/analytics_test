@@ -1,0 +1,57 @@
+<div class="panel panel-default"
+     style="background-color: transparent; margin-bottom: 100px; box-shadow: none; border: none">
+    <div class="panel-heading" style="margin-bottom: 20px">
+        <span class="pull-left">
+            <a class="homeTpl" data-id="wbsTable" data-temp="home" data-name="home" role="button" href="#">
+                <img src="./assets/img/home.png"></a>
+        </span>
+
+        <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">FOO REPORT</h1>
+    </div>
+
+    <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
+        <form class="form-inline">
+            <div class="col-xs-5 input-group">
+                <select class="col-xs-6 form-control dataType controller" id="dataType">
+                    <option value="Quantity" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT">Hours</option>
+                <!--    <option value="Material" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT">Material</option>-->
+                    <option value="Costs" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT">Total Cost</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <br>
+    <br>
+
+    <table class="animated fadeIn exportTable" id="fooTable" align="center" border='0' cellspacing='0' cellpadding='0'>
+
+     <% _.each(combineData[1].merged,function(value,index){ %>
+        <tr data-type="<%-value.ObjectNumber%>" class="">
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-value.Description%>
+            </td>
+            <% if(index === 0){ %>
+                <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                    OBS
+                </td>
+                <% _.each(combineData[1].dates,function(value,index){ %>
+                <td style='font-weight:bold;border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                    <%-value.date%>
+                </td>
+                <% }); %>
+            <% }else{ %>
+                <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                    <%-value.ObjectNumber%>
+                </td>
+                <% _.each(value.Total,function(item,key){ %>
+                <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                    <%-item%>
+                </td>
+                <% }); %>
+            <% } %>
+
+        </tr>
+        <% }); %>
+    </table>
+</div>

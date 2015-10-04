@@ -10,32 +10,53 @@
     <ul class="dropdown-menu" role="menu" style="min-width: 180px; padding: 5px 2px">
         <li style="padding-bottom: 2px">
             <form>
-                <select class="form-control selectpicker" tabindex="-1"
-                        style="padding: 3px 6px 3px 6px; cursor: pointer">
-                    <option value="baseline">Baseline Version</option>
-                    <option value="">Baseline Version 1</option>
-                    <option value="">Baseline Version 2</option>
+                <select class="form-control selectpicker" tabindex="-1"  style="padding: 3px 6px 3px 6px; cursor: pointer">
+                    <% if (combineData[2].length < 2) { %>
+                    <% $.each(combineData[2],function(key,value){ %>
+                    <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
+                    <%});
+                    } else { %>
+                    <option value="">Select Baseline Version</option>
+                    <% $.each(combineData[2],function(key,value){ %>
+                    <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
+                    <%});
+
+                    }%>
                 </select>
             </form>
         </li>
         <li style="padding-bottom: 2px">
             <form>
-                <select tabindex="-1" class="form-control selectpicker" id="eac"
-                        style="padding: 3px 6px 3px 6px; cursor: pointer">
-                    <option value="eac">EAC Version 1</option>
-                    <option value="">EAC Version 2</option>
-                    <option value="">EAC Version 3</option>
+                <select tabindex="-1" class="form-control selectpicker" id="eac" style="padding: 3px 6px 3px 6px; cursor: pointer">
+                    <% if (combineData[2].length < 2) { %>
+                    <% $.each(combineData[2],function(key,value){ %>
+                    <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
+                    <%});
+                    } else { %>
+                    <option value="">Select EAC Version</option>
+                    <% $.each(combineData[2],function(key,value){ %>
+                    <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
+                    <%});
+
+                    }%>
                 </select>
             </form>
         </li>
         <li>
             <form>
-                <select tabindex="-1" class="form-control selectpicker" id="snapshot"
-                        style="padding: 3px 6px 3px 6px; cursor: pointer">
-                    <option value="snapshot">Snapshot Selection</option>
-                    <option value="">Snapshot Selection</option>
-                    <option value="">Snapshot Selection</option>
-                </select></select>
+                <select tabindex="-1" class="form-control selectpicker" id="snapshot" style="padding: 3px 6px 3px 6px; cursor: pointer">
+                    <% if (combineData[0].length < 2) { %>
+                    <% $.each(combineData[0],function(key,value){ %>
+                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-chartType="SPA"><%-value.SnapshotSelection%></option>
+                    <%});
+                    } else { %>
+                    <option value="">Select SnapShot Date</option>
+                    <% $.each(combineData[0],function(key,value){ %>
+                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-chartType="SPA"><%-value.SnapshotSelection%></option>
+                    <%});
+
+                    }%>
+                </select>
             </form>
         </li>
         <li class="divider"></li>
@@ -52,15 +73,16 @@
                     <div class="input-group">
                         <div class="input-group-addon dashboardTitle">Hierachy</div>
                         <select class="form-control" id="cpiSpiChange" >
-                            <% if (combineData[0].length < 2) { %>
-                            <% $.each(combineData[0],function(key,value){ %>
-                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPICPI"><%-value.HierarchyDescription%></option>
+                            <% if (combineData[1].length < 2) { %>
+                            <% $.each(combineData[1],function(key,value){ %>
+                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPA"><%-value.HierarchyDescription%></option>
                             <%});
                             } else { %>
                             <option value="">Select Hierarchy</option>
-                            <% $.each(combineData[0],function(key,value){ %>
-                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPICPI"><%-value.HierarchyDescription%></option>
+                            <% $.each(combineData[1],function(key,value){ %>
+                            <option value="<%-value.HierarchySelection%>" data-title="<%-value.HierarchyDescription%>" data-chartType="SPA"><%-value.HierarchyDescription%></option>
                             <%});
+
                             }%>
                         </select>
                     </div>

@@ -272,7 +272,7 @@ define(['jquery', 'underscore', 'moment','' +
             this.gaugesData = [];
             this.project = {};
             this.hierarchy = [];
-          //  this.hierarchyList = {};
+            //  this.hierarchyList = {};
             this.snapShotList = [];
         },
         setData: function (Data, hData) {
@@ -287,7 +287,11 @@ define(['jquery', 'underscore', 'moment','' +
             this.hierarchy = _.first(hData).d.results;
         },
         setSpiCpiData: function (Data, hData) {
-            this.rawspiCpiChartdata = _.first(Data).d.results;
+            if(_.isArray(Data)){
+                this.rawspiCpiChartdata = _.first(Data).d.results;
+            }else{
+                this.rawspiCpiChartdata = Data.d.results;
+            }
             var cpiSpiTrendData = App.cpiSpiTrend(this.rawspiCpiChartdata,App.dataType);
             this.spiCpiChart = App.AssignStore(cpiSpiTrendData);
             this.hierarchySv = _.first(hData).d.results;
@@ -328,6 +332,27 @@ define(['jquery', 'underscore', 'moment','' +
             'color': 'black'
         }
     };
+
+
+    App.setProjectID = function (value) {
+        this.projectID = value;
+        this.urlVersionSet = "/VersionSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
+        this.urlSnapshotListSet = "/SnapshotSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
+    };
+
+    App.setHierarchySelection = function (ChartType) {
+        this.ChartType = ChartType;
+        this.urlHierarchyListSet = "/HierarchySelectionSet(ChartType='" + this.ChartType + "',ProjectSelection='" + this.projectID + "')?$format=json";
+    };
+
+    App.setDataSelection = function () {
+        this.urlSnapshotSet = "/SnapshotDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',SnapshotType='M')?$format=json";
+        this.urlHierarchySet = "/HierarchyDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "')?$format=json";
+        this.urlESSet = "/EarnedScheduleDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',PeriodsBack='6 ',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
+        this.urlSVSet = "/BcwsBcwpAcwpDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',EACVersionSelection='" + _.last(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',PeriodsBack='9 ',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
+        this.urlCPR5Set = "/CPR5DetailSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',SnapshotSelection='" + App.SnapshotSelectionID + "',SnapshotType='M',ExternalCost='')?$format=json";
+    };
+
 
     App.setVersion = function () {
         var versionData = this.VersionData();
@@ -399,24 +424,7 @@ define(['jquery', 'underscore', 'moment','' +
         /** Error handler **/
     };
 
-    App.setProjectID = function (value) {
-        this.projectID = value;
-        this.urlVersionSet = "/VersionSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
-        this.urlSnapshotListSet = "/SnapshotSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
-    };
 
-    App.setHierarchySelection = function (ChartType) {
-        this.ChartType = ChartType;
-        this.urlHierarchyListSet = "/HierarchySelectionSet(ChartType='" + this.ChartType + "',ProjectSelection='" + this.projectID + "')?$format=json";
-    };
-
-    App.setDataSelection = function () {
-        this.urlSnapshotSet = "/SnapshotDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',SnapshotType='M')?$format=json";
-        this.urlHierarchySet = "/HierarchyDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "')?$format=json";
-        this.urlESSet = "/EarnedScheduleDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
-        this.urlSVSet = "/BcwsBcwpAcwpDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',EACVersionSelection='" + _.last(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
-        this.urlCPR5Set = "/CPR5DetailSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',SnapshotSelection='" + App.SnapshotSelectionID + "',SnapshotType='M',ExternalCost='')?$format=json";
-    };
 
     App.CheckProdId = function () {
         if (_.isEmpty(this.projectID) || _.isUndefined(this.projectID)) {
@@ -733,7 +741,9 @@ define(['jquery', 'underscore', 'moment','' +
                     total.CurrSV  = (total.CurrSV - total.CurrSvCom);
                     total.CurrCV  = (total.CurrCV - total.CurrCvCom);
                     total.vac = _.isNaN(total.bac - total.eacTotal) ? 0 : (total.bac - total.eacTotal);
-                    com['bacAllBelow'] = _.isNaN(com.bac + com.allbcwsCOM) ? 0 : (com.bac + com.allbcwsCOM);
+                    var mR_Ub = (com.bcwsUB + com.bcwsMR);
+                    com['bacAllSubBelow'] = _.isNaN(((com.bac + com.allbcwsCOM)+ com.bcwsUB)) ? 0 : ((com.bac + com.allbcwsCOM)+ com.bcwsUB);
+                    com['bacAllBelow'] = _.isNaN(((com.bac + com.allbcwsCOM)+ mR_Ub)) ? 0 : ((com.bac + com.allbcwsCOM)+ mR_Ub);
                     com['eacAllBelow'] = _.isNaN((com.eacTotal + com.eacCOM) + com.acwpOH) ? 0 : (com.eacTotal + com.eacCOM) + com.acwpCOM;
                     com['bcwsBelow'] = _.isNaN(com.bcwsTotal + com.bcwsCOM) ? 0 : (com.bcwsTotal + com.bcwsCOM);
                     com['bcwpBelow'] = _.isNaN(com.bcwpTotal + com.bcwpCOM) ? 0 : (com.bcwpTotal + com.bcwpCOM);
@@ -745,7 +755,7 @@ define(['jquery', 'underscore', 'moment','' +
                     com['CurrCVBelow'] = _.isNaN(com.CurrCV + (com.CurrCvCom)) ? 0 : (com.CurrCV + com.CurrCvCom);
                     com['svBelow'] = _.isNaN(com.sv + (com.svCom)) ? 0 : (com.sv + com.svCom);
                     com['cvBelow'] = _.isNaN(com.cv + (com.cvCom)) ? 0 : (com.cv + com.cvCom);
-                    com['vacBelow'] = _.isNaN(com.vac + com.vacCOM) ? 0 : (com.vac + com.vacCOM);
+                    com['vacBelow'] = _.isNaN(((com.vac + com.vacCOM)+ com.bcwsUB)) ? 0 : ((com.vac + com.vacCOM)+ com.bcwsUB);
                 } else {
                     var bcwsAll = _.isNaN(total.bac - total.allbcwsOH) ? 0 : (total.bac - total.allbcwsOH),
                         eacTotal = _.isNaN(total.eacTotal - total.eacOH) ? 0 : (total.eacTotal - total.eacOH),
@@ -783,7 +793,6 @@ define(['jquery', 'underscore', 'moment','' +
             }
             var findIndex = '';
             findIndex = _.findIndex(hier, {ParentObjNum : v.ObjectNumber});
-            //console.log('Find Index '+findIndex);
             if(findIndex  != -1){
                 var typeCheck = 0;
             } else {
@@ -843,6 +852,10 @@ define(['jquery', 'underscore', 'moment','' +
                     cpiTotal = _.isNaN(cpiTotal) ? 0 : cpiTotal;
                     curSPITotal = _.isNaN(curSPITotal) ? 0 : curSPITotal;
                     curCPITotal = _.isNaN(curCPITotal) ? 0 : curCPITotal;
+                    if( spiTotal === Infinity)spiTotal = 0;
+                    if( cpiTotal === Infinity)cpiTotal = 0;
+                    if( curSPITotal === Infinity)curSPITotal = 0;
+                    if( curCPITotal === Infinity)curCPITotal = 0;
                     cost[indexof].totals.spi = App.Math.ceil10(spiTotal, -2);
                     cost[indexof].totals.cpi = App.Math.ceil10(cpiTotal, -3);
                     cost[indexof].totals.curSPI = App.Math.ceil10(curSPITotal, -2);
@@ -875,7 +888,6 @@ define(['jquery', 'underscore', 'moment','' +
         });
 
         _.first(hierarchy).com = com;
-        //console.log(hierarchy[0].com);
         console.timeEnd('Format One Totals');
         return hierarchy;
     };
@@ -1480,7 +1492,7 @@ define(['jquery', 'underscore', 'moment','' +
         }
     };
 
-    App.hierEvent = function (selector,type) {
+    App.hierEvent = function (selector,type,material) {
         /*********** New Hierarchy Button View Click Event ***************/
 
         selector.on('click', 'tr span.js-hier', function (e) {
@@ -1515,7 +1527,11 @@ define(['jquery', 'underscore', 'moment','' +
             /** end title change **/
             switch ($rowIndex) {
                 case 0:
-                    //  case 1:
+                    if (!_.isUndefined(material) && material) {
+                        chartdata = _.filter(chartdata,function (item) {
+                                return item.TransactionType === 'KPPP';
+                            });//filter data
+                    }
                     chartFiltered = App.FilterChartData(chartdata,type);
                     break;
                 default:
@@ -1529,22 +1545,30 @@ define(['jquery', 'underscore', 'moment','' +
                         });
                         // console.log('multiple ' + JSON.stringify(filteredSnapByIndex));
                         filteredSnapByParentId = App.FilterByHierList(filteredSnapByIndex, chartdata);
+                        if (!_.isUndefined(material) && material) {
+                            filteredSnapByParentId = _.filter(filteredSnapByParentId,function (item) {
+                                    return item.TransactionType === 'KPPP';
+                                });//filter data
+                        }
                         chartFiltered = App.FilterChartData(filteredSnapByParentId,type);
+
                     } else {
                         filteredSnapByIndex.push({'ObjectNumber': $treeList.dataSource.options.data[$rowIndex].ObjectNumber});
                         // console.log('single ' + JSON.stringify(filteredSnapByIndex));
                         filteredSnapByParentId = App.FilterByHierList(filteredSnapByIndex, chartdata);
+                        if (!_.isUndefined(material) && material) {
+                            filteredSnapByParentId = _.filter(filteredSnapByParentId,function (item) {
+                                    return item.TransactionType === 'KPPP';
+                                });//filter data
+                        }
                         chartFiltered = App.FilterChartData(filteredSnapByParentId,type);
+
                     }
                     break;
             }
             if (!_.isUndefined(chartFiltered)) {
-                var chartFilteredByParentId = _.flatten(chartFiltered.graph);
-                console.log(chartFilteredByParentId.length);
-
-                $chartGraph.dataSource.data(chartFilteredByParentId);
+                $chartGraph.dataSource.data(_.flatten(chartFiltered.graph));
                 $chartGraph.refresh();
-
                 $target.addClass('animated fadeIn');
             } else {
                 $chartGraph.dataSource.data([]);
@@ -1556,10 +1580,10 @@ define(['jquery', 'underscore', 'moment','' +
         });
     };
 
-    App.hierSpiCpiEvent = function (selector) {
+    App.hierSpiCpiEvent = function (selector,dataType) {
         /*********** New Hierarchy Button View Click Event ***************/
-        var dataType = this.dataType;
-         selector.on('click', 'tr span.js-hier', function (e) {
+
+        selector.on('click', 'tr span.js-hier', function (e) {
             e.preventDefault();
             $('.noData').remove();
             var chartdata = App.DataStore.rawspiCpiChartdata,
@@ -1573,7 +1597,7 @@ define(['jquery', 'underscore', 'moment','' +
                 $chartGraph = $("div#chart").data("kendoChart"),
                 $trParent = $target.parent().parent(),
                 $rowIndex = $trParent.index(),
-              //  $objectNumber = $treeList.dataSource.options.data[$rowIndex].ObjectNumber,//data-objectNumber='#=data.ObjectNumber#'
+            //  $objectNumber = $treeList.dataSource.options.data[$rowIndex].ObjectNumber,//data-objectNumber='#=data.ObjectNumber#'
                 $children = $target.data('children');
 
             $target.closest('tr').siblings().removeClass('k-state-selected');
@@ -1608,11 +1632,11 @@ define(['jquery', 'underscore', 'moment','' +
                 console.log(chartFiltered.length);
                 $chartGraph.dataSource.data(chartFiltered);
                 $chartGraph.refresh();
-               // $("div#treelist").off('click');//remove event listener from obj
+                // $("div#treelist").off('click');//remove event listener from obj
                 $target.addClass('animated fadeIn');
             }
 
-       });//when request is done
+        });//when request is done
 
     };
     /**********Added Initilized Hiearchy expaneded**********/
@@ -1832,11 +1856,11 @@ define(['jquery', 'underscore', 'moment','' +
         var sendData = '';
         if (_.isArray(hierArray) && !_.isEmpty(hierArray)) {
             //  console.log('nodes used'+ hierArray);
-          _.each(hierArray, function (v,k) {
+            _.each(hierArray, function (v,k) {
                 findParentIds = _.chain(data)
-                                .filter(function(item) {
-                                   return _.contains(item,v.ObjectNumber);
-                                }).value();
+                    .filter(function(item) {
+                        return _.contains(item,v.ObjectNumber);
+                    }).value();
                 addValues.push(findParentIds);
             });
             //console.log('FilterByHierList length' + JSON.stringify(_.flatten(addValues).length));
@@ -1848,39 +1872,6 @@ define(['jquery', 'underscore', 'moment','' +
         return sendData;
     };
 
-    App.decimalAdjust = function (type, value, exp) {
-        // If the exp is undefined or zero...
-        if (typeof exp === 'undefined' || +exp === 0) {
-            return Math[type](value);
-        }
-        value = +value;
-        exp = +exp;
-        // If the value is not a number or the exp is not an integer...
-        if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
-            return NaN;
-        }
-        // Shift
-        value = value.toString().split('e');
-        value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
-        // Shift back
-        value = value.toString().split('e');
-        return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
-    };
-
-// Decimal round
-    App.Math.round10 = function (value, exp) {
-        return App.decimalAdjust('round', value, exp);
-    };
-
-// Decimal floor
-    App.Math.floor10 = function (value, exp) {
-        return App.decimalAdjust('floor', value, exp);
-    };
-
-// Decimal ceil
-    App.Math.ceil10 = function (value, exp) {
-        return App.decimalAdjust('ceil', value, exp);
-    };
 
     App.VersionFilter = function (versions, results) {
         // console.log(versions);
@@ -1911,11 +1902,11 @@ define(['jquery', 'underscore', 'moment','' +
             master.versions[index]['VersionSelection'] = item.VersionSelection;
             master.versions[index]['Default'] = item.Default;
             master.versions[index]['Data'] = $.grep(data, function (value, index) {
-             /**   if(value.Version ==='PMB' && value.PeriodType === 'F'){
+                /**   if(value.Version ==='PMB' && value.PeriodType === 'F'){
                     pmbFutureTotal += value.IntValProjCurr;
                 }**/
                 return value.Version === verSelection;
-              //  value type = ’01 and period type = ‘F’
+                //  value type = ’01 and period type = ‘F’
             });//filter data
         });
         //console.log('hit end of each');
@@ -1929,6 +1920,7 @@ define(['jquery', 'underscore', 'moment','' +
                     return {
                         "Quantity": value.Quantity,
                         "TransactionType": value.TransactionType,
+                        "RecordType": value.RecordType,
                         "IntValProjCurr": value.IntValProjCurr,
                         "ExtValProjCurr": value.ExtValProjCurr,
                         "ObjectNumber": value.ObjectNumber,
@@ -2004,6 +1996,7 @@ define(['jquery', 'underscore', 'moment','' +
                                 "BCWS": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
                                 "TransactionType": value.TransactionType,
+                                "RecordType": value.RecordType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2030,6 +2023,7 @@ define(['jquery', 'underscore', 'moment','' +
                                 "BCWP": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
                                 "TransactionType": value.TransactionType,
+                                "RecordType": value.RecordType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2052,13 +2046,13 @@ define(['jquery', 'underscore', 'moment','' +
 
                 if (value.Type === 'E' && value.Default === 'X') {//|| index === 2
                     obj.EAC = $.grep(costs, function (item) {
-                        return item.ValueType != '04';
+                        return item;
                     });//filter data
                     obj.ACWP = $.grep(costs, function (item) {
                         //ValueType = 01 04
                         return item.ValueType === '04';
                     });//filter data
-                    obj.ACWP = _.isEmpty(obj.ACWP) ? master.raw.ACWP : obj.ACWP;
+                    //  obj.ACWP = _.isEmpty(obj.ACWP) ? master.raw.ACWP : obj.ACWP;
                     obj.ETC = $.grep(costs, function (item) {
                         //ValueType = 01 04
                         return item.ValueType === '01';
@@ -2073,6 +2067,7 @@ define(['jquery', 'underscore', 'moment','' +
                                 "EAC": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
                                 "TransactionType": value.TransactionType,
+                                "RecordType": value.RecordType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2094,6 +2089,7 @@ define(['jquery', 'underscore', 'moment','' +
                                 "ACWP": value.IntValProjCurr,
                                 "Quantity": value.Quantity,
                                 "TransactionType": value.TransactionType,
+                                "RecordType": value.RecordType,
                                 "IntValProjCurr": value.IntValProjCurr,
                                 "ExtValProjCurr": value.ExtValProjCurr,
                                 "ObjectNumber": value.ObjectNumber,
@@ -2131,9 +2127,9 @@ define(['jquery', 'underscore', 'moment','' +
 
     App.FilterChartData = function (results, type) {
         if(_.isUndefined(type) || type === 'Quantity'){
-           var dataType = type;
+            var dataType = type;
         }else if(type === 'Costs'){
-             dataType = 'IntValProjCurr';
+            dataType = 'IntValProjCurr';
         }else{
             dataType = type;
         }
@@ -2146,7 +2142,7 @@ define(['jquery', 'underscore', 'moment','' +
         //console.log(results);
         var data = _.flatten(results);
         if (data.length === 0) {
-           // console.log('No Data to filter series.');
+            // console.log('No Data to filter series.');
             return;
         }
         var BCWS = $.grep(data, function (item) {
@@ -2174,7 +2170,7 @@ define(['jquery', 'underscore', 'moment','' +
         master.graph.push(baseLine);//add array to master array
 
         var runningTotalBCWS = 0, bcwsTotal = 0,bcwsHrs = 0, bcwsAll = 0,curBcwsTotal = 0,
-            curBcwsHrs = 0, bcwsCOM = 0, curbcwsCOM = 0, allbcwsCOM = 0,
+            curBcwsHrs = 0, bcwsCOM = 0, curbcwsCOM = 0, allbcwsCOM = 0,bcwsUB = 0,bcwsMR = 0,
             curbcwsGA = 0, bcwsGA = 0, allbcwsGA = 0, allbcwsOH = 0, bcwsOH = 0, curbcwsOH = 0;
         if (_.isArray(BCWS) && !_.isEmpty(BCWS)) {
 
@@ -2191,7 +2187,12 @@ define(['jquery', 'underscore', 'moment','' +
                 if (value.CostType === "GA") {
                     allbcwsGA += parseFloat(value[dataType]);
                 }
-
+                if (value.CostType === "UB") {
+                    bcwsUB += parseFloat(value[dataType]);
+                }
+                if (value.CostType === "MR") {
+                    bcwsMR += parseFloat(value[dataType]);
+                }
                 if (value.PeriodType === "C" || value.PeriodType === "P") {
                     bcwsTotal += parseFloat(value[dataType]);
 
@@ -2204,6 +2205,7 @@ define(['jquery', 'underscore', 'moment','' +
                     if (value.CostType === "OH") {
                         bcwsOH += parseFloat(value[dataType]);
                     }
+
                 }
                 //if(moment(value.Date).isBefore(value.SnapshotDate, 'day')){
                 if (value.PeriodType == "C") {
@@ -2218,6 +2220,7 @@ define(['jquery', 'underscore', 'moment','' +
                     if (value.CostType === "OH") {
                         curbcwsOH += parseFloat(value[dataType]);
                     }
+
                 }
                 return {
                     "BCWS": value.IntValProjCurr,
@@ -2236,12 +2239,12 @@ define(['jquery', 'underscore', 'moment','' +
                     "CostType": value.CostType
                 }
             }).value();//convert IntValProjCurr key for Chart Series
-
+            var uB_mR = (bcwsUB + bcwsMR);
             master.totals.push({
-                "bcwsAll": (bcwsAll + allbcwsCOM),
-                "bcwsTotal": (bcwsTotal - bcwsCOM),
+                "bcwsAll": (bcwsAll + allbcwsCOM) - uB_mR,
+                "bcwsTotal": (bcwsTotal - bcwsCOM) - uB_mR,
                 "bcwsHrs":bcwsHrs,
-                "curBcwsTotal": (curBcwsTotal - curbcwsCOM),
+                "curBcwsTotal": (curBcwsTotal - curbcwsCOM) - uB_mR,
                 "curBcwsHrs": curBcwsHrs,
                 "allbcwsCOM": allbcwsCOM,
                 "bcwsCOM": bcwsCOM,
@@ -2251,7 +2254,9 @@ define(['jquery', 'underscore', 'moment','' +
                 "curbcwsGA": curbcwsGA,
                 "allbcwsOH": allbcwsOH,
                 "bcwsOH": bcwsOH,
-                "curbcwsOH": curbcwsOH
+                "curbcwsOH": curbcwsOH,
+                "bcwsUB": bcwsUB,
+                "bcwsMR": bcwsMR
             });//
             master.graph.push(BCWSdata);//add array to master array
         } else {
@@ -2276,6 +2281,7 @@ define(['jquery', 'underscore', 'moment','' +
                     if (value.CostType === "GA") {
                         bcwpGA += parseFloat(value[dataType]);
                     }
+
                 }
                 if (value.PeriodType === "C") {
                     curBcwpTotal += parseFloat(value[dataType]);
@@ -2309,16 +2315,16 @@ define(['jquery', 'underscore', 'moment','' +
             }).value();//convert IntValProjCurr key for Chart Series
 
             master.totals.push({
-                "bcwpTotal": App.Math.ceil10(bcwpTotal - bcwpCOM, -2),
+                "bcwpTotal": bcwpTotal - bcwpCOM,
                 "bcwpHrs":bcwpHrs,
-                "curBcwpTotal": App.Math.ceil10(curBcwpTotal - curbcwpCOM, -2),
-                "curBcwpHrs": App.Math.ceil10(curBcwpHrs, -2),
-                "bcwpCOM": App.Math.ceil10(bcwpCOM, -2),
-                "bcwpGA": App.Math.ceil10(bcwpGA, -2),
-                "bcwpOH": App.Math.ceil10(bcwpOH, -2),
-                "curbcwpCOM": App.Math.ceil10(curbcwpCOM, -2),
-                "curbcwpGA": App.Math.ceil10(curbcwpGA, -2),
-                "curbcwpOH": App.Math.ceil10(curbcwpOH, -2)
+                "curBcwpTotal": curBcwpTotal - curbcwpCOM,
+                "curBcwpHrs": curBcwpHrs,
+                "bcwpCOM": bcwpCOM,
+                "bcwpGA": bcwpGA,
+                "bcwpOH": bcwpOH,
+                "curbcwpCOM": curbcwpCOM,
+                "curbcwpGA": curbcwpGA,
+                "curbcwpOH": curbcwpOH
             });//.toFixed(2)
             master.graph.push(BCWPdata);//add array to master array
         } else {
@@ -2375,16 +2381,16 @@ define(['jquery', 'underscore', 'moment','' +
                 }
             }).value();//convert IntValProjCurr key for Chart Series
             master.totals.push({
-                "acwpTotal": App.Math.ceil10(acwpTotal - acwpOH, -2),
+                "acwpTotal": acwpTotal - acwpOH,
                 "acwpHrs":acwpHrs,
-                "curAcwpTotal": App.Math.ceil10(curAcwpTotal - curacwpCOM, -2),
-                "curAcwpHrs": App.Math.ceil10(curAcwpHrs, -2),
-                "acwpCOM": App.Math.ceil10(acwpCOM, -2),
-                "acwpGA": App.Math.ceil10(acwpGA, -2),
-                "acwpOH": App.Math.ceil10(acwpOH, -2),
-                "curacwpCOM": App.Math.ceil10(curacwpCOM, -2),
-                "curacwpGA": App.Math.ceil10(curacwpGA, -2),
-                "curacwpOH": App.Math.ceil10(curacwpOH, -2)
+                "curAcwpTotal": curAcwpTotal - curacwpCOM,
+                "curAcwpHrs": curAcwpHrs,
+                "acwpCOM": acwpCOM,
+                "acwpGA": acwpGA,
+                "acwpOH": acwpOH,
+                "curacwpCOM": curacwpCOM,
+                "curacwpGA": curacwpGA,
+                "curacwpOH": curacwpOH
             });
             master.graph.push(ACWPdata);//add array to master array
         } else {
@@ -2409,6 +2415,7 @@ define(['jquery', 'underscore', 'moment','' +
                 if (value.CostType === "OH") {
                     eacOH += parseFloat(value[dataType]);
                 }
+
                 if (index === 0) {
                     // console.log(key + '--------' +value.Date);
                     editedbaseLine.push({
@@ -2442,15 +2449,20 @@ define(['jquery', 'underscore', 'moment','' +
                     "CostType": value.CostType
                 }
             }).value(); //convert IntValProjCurr key for Chart Series
+            _.each(EACdata,function(item){
+                if(item.PeriodType === 'P'){
+                    item.runningEAC = null;
+                }
+            });
             master.graph.push(EACdata);//add array to master array
             master.graph.push(editedbaseLine);//add array to master array
 
             master.totals.push({
-                "eacTotal": App.Math.ceil10(eacTotal - eacCOM, -2),
+                "eacTotal": eacTotal - eacCOM,
                 "eacHrs":eacHrs,
-                "eacCOM": App.Math.ceil10(eacCOM, -2),
-                "eacGA": App.Math.ceil10(eacGA, -2),
-                "eacOH": App.Math.ceil10(eacOH, -2)
+                "eacCOM": eacCOM,
+                "eacGA": eacGA,
+                "eacOH": eacOH
             });//.toFixed(2)
         } else {
             master.totals.push({"eacTotal": 0.00, "eacHrs": 0.00, "eacCOM": 0.00, "eacOH": 0.00, "eacGA": 0.00});//.toFixed(2)
@@ -2511,7 +2523,7 @@ define(['jquery', 'underscore', 'moment','' +
         // console.log(roundacwpTotal+' '+roundetcTotal+' '+(parseFloat(roundacwpTotal) + parseFloat(roundetcTotal)));
         master.totals.push({"eacCum": App.Math.ceil10(eacCum, -2)});
 
-        var bacCalc = (roundbcwsAll - allbcwsCOM);
+        var bacCalc = ((roundbcwsAll - allbcwsCOM) - uB_mR);
         var bac = App.Math.ceil10(bacCalc,-2);
         master.totals.push({"bac": bac});
 
@@ -2519,6 +2531,7 @@ define(['jquery', 'underscore', 'moment','' +
         var eacCum_ACWP = _.isNaN(etcTotal - acwpTotal) ? 0 : etcTotal - acwpTotal;
 
         var tcpi = _.isNaN(bac_BCWP / eacCum_ACWP) ? 0 : bac_BCWP / eacCum_ACWP;
+        if( tcpi === Infinity)tcpi = 0;
         master.totals.push({"tcpi": App.Math.ceil10(tcpi, -2)});
 
         var vac = _.isNaN(bac - eacCum) ? 0 : (bac - eacCum);
@@ -2570,9 +2583,10 @@ define(['jquery', 'underscore', 'moment','' +
             cpiTotal = _.isNaN(roundbcwpTotal / roundacwpTotal) ? 0 : (roundbcwpTotal / roundacwpTotal),
             curSPITotal = _.isNaN(curBcwpTotal / curBcwsTotal) ? 0 : (curBcwpTotal / curBcwsTotal),
             curCPITotal = _.isNaN(curBcwpTotal / curAcwpTotal) ? 0 : (curBcwpTotal / curAcwpTotal);
-        // console.log('Before Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
-
-        // console.log('After Check ' + App.Math.ceil10(spiTotal, -2) + '  ' + App.Math.ceil10(cpiTotal, -3));
+        if( spiTotal === Infinity)spiTotal = 0;
+        if( cpiTotal === Infinity)cpiTotal = 0;
+        if( curSPITotal === Infinity)curSPITotal = 0;
+        if( curCPITotal === Infinity)curCPITotal = 0;
         master.gauges.push({'spi': App.Math.ceil10(spiTotal, -2), 'curSPI': App.Math.ceil10(curSPITotal, -2)});//master.gauges[0].spi
         master.gauges.push({'cpi': App.Math.ceil10(cpiTotal, -3), 'curCPI': App.Math.ceil10(curCPITotal, -3)});//master.gauges[1].cpi
 
@@ -2649,7 +2663,7 @@ define(['jquery', 'underscore', 'moment','' +
         }else if(dataType ==='IntValProjCurr'){
             dataType = 'I';
         }else{
-            dataType = 'E';
+            dataType = 'M';
         }
 
         var master,
@@ -2761,11 +2775,11 @@ define(['jquery', 'underscore', 'moment','' +
 
     App.SVfilter = function (costs,dataType) {
         if(dataType === 'Quantity'){
-           var dataType = 'H';
+            var dataType = 'H';
         }else if(dataType ==='IntValProjCurr'){
             dataType = 'I';
         }else{
-            dataType = 'E';
+            dataType = 'M';
         }
 
         var master,
@@ -2781,7 +2795,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'BCWS',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.ObjectNumber,
+                    ObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2801,7 +2815,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'BCWP',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.ObjectNumber,
+                    ObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2821,7 +2835,7 @@ define(['jquery', 'underscore', 'moment','' +
                     type:'ACWP',
                     EACVersionSelection: item.EACVersionSelection,
                     FundApproved: item.FundApproved,
-                    HierarchyObjectNumber: item.ObjectNumber,
+                    ObjectNumber: item.ObjectNumber,
                     HierarchySelection: item.HierarchySelection,
                     PlanVersionSelection: item.PlanVersionSelection,
                     ProjectSelection: item.ProjectSelection,
@@ -2834,8 +2848,14 @@ define(['jquery', 'underscore', 'moment','' +
         console.info("BCWS length " + bcws.length);
         console.info("BCWP length " + bcwp.length);
         console.info("ACWP length " + acwp.length);
-
-        master = _.map(acwp, function (item, index) {
+        var master = [];
+        var uniquObjs = _.chain(acwp)
+            .uniq(function(item) {
+                return item.SnapshotDate;
+            })
+            .pluck('SnapshotDate')
+            .value();
+        var data = _.map(acwp,function (item, index) {
             if (!_.isUndefined(bcws[index]) || (!_.isEmpty(bcws[index]))) {
                 var bcwsCost = bcws[index][bcws[index].type];
             }
@@ -2851,17 +2871,27 @@ define(['jquery', 'underscore', 'moment','' +
             if (_.isNaN(acwpCost)) acwpCost = 0;
             //  console.log(parseFloat(bcwp[index].IntValProjCurr).toFixed(2));
             var SV = _.isNaN(bcwpCost - bcwsCost) ? 0 : bcwpCost - bcwsCost;
-
-
             return {
                 "SV": App.Math.ceil10(SV, -0),
-                "BCWS":bcwsCost,
-                "BCWP":bcwpCost,
-                "ACWP":acwpCost,
-                "ObjectNumber":item.ObjectNumber,
+                "BCWS": bcwsCost,
+                "BCWP": bcwpCost,
+                "ACWP": acwpCost,
+                "ObjectNumber": item.ObjectNumber,
                 "Date": new Date(item.SnapshotDate),
                 "SnapshotDate": item.SnapshotDate
             };
+        });
+        _.each(uniquObjs,function(value,key){
+            master.push({
+                name: moment(value).format('MM/YYYY'),
+                type: "column",
+                field: "SV",
+                categoryField: "ObjectNumber",
+                color: "#" + _.random(0, 9) + _.random(0, 9) + _.random(0, 9) + _.random(0, 9) + _.random(0, 9) + _.random(0, 9),
+                markers: {type: "circle"},
+                data: []
+            });
+            master[key].data = _.where(data,{'SnapshotDate':value});
         });
         console.log(master);
         return master;
@@ -2869,44 +2899,164 @@ define(['jquery', 'underscore', 'moment','' +
 
     App.ESfilter = function (costs,dataType) {
         if(dataType === 'Quantity'){
-           var dataType = 'H';
+            var dataType = 'H';
         }else if(dataType ==='IntValProjCurr'){
             dataType = 'I';
         }else{
-            dataType = 'E';
+            dataType = 'M';
         }
+        /*  var b = uniquObjs.slice();
+         uniquObjs.push(b[0]);
+         uniquObjs.push(b[0]);
+         _.flatten(uniquObjs);*/
+        var master = [];
+        var uniquObjs = _.chain(costs)
+                                .uniq(function(item) {
+                                    return item.SnapshotDate;
+                                })
+                                .pluck('SnapshotDate')
+                                .value();
 
-        var master = _.chain(costs)
-            .sortBy('SnapshotDate')
-            .where({'RecordType':dataType})
-            .map(function(item){
-                return {
-                    "ProjectSelection": item.ProjectSelection,
-                    "HierarchySelection": item.HierarchySelection,
-                    "HierarchyObjectNumber": item.ObjectNumber,
-                    "PlanVersionSelection": item.PlanVersionSelection,
-                    "FundApproved": item.FundApproved,
-                    "SnapshotType": item.SnapshotType,
-                    "Date": new Date(item.SnapshotDate),
-                    "RecordType": item.RecordType,
-                    "ES": item.ES
-                };
-            }).value();
+        _.each(uniquObjs,function(value,key){
+            master.push({
+                name: moment(value).format('MM/YYYY'),
+                type: "column",
+                field: "ES",
+                categoryField: "ObjectNumber",
+                color: "#"+_.random(0, 9)+_.random(0, 9)+_.random(0, 9)+_.random(0, 9)+_.random(0, 9)+_.random(0, 9),
+                markers: {type: "circle"},
+                data:[]
+            });
+
+             master[key].data = _.chain(costs)
+                .sortBy('SnapshotDate')
+                .where({'RecordType':dataType,'SnapshotDate':value})
+                .map(function(item){
+                    return {
+                            "ProjectSelection": item.ProjectSelection,
+                            "HierarchySelection": item.HierarchySelection,
+                            "ObjectNumber": item.ObjectNumber,
+                            "PlanVersionSelection": item.PlanVersionSelection,
+                            "FundApproved": item.FundApproved,
+                            "SnapshotType": item.SnapshotType,
+                            "Date": new Date(item.SnapshotDate),
+                            "RecordType": item.RecordType,
+                            "ES": item.ES
+                    };
+                }).value();
+        });
+
 
         console.log(master);
         return master;
     };
 
-    App.createEV_SV_SPICPI_Chart = function (dataSource, series, reverse, dataType) {
-        if(_.isUndefined(reverse)){
-            var reverse = false;
+    App.FooFilter = function(hierarchyFoo,cost,type){
+        if(type === 'Quantity'){
+            var dataType = 'Quantity';
+        }else if(type ==='IntValProjCurr'){
+            dataType = 'IntValProjCurr';
+        }else{
+            dataType = 'IntValProjCurr';
         }
-        if (dataType === 'Quantity') {
+        var master = {};
+        master.dates = [];
+        master.merged = [];
+        if(_.isEmpty(hierarchyFoo)){
+            return;
+        }
+        if(_.isEmpty(cost)){
+            return;
+        }
+
+
+        var eacData = _.filter(cost,function(item){
+                        if(item.ValueType ==='01') {
+                            return item.Type === 'EAC';
+                        }
+                    });
+        var dates = _.chain(eacData).uniq('Date').pluck('Date').value();
+
+        master.merged = _.map(hierarchyFoo,function(item,key){
+                        var objResults = [],final=[],isEmpty = false;
+                             objResults = _.filter(eacData,function(value){
+                                return value.ObjectNumber === item.ObjectNumber;
+                            });
+                            if(_.isEmpty(objResults)){
+                                isEmpty = true;
+                            }
+                            _.each(dates,function(v,k){
+                                var total = 0;
+                                var data = _.filter(objResults,function(value){
+                                    return moment(value.Date).unix() === moment(v).unix();
+                                });
+                                if(_.isEmpty(data)){
+                                    return final[k] = total;
+                                }
+                               _.each(data,function(vv,kk){
+                                    total += parseFloat(vv[dataType]);
+
+                                });
+                                final[k] = total;
+                            });
+                        return {
+                            Description: item.Description,
+                            ExtID: item.ExtID,
+                            HierarchySelection: item.HierarchySelection,
+                            ObjectNumber: item.ObjectNumber,
+                            ParentObjNum: item.ParentObjNum,
+                            ProjectSelection: item.ProjectSelection,
+                            ReportingLevel: item.ReportingLevel,
+                            SortOrder: item.SortOrder,
+                            Type: item.Type,
+                            Total: final,
+                            checkEmpty: isEmpty
+                        }
+                    });
+        master.dates = _.map(dates,function(item){
+            return{
+                "date":moment(item).format('MM/YYYY')
+            }
+        });
+        _.each(master.merged,function(item,i,list){
+            if(!item.checkEmpty){
+                var index = _.findIndex(list, function (search) {
+                    return search.ObjectNumber === item.ParentObjNum;
+                });
+                _.each(item.Total,function(value,key){
+                    master.merged[index].Total[key] += parseFloat(value);
+                });
+            }
+        });
+
+        _.each(master.merged,function(item,index){
+            if(item.ReportingLevel === 'R'){
+                    _.each(item.Total,function(value,key){
+                        master.merged[index].Total[key] = value.toFixed(0);
+                    });
+                }
+        });
+        var copy = master.merged.slice();
+
+        master.merged = _.filter(copy,function(item,i){
+            if(i === 0)return item;
+            if(item.ReportingLevel === 'R')return item;
+        });
+        //console.log(merged);
+        return master;
+
+    };
+
+    App.createEV_SV_SPICPI_Chart = function (dataSource, series, reverse, type) {
+        if(_.isUndefined(reverse)){
+             reverse = false;
+        }
+        if (type === 'Quantity') {
             var dataType = "{0}hrs";
             var dataTypeTitle = "Hours";
         } else {
-            var dataType = "\u00a3{0}";
-            var dataTypeTitle = "\u00a3";
+             dataType = "\u00a3{0}";
+             dataTypeTitle = "\u00a3";
         }
         $("#chart").kendoChart({
             pdf: {
@@ -2971,7 +3121,80 @@ define(['jquery', 'underscore', 'moment','' +
             tooltip: {
                 visible: true,
                 shared: true,
-                template: "#= kendo.format('{0}',value) #"
+                sharedTemplate:kendo.template("<div>#: kendo.toString(new Date(category), 'MM/yyyy') #</div>" +
+                    " # for (var i = 0; i < points.length; i++) {" +
+                    " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('{0}', points[i].value) #</div># } #")
+                //template: "#= kendo.format('{0}',value) #"
+                //format:kendo.format("{0}")
+                //kendo.format("{0:c}", 99)
+            }
+        });
+    };
+
+    App.createES_SV_Chart = function (series, reverse, type) {
+        if(_.isUndefined(reverse)){
+             reverse = false;
+        }
+        if (type === 'Quantity') {
+            var dataType = "{0}hrs";
+            var dataTypeTitle = "Hours";
+        } else {
+            dataType = "\u00a3{0}";
+            dataTypeTitle = "\u00a3";
+        }
+        $("#chart").kendoChart({
+            pdf: {
+                fileName: "SnapShot Costs Export.pdf",
+                proxyURL: this.serviceRoot + "/kendo-ui/service/export"
+            },
+            //dataSource: dataSource,
+            chartArea: {
+                // width: 200,
+                //height: 475
+            },
+            legend: {
+                position: "bottom"
+            },
+            seriesDefaults: {
+                type: "line",
+                style: "smooth",
+                highlight: {visible: false},
+                markers: {
+                    size: 5
+                }
+            },
+            series: series,
+            categoryAxis: {
+                majorGridLines: {
+                    visible: false
+                },
+                line: {
+                    visible: false
+                }
+            },
+            valueAxis: [
+                {
+                    reverse: reverse,
+                    title: {
+                        text: dataTypeTitle
+                    },
+                    labels: {
+                        format: "{0}"
+                    },
+                    line: {
+                        visible: false
+                    }
+                }
+            ],
+            tooltip: {
+                visible: true,
+                shared: true,
+                sharedTemplate:kendo.template("<div>#: category #</div>" +
+                   " # for (var i = 0; i < points.length; i++) {" +
+                   " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('{0}', points[i].value) #</div># } #")
+                //template: "#= kendo.format('{0}',value) #"
+                //format:kendo.format("{0}")
+                //kendo.format("{0:c}", 99)
             }
         });
     };
@@ -2984,8 +3207,8 @@ define(['jquery', 'underscore', 'moment','' +
             var dataType = "{0}hrs";
             var dataTypeTitle = "Hours";
         } else {
-            var dataType = "\u00a3{0}";
-            var dataTypeTitle = "\u00a3";
+             dataType = "\u00a3{0}";
+             dataTypeTitle = "\u00a3";
         }
         $("#chart").kendoChart({
             pdf: {
@@ -3011,8 +3234,7 @@ define(['jquery', 'underscore', 'moment','' +
                     size: 5
                 },
                 tooltip: {
-                    visible: true,
-                    format: "M-yyyy"
+                    visible: true
                 }
             },
             series: series,
@@ -3043,6 +3265,10 @@ define(['jquery', 'underscore', 'moment','' +
                     },
                     visible: false
                 },
+                /*tooltip: {
+                    format: "M-yyyy",
+                    visible: true
+                },*/
                 line: {
                     visible: false
                 },
@@ -3072,10 +3298,49 @@ define(['jquery', 'underscore', 'moment','' +
                     width: 2,
                     color: "black"
                 },
-                template: "#= kendo.format('"+dataType+"', value.toFixed(0)) #"
+                sharedTemplate:kendo.template("<div>#: kendo.toString(new Date(category), 'MM/yyyy') #</div>" +
+                    " # for (var i = 0; i < points.length; i++) {" +
+                    " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('"+dataType+"', points[i].value.toFixed(0)) #</div># } #")
+                //template: "#= kendo.format('"+dataType+"', value.toFixed(0)) #"//points[i].value.toFixed(0)
                  //template: "#: value.x # - #: value.y # (#: value.size #)"
             }
         });
     };
+
+    App.decimalAdjust = function (type, value, exp) {
+        // If the exp is undefined or zero...
+        if (typeof exp === 'undefined' || +exp === 0) {
+            return Math[type](value);
+        }
+        value = +value;
+        exp = +exp;
+        // If the value is not a number or the exp is not an integer...
+        if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+            return NaN;
+        }
+        // Shift
+        value = value.toString().split('e');
+        value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+        // Shift back
+        value = value.toString().split('e');
+        return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+    };
+
+// Decimal round
+    App.Math.round10 = function (value, exp) {
+        return App.decimalAdjust('round', value, exp);
+    };
+
+// Decimal floor
+    App.Math.floor10 = function (value, exp) {
+        return App.decimalAdjust('floor', value, exp);
+    };
+
+// Decimal ceil
+    App.Math.ceil10 = function (value, exp) {
+        return App.decimalAdjust('ceil', value, exp);
+    };
+
+
     return App;
 });
