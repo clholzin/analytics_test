@@ -565,11 +565,30 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 break;
                             case 'FOO_REPORT':
                                 console.log('hit FOO');
-                               // var hierListSet = App.HierarchyListSet();
-                                var hierListSet = App.HierarchySet();
-                                $.when(hierListSet).done(function (hierList) {
-                                    var hierarchyFoo = hierList.d.results;
-                                    var processedFoo = App.FooFilter(hierarchyFoo,costs,App.dataType);
+                                    var group = [];
+                                    var array = [];
+                                    var deferred = $.Deferred();
+                                    _.each(App.DataStore.hierarchyList,function(item,key,list){
+                                        App.HierarchySelectionID = item.HierarchySelection;
+                                        App.setDataSelection();
+                                        array[key] = {};
+                                        array[key].data = App.HierarchySet();
+                                        array[key].name = item.ExtID;
+                                    });
+                                    var count = 0;
+                                    _.each(array,function(value,key){
+                                        $.when(value.data).done(function(data) {
+                                            group = group.concat(data.d.results);
+                                            count += 1;
+                                            if(count === array.length){
+                                                deferred.resolve(group);
+                                            }
+                                        });
+                                    });
+
+                                $.when(deferred).done(function (data) {
+                                    var merged = data;//.concat(hierListTwo.d.results);
+                                    var processedFoo = App.FooFilter(merged,costs,App.dataType);
                                     combineData[0] = App.DataStore.project;
                                     combineData[1] = processedFoo;
                                     /*********   Template Processing  *********/
@@ -580,6 +599,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     App.reportTplConfig(self);
                                     /*********   End Template Processing  *****/
                                     App.SpinnerTpl(loadingWheel, 0);
+
                                 });
                                 break;
                             default:
@@ -864,29 +884,49 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         break;
                     case 'FOO_REPORT':
                         console.log('hit FOO');
-                        var hierListSet = App.HierarchySet();
-                        $.when(hierListSet).done(function (hierList) {
-                            var hierarchyFoo = hierList.d.results;
-                            var processedFoo = App.FooFilter(hierarchyFoo,costs,dataType);
-                            combineData[0] = App.DataStore.project;
-                            combineData[1] = processedFoo;
-                            /*********   Template Processing  *********/
-                            tplId = tempTpl;
-                            tplFooter = reportFooterTpl;
-                            App.Project(tplId, tplFooter, combineData);
-                            bkgChange.attr('id', 'cprBG');
-                            App.reportTplConfig(self);
-
-                            if (material) {
-                                $('#dataType').val('Material');
-                            } else  if (dataType === 'Quantity') {
-                                    $('#dataType').val('Quantity');
-                                } else {
-                                    $('#dataType').val('Costs');
-
+                        var group = [];
+                        var array = [];
+                        var deferred = $.Deferred();
+                        _.each(App.DataStore.hierarchyList,function(item,key,list){
+                            App.HierarchySelectionID = item.HierarchySelection;
+                            App.setDataSelection();
+                            array[key] = {};
+                            array[key].data = App.HierarchySet();
+                            array[key].name = item.ExtID;
+                        });
+                        var count = 0;
+                        _.each(array,function(value,key){
+                            $.when(value.data).done(function(data) {
+                                group = group.concat(data.d.results);
+                                count += 1;
+                                if(count === array.length){
+                                    deferred.resolve(group);
                                 }
-                            /*********   End Template Processing  *****/
-                            App.SpinnerTpl(loadingWheel, 0);
+                            });
+                        });
+
+                        $.when(deferred).done(function (data) {
+                                var merged = data;
+                                var processedFoo = App.FooFilter(merged,costs,App.dataType);
+                                combineData[0] = App.DataStore.project;
+                                combineData[1] = processedFoo;
+                                /*********   Template Processing  *********/
+                                tplId = tempTpl;
+                                tplFooter = reportFooterTpl;
+                                App.Project(tplId, tplFooter, combineData);
+                                bkgChange.attr('id', 'cprBG');
+                                App.reportTplConfig(self);
+
+                                if (material) {
+                                    $('#dataType').val('Material');
+                                } else  if (dataType === 'Quantity') {
+                                        $('#dataType').val('Quantity');
+                                    } else {
+                                        $('#dataType').val('Costs');
+
+                                    }
+                                /*********   End Template Processing  *****/
+                                App.SpinnerTpl(loadingWheel, 0);
                         });
                         break;
                     default:

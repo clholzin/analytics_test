@@ -31,19 +31,16 @@
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-value.Description%>
             </td>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                OBS
+            </td>
             <% if(index === 0){ %>
-                <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                    OBS
-                </td>
                 <% _.each(combineData[1].dates,function(value,index){ %>
                 <td style='font-weight:bold;border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                     <%-value.date%>
                 </td>
                 <% }); %>
             <% }else{ %>
-                <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                    <%-value.ObjectNumber%>
-                </td>
                 <% _.each(value.Total,function(item,key){ %>
                 <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                     <%-item%>
