@@ -351,6 +351,7 @@ define(['jquery', 'underscore', 'moment','' +
         this.urlESSet = "/EarnedScheduleDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',PeriodsBack='6 ',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
         this.urlSVSet = "/BcwsBcwpAcwpDataSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',PlanVersionSelection='" + _.first(App.DataStore.versionSelection).VersionSelection + "',EACVersionSelection='" + _.last(App.DataStore.versionSelection).VersionSelection + "',SnapshotType='M',PeriodsBack='9 ',SnapshotDate='" + App.SnapshotSelectionID + "')?$format=json";
         this.urlCPR5Set = "/CPR5DetailSet(ProjectSelection='" + this.projectID + "',HierarchySelection='" + this.HierarchySelectionID + "',SnapshotSelection='" + App.SnapshotSelectionID + "',SnapshotType='M',ExternalCost='')?$format=json";
+        this.urlCPRHSet = "/CPRHeaderSet(ProjectSelection='" + this.projectID + "',SnapshotType='M',SnapshotSelection='" + App.SnapshotSelectionID + "')?$format=json";
     };
 
 
@@ -1731,6 +1732,22 @@ define(['jquery', 'underscore', 'moment','' +
         return Source;
     };
 
+    App.CPRHeaderSet = function () {
+        var Source = $.ajax({
+            url: this.serviceRoot + this.urlCPRHSet,
+            method: "GET",
+            dataType: 'json',
+            async: true
+        }).success(function (response) {
+            // hierSource = response.d.results;
+        }).error(function (err) {
+            alert('error ' + err);
+        }).done(function () {
+            console.log('CPRHSet complete ');
+        });
+        return Source;
+    };
+
     App.SVSet = function () {
         var Source = $.ajax({
             url: this.serviceRoot + this.urlSVSet,
@@ -2480,9 +2497,9 @@ define(['jquery', 'underscore', 'moment','' +
             });//not used for chart, just calculations
         }
 
-        var roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2),
-            roundbcwsAll = App.Math.ceil10(bcwsAll, -2),
-            roundbcwsTotal = App.Math.ceil10(bcwsTotal, -2),
+        var roundbcwsAll = App.Math.ceil10((bcwsAll - uB_mR), -2),
+            roundbcwsTotal = App.Math.ceil10((bcwsTotal - uB_mR), -2),
+            roundbcwpTotal = App.Math.ceil10(bcwpTotal, -2),
             roundacwpTotal = App.Math.ceil10(acwpTotal, -2),
 
 
@@ -2513,7 +2530,7 @@ define(['jquery', 'underscore', 'moment','' +
             roundCurbcwpGA = App.Math.ceil10(curbcwpGA, -2),
             roundCuracwpGA = App.Math.ceil10(curacwpGA, -2),
 
-            roundcurBcwsTotal = App.Math.ceil10(curBcwsTotal, -2),
+            roundcurBcwsTotal = App.Math.ceil10((curBcwsTotal - uB_mR), -2),
             roundcurBcwpTotal = App.Math.ceil10(curBcwpTotal, -2),
             roundcurAcwpTotal = App.Math.ceil10(curAcwpTotal, -2),
             roundetcTotal = App.Math.ceil10(etcTotal - eacCOM, -2);
@@ -2523,7 +2540,7 @@ define(['jquery', 'underscore', 'moment','' +
         // console.log(roundacwpTotal+' '+roundetcTotal+' '+(parseFloat(roundacwpTotal) + parseFloat(roundetcTotal)));
         master.totals.push({"eacCum": App.Math.ceil10(eacCum, -2)});
 
-        var bacCalc = ((roundbcwsAll - allbcwsCOM) - uB_mR);
+        var bacCalc = (roundbcwsAll - allbcwsCOM);
         var bac = App.Math.ceil10(bacCalc,-2);
         master.totals.push({"bac": bac});
 
@@ -2547,7 +2564,7 @@ define(['jquery', 'underscore', 'moment','' +
         master.totals.push({"CurrSV": App.Math.ceil10(CurrSV, -2)});
         var CurrCV = _.isNaN(roundcurBcwpTotal - roundcurAcwpTotal) ? 0 : roundcurBcwpTotal - roundcurAcwpTotal;
         master.totals.push({"CurrCV": App.Math.ceil10(CurrCV, -2)});
-        var sv = _.isNaN(bcwpTotal - bcwsTotal) ? 0 : bcwpTotal - bcwsTotal;
+        var sv = _.isNaN(bcwpTotal - roundbcwsTotal) ? 0 : bcwpTotal - roundbcwsTotal;
         master.totals.push({"sv": App.Math.ceil10(sv, -2)});
         var cv = _.isNaN(bcwpTotal - acwpTotal) ? 0 : bcwpTotal - acwpTotal;
         master.totals.push({"cv": App.Math.ceil10(cv, -2)});
@@ -2845,9 +2862,9 @@ define(['jquery', 'underscore', 'moment','' +
                 };
             }).value();
 
-        console.info("BCWS length " + bcws.length);
-        console.info("BCWP length " + bcwp.length);
-        console.info("ACWP length " + acwp.length);
+        //console.info("BCWS length " + bcws.length);
+        //console.info("BCWP length " + bcwp.length);
+        //console.info("ACWP length " + acwp.length);
         var master = [];
         var uniquObjs = _.chain(acwp)
             .uniq(function(item) {
@@ -2893,7 +2910,7 @@ define(['jquery', 'underscore', 'moment','' +
             });
             master[key].data = _.where(data,{'SnapshotDate':value});
         });
-        console.log(master);
+       // console.log(master);
         return master;
     };
 
@@ -2969,6 +2986,13 @@ define(['jquery', 'underscore', 'moment','' +
             return;
         }
 
+        var firstArrayId = _.first(App.DataStore.hierarchyList).HierarchySelection;
+        var lastArrayId = _.last(App.DataStore.hierarchyList).HierarchySelection;
+
+            master.first = _.chain(_.first(hierarchyFoo[firstArrayId])).where({"ReportingLevel":"R"}).value();
+            master.title = _.first(_.first(hierarchyFoo[firstArrayId]));
+
+
 
         var eacData = _.filter(cost,function(item){
                         if(item.ValueType ==='01') {
@@ -2977,7 +3001,46 @@ define(['jquery', 'underscore', 'moment','' +
                     });
         var dates = _.chain(eacData).uniq('Date').pluck('Date').value();
 
-        master.merged = _.map(hierarchyFoo,function(item,key){
+        var hierDefault = _.first(hierarchyFoo[firstArrayId]).slice();
+        master.default = _.map(hierDefault,function(item,key){
+            var objResults = [],final=[],isEmpty = false;
+            objResults = _.filter(eacData,function(value){
+                return value.ObjectNumber === item.ObjectNumber;
+            });
+            if(_.isEmpty(objResults)){
+                isEmpty = true;
+            }
+            _.each(dates,function(v,k){
+                var total = 0;
+                var data = _.filter(objResults,function(value){
+                    return moment(value.Date).unix() === moment(v).unix();
+                });
+                if(_.isEmpty(data)){
+                    return final[k] = total;
+                }
+                _.each(data,function(vv,kk){
+                    total += parseFloat(vv[dataType]);
+                });
+                final[k] = total;
+            });
+
+            return {
+                Description: item.Description,
+                ExtID: item.ExtID,
+                HierarchySelection: item.HierarchySelection,
+                ObjectNumber: item.ObjectNumber,
+                ParentObjNum: item.ParentObjNum,
+                ProjectSelection: item.ProjectSelection,
+                ReportingLevel: item.ReportingLevel,
+                SortOrder: key,
+                Type: item.Type,
+                Total: final,
+                checkEmpty: isEmpty
+            }
+        });
+
+        var hierCopy = _.first(hierarchyFoo[lastArrayId]).slice();
+        master.obs = _.map(hierCopy,function(item,key){
                         var objResults = [],final=[],isEmpty = false;
                              objResults = _.filter(eacData,function(value){
                                 return value.ObjectNumber === item.ObjectNumber;
@@ -2995,10 +3058,10 @@ define(['jquery', 'underscore', 'moment','' +
                                 }
                                _.each(data,function(vv,kk){
                                     total += parseFloat(vv[dataType]);
-
                                 });
                                 final[k] = total;
                             });
+
                         return {
                             Description: item.Description,
                             ExtID: item.ExtID,
@@ -3007,47 +3070,82 @@ define(['jquery', 'underscore', 'moment','' +
                             ParentObjNum: item.ParentObjNum,
                             ProjectSelection: item.ProjectSelection,
                             ReportingLevel: item.ReportingLevel,
-                            SortOrder: item.SortOrder,
+                            SortOrder: key,
                             Type: item.Type,
                             Total: final,
                             checkEmpty: isEmpty
                         }
                     });
+
+
         master.dates = _.map(dates,function(item){
             return{
                 "date":moment(item).format('MM/YYYY')
             }
         });
-        _.each(master.merged,function(item,i,list){
+
+        _.each(master.obs,function(item,i,list){
+            var array = [];
             if(!item.checkEmpty){
                 var index = _.findIndex(list, function (search) {
                     return search.ObjectNumber === item.ParentObjNum;
                 });
+                master.obs[index].checkEmpty = item.checkEmpty;
                 _.each(item.Total,function(value,key){
-                    master.merged[index].Total[key] += parseFloat(value);
+                    master.obs[index].Total[key] += parseFloat(value);
                 });
             }
         });
-
-        _.each(master.merged,function(item,index){
-            if(item.ReportingLevel === 'R'){
-                    _.each(item.Total,function(value,key){
-                        master.merged[index].Total[key] = value.toFixed(0);
-                    });
-                }
+        _.each(master.default,function(item,i,list){
+            var array = [];
+            if(!item.checkEmpty){
+                var index = _.findIndex(list, function (search) {
+                    return search.ObjectNumber === item.ParentObjNum;
+                });
+                master.default[index].checkEmpty = item.checkEmpty;
+                _.each(item.Total,function(value,key){
+                    master.default[index].Total[key] += parseFloat(value);
+                });
+            }
         });
-        var copy = master.merged.slice();
-
-        master.merged = _.filter(copy,function(item,i){
-            if(i === 0)return item;
-            if(item.ReportingLevel === 'R')return item;
+        var copydefault = master.default.slice();
+        var copyobs = master.obs.slice();
+        master.obs = _.filter(copyobs,function(item,index){
+            if(item.ReportingLevel === 'R' && !item.checkEmpty){
+                _.each(item.Total,function(value,key){
+                    item.Total[key] = value.toFixed(0);
+                });
+                return item;
+            }
         });
-        //console.log(merged);
+        master.default = _.filter(copydefault,function(item,index){
+            if(item.ReportingLevel === 'R' && !item.checkEmpty){
+                _.each(item.Total,function(value,key){
+                    item.Total[key] = value.toFixed(0);
+                });
+                return item;
+            }
+        });
+      //  var copydefault = master.default.slice();
+
+      /*  master.default = _.filter(master.default,function(item,i){
+            if(item.ReportingLevel === 'R') {
+                if(!item.checkEmpty)return item;
+            }
+        });*/
+      //  var copyobs = master.obs.slice();
+
+       /* master.obs = _.filter(master.obs,function(item,i){
+            if(item.ReportingLevel === 'R') {
+                if(!item.checkEmpty)return item;
+            }
+        });*/
+        /* all rolled up with reporting level */
+
         return master;
-
     };
 
-    App.createEV_SV_SPICPI_Chart = function (dataSource, series, reverse, type) {
+    App.create_SPICPI_Chart = function (dataSource, series, reverse, type) {
         if(_.isUndefined(reverse)){
              reverse = false;
         }

@@ -9,7 +9,7 @@
         <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">CPR3 - Baseline</h1>
     </div>
 
-    <!--div style="border: 0; padding-bottom: 10px; padding-top: 10px">
+    <div style="border: 0; padding-bottom: 10px; padding-top: 10px">
         <form class="form-inline">
             <div class="col-xs-5 input-group">
                 <select class="col-xs-6 form-control dataType controller" id="dataType">
@@ -17,14 +17,14 @@
                     <option value="Costs" data-id="baselineTable" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3">Total Cost</option>
                 </select>
             </div>
-            <div class="col-xs-5 input-group">
+            <!--div class="col-xs-5 input-group">
                 <select class="col-xs-6 form-control dataType costType" id="costType" style="display: none;">
                     <option value="IntValProjCurr" data-id="baselineTable" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3">Internal Cost</option>
                     <option value="ExtValProjCurr" data-id="baselineTable" data-temp="cpr3" data-name="CPR3_Baseline" data-sheet="CPR-3">External Cost</option>
                 </select>
-            </div>
+            </div-->
         </form>
-    </div-->
+    </div>
 
     <table class="animated fadeIn exportTable" id="baselineTable" align="center" border='0' cellspacing='0'
            cellpadding='0'>
@@ -74,23 +74,27 @@
             </td>
             <td colspan='2'
                 style='border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                15-May-2015
+                <%-combineData[1].ReportStartDate%>
             </td>
         </tr>
 
         <tr>
             <td colspan='2'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                BAE SYSTEMS
+                <%-combineData[1].ContractorName%>
             </td>
             <td colspan='2'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
-            <td colspan='3'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                Successor
+                <%-combineData[1].ContractType%>
             </td>
             <td colspan='3'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].ProgramName%>
+            </td>
+            <td colspan='3'
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].ProgramNumber%>
+            </td>
             <td colspan='2'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='2'
@@ -99,7 +103,7 @@
             </td>
             <td colspan='2'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                19-Jun-2015
+                <%-combineData[1].ReportEndDate%>
             </td>
         </tr>
 
@@ -138,18 +142,28 @@
         <tr>
             <td colspan='2'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                Barrow
+                <%-combineData[1].ContractorStreet1%>
             </td>
             <td colspan='2'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].NegotiatedCost%>
+            </td>
             <td colspan='4'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].AuthorizedUnpricedWork%>
+            </td>
             <td colspan='2'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].TargetProfit%>
+            </td>
             <td colspan='2'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].TargetPrice%>
+            </td>
             <td colspan='4'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].EstimatedPrice%>
+            </td>
         </tr>
 
         <tr>
@@ -175,15 +189,21 @@
 
         <tr>
             <td colspan='2'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].RDQuantity%> / <%-combineData[1].ProductionQuantity%>
+            </td>
             <td colspan='2' id="units"
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>&pound;</td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>HRS</td>
             <td colspan='6'
                 style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
             <td colspan='2'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].CeilingPrice%>
+            </td>
             <td colspan='4'
-                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'></td>
+                style='border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-combineData[1].EstimatedCeilingPrice%>
+            </td>
         </tr>
 
         <tr>

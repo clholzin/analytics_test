@@ -200,7 +200,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 $chartGraph.destroy();
                 $hierarchyList.off();
 
-                App.createEV_SV_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
+                App.create_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
                 App.hierListInitialize(App.DataStore.hierarchySv);
                 /** Clear Hierarchy and Chart **/
                 $('.dataTypeAnalytics').val('Quantity');
@@ -319,10 +319,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
 
                                 App.hierListInitialize(App.DataStore.hierarchySv);
-                                App.createEV_SV_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
+                                App.create_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
 
                                 //var projectName = App.DataStore.hierarchySv[0].ExtID;
-                                //$(document).bind("kendo:skinChange", App.createEV_SV_SPICPI_Chart);
+                                //$(document).bind("kendo:skinChange", App.create_SPICPI_Chart);
                                 //$(".chart-type-chooser").bind("change", App.refreshChart);
                                 var hierarchyList = $("div#treelist");
                                 App.hierSpiCpiEvent(hierarchyList,App.dataType);//event for changing chart data
@@ -405,7 +405,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 self = $(this),
                 id = self.data('temp'),
                 sheet = self.data('sheet'),//Worksheet Name
-                version = '', projectData = '', hierData = '', svData='', cpr5Data ='', vData = '', hier = '', costs = '', chartData = '',
+                version = '', projectData = '', hierData = '', svData='', cprHeaderData = '', cpr5Data ='', vData = '', hier = '', costs = '', chartData = '',
                 totals = '', gauges = '', chartDataSource = '', currentVersion = [],chartTotals = '', trendData = '',
                 retrieveTpl = 'tpl!templates/reports/' + id + '.html';
             console.log(id);
@@ -421,7 +421,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                     }
                     return item.Default === "X";
                 });
-                console.log(defList);
+               // console.log(defList);
                 if (defList.length >= 1) {
                     App.HierarchySelectionID = _.first(defList).HierarchySelection;
                 }
@@ -453,65 +453,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         switch (sheet) {
                             case 'CPR-1':
                                 console.log('hit 1');
-                                combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
-                                /*********   Template Processing  *********/
-                                tplId = tempTpl;
-                                tplFooter = reportFooterTpl;
-                                App.Project(tplId, tplFooter, combineData);
-                                bkgChange.attr('id', 'cprBG');
-                                App.reportTplConfig(self);
-                                /*********   End Template Processing  *****/
-                                App.SpinnerTpl(loadingWheel, 0);
-                                break;
-                            case 'CPR-2':
-                                console.log('hit 2');
-                                /*********   Data Processing  *************/
-                                combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
-                                /*********   Template Processing  *********/
-                                tplId = tempTpl;
-                                tplFooter = reportFooterTpl;
-                                App.Project(tplId, tplFooter, combineData);
-                                bkgChange.attr('id', 'cprBG');
-                                App.reportTplConfig(self);
-                                /*********   End Template Processing  *****/
-                                App.SpinnerTpl(loadingWheel, 0);
-                                break;
-                            case 'CPR-3':
-                                console.log('hit 3');
-                                /*********   Template Processing  *********/
-                                combineData[0] = App.formatThreeTotals(costs,'IntValProjCurr');
-                                tplId = tempTpl;
-                                tplFooter = reportFooterTpl;
-                                App.Project(tplId, tplFooter, combineData);
-                                bkgChange.attr('id', 'cprBG');
-                                App.reportTplConfig(self);
-                                /*********   End Template Processing  *****/
-                                App.SpinnerTpl(loadingWheel, 0);
-                                break;
-                            case 'CPR-4':
-                                console.log('hit 4');
-                                /*********   Template Processing  *********/
-                                combineData[0] = App.DataStore.project;
-                                combineData[1] = App.formatFourTotals(costs);
-                                combineData[2] = {"months": App.unit.months};
-                                console.log(combineData[1]);
-                                tplId = tempTpl;
-                                tplFooter = reportFooterTpl;
-                                App.Project(tplId, tplFooter, combineData);
-                                bkgChange.attr('id', 'cprBG');
-                                App.reportTplConfig(self);
-                                /*********   End Template Processing  *****/
-                                App.SpinnerTpl(loadingWheel, 0);
-                                break;
-                            case 'CPR-5':
-                                console.log('hit 5');
-                                cpr5Data = App.CPR5DetailSet();
-                                $.when(cpr5Data).done(function (fiveData) {
+                                cprHeaderData = App.CPRHeaderSet();
+                                $.when(cprHeaderData).done(function (cHData) {
                                     var data = App.FilterChartData(costs, App.dataType);
                                     combineData[0] = App.DataStore.project;
-                                    combineData[1] = App.formatFiveTotals(data);
-                                    combineData[2] = fiveData.d.results[0];
+                                    combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
+                                    combineData[2] = cHData.d.results[0];
                                     /*********   Template Processing  *********/
                                     tplId = tempTpl;
                                     tplFooter = reportFooterTpl;
@@ -520,6 +467,78 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     App.reportTplConfig(self);
                                     /*********   End Template Processing  *****/
                                     App.SpinnerTpl(loadingWheel, 0);
+                                });
+                                break;
+                            case 'CPR-2':
+                                console.log('hit 2');
+                                cprHeaderData = App.CPRHeaderSet();
+                                $.when(cprHeaderData).done(function (cHData) {
+                                    combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
+                                    combineData[2] = cHData.d.results[0];
+                                    /*********   Template Processing  *********/
+                                    tplId = tempTpl;
+                                    tplFooter = reportFooterTpl;
+                                    App.Project(tplId, tplFooter, combineData);
+                                    bkgChange.attr('id', 'cprBG');
+                                    App.reportTplConfig(self);
+                                    /*********   End Template Processing  *****/
+                                    App.SpinnerTpl(loadingWheel, 0);
+                                });
+                                break;
+                            case 'CPR-3':
+                                console.log('hit 3');
+                                cprHeaderData = App.CPRHeaderSet();
+                                $.when(cprHeaderData).done(function (cHData) {
+                                    combineData[0] = App.formatThreeTotals(costs, App.dataType);
+                                    combineData[1] = cHData.d.results[0];
+                                    /*********   Template Processing  *********/
+                                    tplId = tempTpl;
+                                    tplFooter = reportFooterTpl;
+                                    App.Project(tplId, tplFooter, combineData);
+                                    bkgChange.attr('id', 'cprBG');
+                                    App.reportTplConfig(self);
+                                    /*********   End Template Processing  *****/
+                                    App.SpinnerTpl(loadingWheel, 0);
+                                });
+                                break;
+                            case 'CPR-4':
+                                console.log('hit 4');
+                                cprHeaderData = App.CPRHeaderSet();
+                                $.when(cprHeaderData).done(function (cHData) {
+                                    combineData[0] = App.DataStore.project;
+                                    combineData[1] = App.formatFourTotals(costs);
+                                    combineData[2] = {"months": App.unit.months};
+                                    combineData[3] = cHData.d.results[0];
+                                    /*********   Template Processing  *********/
+                                    tplId = tempTpl;
+                                    tplFooter = reportFooterTpl;
+                                    App.Project(tplId, tplFooter, combineData);
+                                    bkgChange.attr('id', 'cprBG');
+                                    App.reportTplConfig(self);
+                                    /*********   End Template Processing  *****/
+                                    App.SpinnerTpl(loadingWheel, 0);
+                                });
+                                break;
+                            case 'CPR-5':
+                                console.log('hit 5');
+                                cpr5Data = App.CPR5DetailSet();
+                                $.when(cpr5Data).done(function (fiveData) {
+                                    var data = App.FilterChartData(costs, App.dataType);
+                                    cprHeaderData = App.CPRHeaderSet();
+                                    $.when(cprHeaderData).done(function (cHData) {
+                                        combineData[0] = App.DataStore.project;
+                                        combineData[1] = App.formatFiveTotals(data);
+                                        combineData[2] = fiveData.d.results[0];
+                                        combineData[3] = cHData.d.results[0];
+                                        /*********   Template Processing  *********/
+                                        tplId = tempTpl;
+                                        tplFooter = reportFooterTpl;
+                                        App.Project(tplId, tplFooter, combineData);
+                                        bkgChange.attr('id', 'cprBG');
+                                        App.reportTplConfig(self);
+                                        /*********   End Template Processing  *****/
+                                        App.SpinnerTpl(loadingWheel, 0);
+                                    });
                                 });
                                 break;
                             case 'CPR-TWBS':
@@ -528,19 +547,22 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 svData = App.SVSet();
                                 $.when(svData).done(function (sData) {
                                     App.DataStore.setSpiCpiData(sData,hData);
-
-                                    combineData[0] = App.DataStore.project;
-                                    chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
-                                    trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata, App.dataType);
-                                    combineData[1] = App.setTrendToChartData(chartTotals, trendData);
-                                    /*********   Template Processing  *********/
-                                    tplId = tempTpl;
-                                    tplFooter = reportFooterTpl;
-                                    App.Project(tplId, tplFooter, combineData);
-                                    bkgChange.attr('id', 'cprBG');
-                                    App.reportTplConfig(self);
-                                    /*********   End Template Processing  *****/
-                                    App.SpinnerTpl(loadingWheel, 0);
+                                    cprHeaderData = App.CPRHeaderSet();
+                                    $.when(cprHeaderData).done(function (cHData) {
+                                        combineData[0] = App.DataStore.project;
+                                        chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
+                                        trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata, App.dataType);
+                                        combineData[1] = App.setTrendToChartData(chartTotals, trendData);
+                                        combineData[2] = cHData.d.results[0];
+                                        /*********   Template Processing  *********/
+                                        tplId = tempTpl;
+                                        tplFooter = reportFooterTpl;
+                                        App.Project(tplId, tplFooter, combineData);
+                                        bkgChange.attr('id', 'cprBG');
+                                        App.reportTplConfig(self);
+                                        /*********   End Template Processing  *****/
+                                        App.SpinnerTpl(loadingWheel, 0);
+                                    });
                                 });
                                 break;
                             case 'CPR-TOBS':
@@ -549,23 +571,27 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 svData = App.SVSet();
                                 $.when(svData).done(function (sData) {
                                     App.DataStore.setSpiCpiData(sData,hData);
-                                    combineData[0] = App.DataStore.project;
-                                     chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
-                                     trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,App.dataType);
-                                    combineData[1] = App.setTrendToChartData(chartTotals,trendData);
-                                    /*********   Template Processing  *********/
-                                    tplId = tempTpl;
-                                    tplFooter = reportFooterTpl;
-                                    App.Project(tplId, tplFooter, combineData);
-                                    bkgChange.attr('id', 'cprBG');
-                                    App.reportTplConfig(self);
-                                    /*********   End Template Processing  *****/
-                                    App.SpinnerTpl(loadingWheel, 0);
+                                    cprHeaderData = App.CPRHeaderSet();
+                                    $.when(cprHeaderData).done(function (cHData) {
+                                        combineData[0] = App.DataStore.project;
+                                        chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
+                                        trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata, App.dataType);
+                                        combineData[1] = App.setTrendToChartData(chartTotals, trendData);
+                                        combineData[2] = cHData.d.results[0];
+                                        /*********   Template Processing  *********/
+                                        tplId = tempTpl;
+                                        tplFooter = reportFooterTpl;
+                                        App.Project(tplId, tplFooter, combineData);
+                                        bkgChange.attr('id', 'cprBG');
+                                        App.reportTplConfig(self);
+                                        /*********   End Template Processing  *****/
+                                        App.SpinnerTpl(loadingWheel, 0);
+                                    });
                                 });
                                 break;
                             case 'FOO_REPORT':
                                 console.log('hit FOO');
-                                    var group = [];
+                                    var group = {};
                                     var array = [];
                                     var deferred = $.Deferred();
                                     _.each(App.DataStore.hierarchyList,function(item,key,list){
@@ -578,7 +604,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     var count = 0;
                                     _.each(array,function(value,key){
                                         $.when(value.data).done(function(data) {
-                                            group = group.concat(data.d.results);
+                                           group[_.first(data.d.results).HierarchySelection] = [];
+                                            group[_.first(data.d.results).HierarchySelection].push(data.d.results);
                                             count += 1;
                                             if(count === array.length){
                                                 deferred.resolve(group);
@@ -649,135 +676,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 switch (logic) {
                     case 'CPR-1':
                         console.log('hit 1');
-                        combineData[0] = App.DataStore.project;
-                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
-                        /*********   Template Processing  *********/
-                        tplId = tempTpl;
-                        tplFooter = reportFooterTpl;
-                        App.Project(tplId, tplFooter, combineData);
-                        //bkgChange.attr('id', 'cprBG');
-                        App.reportTplConfig(self);
-                        console.log(dataType);
-                        if (material) {
-                            $('#units').html('&pound;');
-                            $('#cpr1Title').html('CPR FORMAT 1 - WBS (MATERIAL)');
-                            $('.dataType').val('Material');
-                        } else {
-                            if (dataType === 'Quantity') {
-                                $('.costType').hide();
-                                $('#units').html('HRS');
-                                $('#cpr1Title').html('CPR FORMAT 1 - WBS (MANHOURS)');
-                            } else {
-                                //$('.costType').show();
-                                $('#units').html('&pound;');
-                                $('#cpr1Title').html('CPR FORMAT 1 - WBS (TOTAL COST)');
-                                $('#dataType').val('Costs');
-                                /*if (dataType === 'IntValProjCurr') {
-                                    $('.costType').val('IntValProjCurr');
-                                } else {
-                                    $('.costType').val('ExtValProjCurr');
-                                }*/
-                            }
-                        }
-                        /*********   End Template Processing  *****/
-                        App.SpinnerTpl(loadingWheel, 0);
-                        break;
-                    case 'CPR-2':
-
-                        console.log('hit 2');
-                        /*********   Data Processing  *************/
-                        combineData[0] = App.DataStore.project;
-                        combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
-                        /*********   Template Processing  *********/
-                        tplId = tempTpl;
-                        tplFooter = reportFooterTpl;
-                        App.Project(tplId, tplFooter, combineData);
-                        //bkgChange.attr('id', 'cprBG');
-                        App.reportTplConfig(self);
-                        if (material) {
-                            $('#units').html('&pound;');
-                            $('#cpr2Title').html('CPR FORMAT 2 - OBS (MATERIAL)');
-                            $('#dataType').val('Material');
-                        } else {
-                            if (dataType === 'Quantity') {
-                                $('.costType').hide();
-                                $('#units').text('HRS');
-                                $('#cpr2Title').text('CPR FORMAT 2 - OBS (MANHOURS)');
-                            } else {
-                                //$('.costType').show();
-                                $('#units').html('&pound;');
-                                $('#cpr2Title').text('CPR FORMAT 2 - OBS (TOTAL COST)');
-                                $('#dataType').val('Costs');
-                                 /* if (dataType === 'IntValProjCurr') {
-                                 $('.costType').val('IntValProjCurr');
-                                 } else {
-                                 $('.costType').val('ExtValProjCurr');
-                                 }*/
-                            }
-                        }
-                        /*********   End Template Processing  *****/
-                        App.SpinnerTpl(loadingWheel, 0);
-
-                        break;
-                    case 'CPR-3':
-                        console.log('hit 3');
-                        /*********   Template Processing  *********/
-                        combineData[0] = App.formatThreeTotals(costs,'IntValProjCurr');
-                        tplId = tempTpl;
-                        tplFooter = reportFooterTpl;
-                        App.Project(tplId, tplFooter, combineData);
-                        bkgChange.attr('id', 'cprBG');
-                        App.reportTplConfig(self);
-                        /*********   End Template Processing  *****/
-                        App.SpinnerTpl(loadingWheel, 0);
-
-                        break;
-                    case 'CPR-4':
-
-                        console.log('hit 4');
-                        /*********   Template Processing  *********/
-                        combineData[0] = App.DataStore.project;
-                        combineData[1] = App.formatFourTotals(costs, dataType);
-                        combineData[2] = {"months": App.unit.months};
-                        console.log(combineData[1]);
-                        tplId = tempTpl;
-                        tplFooter = reportFooterTpl;
-                        App.Project(tplId, tplFooter, combineData);
-                        //bkgChange.attr('id', 'cprBG');
-                        App.reportTplConfig(self);
-                        if (material) {
-                            $('#units').html('&pound;');
-                            $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MATERIAL)');
-                            $('#dataType').val('Material');
-                        } else {
-                            if (dataType === 'Quantity') {
-                                $('.costType').hide();
-                                $('#units').text('HRS');
-                                $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
-                            } else {
-                                //$('.costType').show();
-                                $('#units').text('&pound;');
-                                $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (TOTAL COST)');
-                                $('#dataType').val('Costs');
-                                /*if (dataType === 'IntValProjCurr') {
-                                 $('.costType').val('IntValProjCurr');
-                                 } else {
-                                 $('.costType').val('ExtValProjCurr');
-                                 }*/
-                            }
-                        }
-                        /*********   End Template Processing  *****/
-                        App.SpinnerTpl(loadingWheel, 0);
-
-                        break;
-                    case 'CPR-5':
-                        console.log('hit 5');
-                        var cpr5Data = App.CPR5DetailSet();
-                        $.when(cpr5Data).done(function(fiveData){
-                            var data = App.FilterChartData(costs, dataType);
+                        cprHeaderData = App.CPRHeaderSet();
+                        $.when(cprHeaderData).done(function (cHData) {
+                            //var data = App.FilterChartData(costs, App.dataType);
                             combineData[0] = App.DataStore.project;
-                            combineData[1] = App.formatFiveTotals(data);
-                            combineData[2] = _.first(fiveData.d.results);
+                            combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+                            combineData[2] = cHData.d.results[0];
                             /*********   Template Processing  *********/
                             tplId = tempTpl;
                             tplFooter = reportFooterTpl;
@@ -786,17 +690,239 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             App.reportTplConfig(self);
                             if (material) {
                                 $('#units').html('&pound;');
-                                $('#cpr5Title').html('CPR FORMAT 5 - VAR (MATERIAL)');
+                                $('#cpr1Title').html('CPR FORMAT 1 - WBS (MATERIAL)');
+                                $('.dataType').val('Material');
+                            } else {
+                                if (dataType === 'Quantity') {
+                                    $('.costType').hide();
+                                    $('#units').html('HRS');
+                                    $('#cpr1Title').html('CPR FORMAT 1 - WBS (MANHOURS)');
+                                } else {
+                                    //$('.costType').show();
+                                    $('#units').html('&pound;');
+                                    $('#cpr1Title').html('CPR FORMAT 1 - WBS (TOTAL COST)');
+                                    $('#dataType').val('Costs');
+                                }
+                            }
+                            /*********   End Template Processing  *****/
+                            App.SpinnerTpl(loadingWheel, 0);
+                        });
+                        break;
+                    case 'CPR-2':
+                        console.log('hit 2');
+                        cprHeaderData = App.CPRHeaderSet();
+                        $.when(cprHeaderData).done(function (cHData) {
+                            //var data = App.FilterChartData(costs, App.dataType);
+                            combineData[0] = App.DataStore.project;
+                            combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
+                            combineData[2] = cHData.d.results[0];
+                            /*********   Template Processing  *********/
+                            tplId = tempTpl;
+                            tplFooter = reportFooterTpl;
+                            App.Project(tplId, tplFooter, combineData);
+                            //bkgChange.attr('id', 'cprBG');
+                            App.reportTplConfig(self);
+                            if (material) {
+                                $('#units').html('&pound;');
+                                $('#cpr2Title').html('CPR FORMAT 2 - OBS (MATERIAL)');
                                 $('#dataType').val('Material');
                             } else {
                                 if (dataType === 'Quantity') {
                                     $('.costType').hide();
                                     $('#units').text('HRS');
-                                    $('#cpr5Title').text('CPR FORMAT 5 - VAR (MANHOURS)');
+                                    $('#cpr2Title').text('CPR FORMAT 2 - OBS (MANHOURS)');
                                 } else {
                                     //$('.costType').show();
                                     $('#units').html('&pound;');
-                                    $('#cpr5Title').text('CPR FORMAT 5 - VAR (TOTAL COST)');
+                                    $('#cpr2Title').text('CPR FORMAT 2 - OBS (TOTAL COST)');
+                                    $('#dataType').val('Costs');
+                                }
+                            }
+                            /*********   End Template Processing  *****/
+                            App.SpinnerTpl(loadingWheel, 0);
+                        });
+                        break;
+                    case 'CPR-3':
+                        console.log('hit 3');
+                        cprHeaderData = App.CPRHeaderSet();
+                        $.when(cprHeaderData).done(function (cHData) {
+                            combineData[0] = App.formatThreeTotals(costs,dataType);
+                            combineData[1] = cHData.d.results[0];
+                            /*********   Template Processing  *********/
+                            tplId = tempTpl;
+                            tplFooter = reportFooterTpl;
+                            App.Project(tplId, tplFooter, combineData);
+                            bkgChange.attr('id', 'cprBG');
+                            App.reportTplConfig(self);
+                            if (material) {
+                                $('#units').html('&pound;');
+                                $('#cpr3Title').html('CPR FORMAT 3 - OBS (MATERIAL)');
+                                $('#dataType').val('Material');
+                            } else {
+                                if (dataType === 'Quantity') {
+                                    $('.costType').hide();
+                                    $('#units').text('HRS');
+                                    $('#cpr3Title').text('CPR FORMAT 3 - OBS (MANHOURS)');
+                                } else {
+                                    //$('.costType').show();
+                                    $('#units').html('&pound;');
+                                    $('#cpr3Title').text('CPR FORMAT 3 - OBS (TOTAL COST)');
+                                    $('#dataType').val('Costs');
+                                }
+                            }
+                            /*********   End Template Processing  *****/
+                            App.SpinnerTpl(loadingWheel, 0);
+                        });
+                        break;
+                    case 'CPR-4':
+                        console.log('hit 4');
+                        cprHeaderData = App.CPRHeaderSet();
+                        $.when(cprHeaderData).done(function (cHData) {
+                            //var data = App.FilterChartData(costs, App.dataType);
+                            combineData[0] = App.DataStore.project;
+                            combineData[1] = App.formatFourTotals(costs, dataType);
+                            combineData[2] = {"months": App.unit.months};
+                            combineData[3] = cHData.d.results[0];
+                            /*********   Template Processing  *********/
+                            tplId = tempTpl;
+                            tplFooter = reportFooterTpl;
+                            App.Project(tplId, tplFooter, combineData);
+                            //bkgChange.attr('id', 'cprBG');
+                            App.reportTplConfig(self);
+                            if (material) {
+                                $('#units').html('&pound;');
+                                $('#cpr4Title').html('CPR FORMAT 4 - STAFFING/FORECAST (MATERIAL)');
+                                $('#dataType').val('Material');
+                            } else {
+                                if (dataType === 'Quantity') {
+                                    $('.costType').hide();
+                                    $('#units').text('HRS');
+                                    $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
+                                } else {
+                                    //$('.costType').show();
+                                    $('#units').text('&pound;');
+                                    $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (TOTAL COST)');
+                                    $('#dataType').val('Costs');
+                                }
+                            }
+                            /*********   End Template Processing  *****/
+                            App.SpinnerTpl(loadingWheel, 0);
+                        });
+                        break;
+                    case 'CPR-5':
+                        console.log('hit 5');
+                        var cpr5Data = App.CPR5DetailSet();
+                        $.when(cpr5Data).done(function(fiveData){
+                            var data = App.FilterChartData(costs, dataType);
+                            cprHeaderData = App.CPRHeaderSet();
+                            $.when(cprHeaderData).done(function (cHData) {
+                                //var data = App.FilterChartData(costs, App.dataType);
+                                combineData[0] = App.DataStore.project;
+                                combineData[1] = App.formatFiveTotals(data);
+                                combineData[2] = _.first(fiveData.d.results);
+                                combineData[3] = cHData.d.results[0];
+                                /*********   Template Processing  *********/
+                                tplId = tempTpl;
+                                tplFooter = reportFooterTpl;
+                                App.Project(tplId, tplFooter, combineData);
+                                //bkgChange.attr('id', 'cprBG');
+                                App.reportTplConfig(self);
+                                if (material) {
+                                    $('#units').html('&pound;');
+                                    $('#cpr5Title').html('CPR FORMAT 5 - VAR (MATERIAL)');
+                                    $('#dataType').val('Material');
+                                } else {
+                                    if (dataType === 'Quantity') {
+                                        $('.costType').hide();
+                                        $('#units').text('HRS');
+                                        $('#cpr5Title').text('CPR FORMAT 5 - VAR (MANHOURS)');
+                                    } else {
+                                        //$('.costType').show();
+                                        $('#units').html('&pound;');
+                                        $('#cpr5Title').text('CPR FORMAT 5 - VAR (TOTAL COST)');
+                                        $('#dataType').val('Costs');
+                                        /*if (dataType === 'IntValProjCurr') {
+                                         $('.costType').val('IntValProjCurr');
+                                         } else {
+                                         $('.costType').val('ExtValProjCurr');
+                                         }*/
+                                    }
+                                }
+                                /*********   End Template Processing  *****/
+                                App.SpinnerTpl(loadingWheel, 0);
+                            });
+                        });
+                        break;
+                    case 'CPR-TWBS':
+                        console.log('hit TW');
+                        cprHeaderData = App.CPRHeaderSet();
+                        $.when(cprHeaderData).done(function (cHData) {
+                            //var data = App.FilterChartData(costs, App.dataType);
+                            combineData[0] = App.DataStore.project;
+                            chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
+                            trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
+                            combineData[1] = App.setTrendToChartData(chartTotals,trendData);
+                            combineData[2] = cHData.d.results[0];
+                            /*********   Template Processing  *********/
+                            tplId = tempTpl;
+                            tplFooter = reportFooterTpl;
+                            App.Project(tplId, tplFooter, combineData);
+                            //bkgChange.attr('id', 'cprBG');
+                            App.reportTplConfig(self);
+                            if (material) {
+                                $('#units').html('&pound;');
+                                $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MATERIAL)');
+                                $('.dataType').val('Material');
+                            } else {
+                                if (dataType === 'Quantity') {
+                                    $('.costType').hide();
+                                    $('#units').text('HRS');
+                                    $('#cprTWTitle').text('CPR FORMAT TREND - WBS (MANHOURS)');
+                                } else {
+                                    //$('.costType').show();
+                                    $('#units').html('&pound;');
+                                    $('#cprTWTitle').text('CPR FORMAT TREND - WBS (TOTAL COST)');
+                                    $('.dataType').val('Costs');
+                                    /*if (dataType === 'IntValProjCurr') {
+                                     $('.costType').val('IntValProjCurr');
+                                     } else {
+                                     $('.costType').val('ExtValProjCurr');
+                                     }*/
+                                }
+                            }
+                            /*********   End Template Processing  *****/
+                            App.SpinnerTpl(loadingWheel, 0);
+                        });
+                        break;
+                    case 'CPR-TOBS':
+                        console.log('hit TO');
+                        cprHeaderData = App.CPRHeaderSet();
+                        $.when(cprHeaderData).done(function (cHData) {
+                            //var data = App.FilterChartData(costs, App.dataType);
+                            combineData[0] = App.DataStore.project;
+                            chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
+                            trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
+                            combineData[1] = App.setTrendToChartData(chartTotals,trendData);
+                            combineData[2] = cHData.d.results[0];
+                            /*********   Template Processing  *********/
+                            tplId = tempTpl;
+                            tplFooter = reportFooterTpl;
+                            App.Project(tplId, tplFooter, combineData);
+                            //bkgChange.attr('id', 'cprBG');
+                            App.reportTplConfig(self);
+                            if (material) {
+                                $('#units').html('&pound;');
+                                $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MATERIAL)');
+                                $('#dataType').val('Material');
+                            } else {
+                                if (dataType === 'Quantity') {
+                                    $('.costType').hide();
+                                    $('#units').text('HRS');
+                                    $('#cprTOTitle').text('CPR FORMAT TREND - OBS (MANHOURS)');
+                                } else {
+                                    //$('.costType').show();
+                                    $('#units').html('&pound;');
+                                    $('#cprTOTitle').text('CPR FORMAT TREND - OBS (TOTAL COST)');
                                     $('#dataType').val('Costs');
                                     /*if (dataType === 'IntValProjCurr') {
                                      $('.costType').val('IntValProjCurr');
@@ -808,84 +934,11 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             /*********   End Template Processing  *****/
                             App.SpinnerTpl(loadingWheel, 0);
                         });
-
-                        break;
-                    case 'CPR-TWBS':
-                        console.log('hit TW');
-                        combineData[0] = App.DataStore.project;
-                         chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
-                         trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
-                        combineData[1] = App.setTrendToChartData(chartTotals,trendData);
-                        /*********   Template Processing  *********/
-                        tplId = tempTpl;
-                        tplFooter = reportFooterTpl;
-                        App.Project(tplId, tplFooter, combineData);
-                        //bkgChange.attr('id', 'cprBG');
-                        App.reportTplConfig(self);
-                        if (material) {
-                            $('#units').html('&pound;');
-                            $('#cprTWTitle').html('CPR FORMAT TREND - WBS (MATERIAL)');
-                            $('.dataType').val('Material');
-                        } else {
-                            if (dataType === 'Quantity') {
-                                $('.costType').hide();
-                                $('#units').text('HRS');
-                                $('#cprTWTitle').text('CPR FORMAT TREND - WBS (MANHOURS)');
-                            } else {
-                                //$('.costType').show();
-                                $('#units').html('&pound;');
-                                $('#cprTWTitle').text('CPR FORMAT TREND - WBS (TOTAL COST)');
-                                $('.dataType').val('Costs');
-                                /*if (dataType === 'IntValProjCurr') {
-                                 $('.costType').val('IntValProjCurr');
-                                 } else {
-                                 $('.costType').val('ExtValProjCurr');
-                                 }*/
-                            }
-                        }
-                        /*********   End Template Processing  *****/
-                        App.SpinnerTpl(loadingWheel, 0);
-                        break;
-                    case 'CPR-TOBS':
-                        console.log('hit TO');
-                        combineData[0] = App.DataStore.project;
-                         chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
-                         trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
-                        combineData[1] = App.setTrendToChartData(chartTotals,trendData);
-                        /*********   Template Processing  *********/
-                        tplId = tempTpl;
-                        tplFooter = reportFooterTpl;
-                        App.Project(tplId, tplFooter, combineData);
-                        //bkgChange.attr('id', 'cprBG');
-                        App.reportTplConfig(self);
-                        if (material) {
-                            $('#units').html('&pound;');
-                            $('#cprTOTitle').html('CPR FORMAT TREND - OBS (MATERIAL)');
-                            $('#dataType').val('Material');
-                        } else {
-                            if (dataType === 'Quantity') {
-                                $('.costType').hide();
-                                $('#units').text('HRS');
-                                $('#cprTOTitle').text('CPR FORMAT TREND - OBS (MANHOURS)');
-                            } else {
-                                //$('.costType').show();
-                                $('#units').html('&pound;');
-                                $('#cprTOTitle').text('CPR FORMAT TREND - OBS (TOTAL COST)');
-                                $('#dataType').val('Costs');
-                                /*if (dataType === 'IntValProjCurr') {
-                                 $('.costType').val('IntValProjCurr');
-                                 } else {
-                                 $('.costType').val('ExtValProjCurr');
-                                 }*/
-                            }
-                        }
-                        /*********   End Template Processing  *****/
-                        App.SpinnerTpl(loadingWheel, 0);
                         break;
                     case 'FOO_REPORT':
                         console.log('hit FOO');
-                        var group = [];
-                        var array = [];
+                        var group = {},
+                            array = [];
                         var deferred = $.Deferred();
                         _.each(App.DataStore.hierarchyList,function(item,key,list){
                             App.HierarchySelectionID = item.HierarchySelection;
@@ -897,7 +950,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         var count = 0;
                         _.each(array,function(value,key){
                             $.when(value.data).done(function(data) {
-                                group = group.concat(data.d.results);
+                                group[_.first(data.d.results).HierarchySelection] = [];
+                                group[_.first(data.d.results).HierarchySelection].push(data.d.results);
                                 count += 1;
                                 if(count === array.length){
                                     deferred.resolve(group);
@@ -1087,7 +1141,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         App.hierListInitialize(hier);
                         var cpiSpiTrendData = App.cpiSpiTrend(costs, App.dataType);
                         var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
-                        App.createEV_SV_SPICPI_Chart(cpiSpiTrend, App.CpiSpiSeries, false,App.dataType);
+                        App.create_SPICPI_Chart(cpiSpiTrend, App.CpiSpiSeries, false,App.dataType);
                         var projectName = App.DataStore.hierarchySv[0].ExtID;
 
                         var hierarchyList = $("div#treelist");

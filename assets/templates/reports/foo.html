@@ -26,29 +26,37 @@
 
     <table class="animated fadeIn exportTable" id="fooTable" align="center" border='0' cellspacing='0' cellpadding='0'>
 
-     <% _.each(combineData[1].merged,function(value,index){ %>
-        <tr data-type="<%-value.ObjectNumber%>" class="">
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                <%-value.Description%>
+
+        <tr  class="">
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:5px 10px;'>
+                <%-combineData[1].title.Description%>
             </td>
-            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:5px 10px;'>
                 OBS
             </td>
-            <% if(index === 0){ %>
+
                 <% _.each(combineData[1].dates,function(value,index){ %>
-                <td style='font-weight:bold;border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <td style='font-weight:bold;border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:5px 10px;'>
                     <%-value.date%>
                 </td>
                 <% }); %>
-            <% }else{ %>
-                <% _.each(value.Total,function(item,key){ %>
-                <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                    <%-item%>
-                </td>
-                <% }); %>
-            <% } %>
-
         </tr>
-        <% }); %>
+        <% _.each(combineData[1].default,function(value,index){ %>
+        <tr  class="">
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-_.last(value.Description.split('-'))%>
+            </td>
+
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[2]%> <%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[3]%>
+            </td>
+            <% _.each(combineData[1].obs[index].Total,function(item,key){ %>
+            <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
+                <%-item%>
+            </td>
+            <% }); %>
+        </tr>
+         <% }); %>
+
     </table>
 </div>
