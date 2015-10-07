@@ -8,7 +8,7 @@
     <ul class="dropdown-menu" role="menu" style="min-width: 180px; padding: 5px 2px">
         <li style="padding-bottom: 2px">
             <form>
-                <select class="form-control selectpicker" tabindex="-1" style="padding: 3px 6px 3px 6px; cursor: pointer">
+                <select class="form-control selectpicker" id="baseline" tabindex="-1" style="padding: 3px 6px 3px 6px; cursor: pointer">
                     <% if (combineData[2].length < 2) { %>
                     <% $.each(combineData[2],function(key,value){ %>
                     <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>

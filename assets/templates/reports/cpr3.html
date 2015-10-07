@@ -273,7 +273,7 @@
                 REPORT
             </td>
 
-            <%_.each(combineData[0].forcast,function(value,key){ %>
+            <%_.each(combineData[0].forcast.future,function(value,key){ %>
             <%if(value.order < 7){%>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-value.month%>
@@ -520,56 +520,21 @@
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
         </tr>
-        <!--
-         "start": start,
-                    "end": end,
-                    "bcwsTotalRate": bcwsHrRate.toFixed(2) + ' Hourly Rate',
-                    "bcwpTotalRate": bcwpHrRate.toFixed(2) + ' Hourly Rate',
-                    "eacTotalRate": eacHrRate.toFixed(2) + ' Hourly Rate',
-                    "acwpTotalRate": acwpHrRate.toFixed(2) + ' Hourly Rate',
 
-                    bac:total.bac,
-
-                    bcwsAll: total.bcwsAll,
-                    bcwsTotal: total.bcwsTotal,
-                    curBcwsHrs: total.curBcwsHrs,
-                    curBcwsTotal: total.curBcwsTotal,
-                    bcwsCOM:total.bcwsCOM,
-                    bcwsGA:total.bcwsGA,
-                    bcwsHrs: total.bcwsHrs,
-                    bcwsOH:total.bcwsOH,
-                    allbcwsCOM:total.allbcwsCOM,
-                    allbcwsGA:total.allbcwsGA,
-                    allbcwsOH:total.allbcwsOH,
-                    curbcwsCOM:total.curbcwsCOM,
-                    curbcwsGA:total.curbcwsGA,
-                    curbcwsOH:total.curbcwsOH,
-
-                    curBcwpHrs: total.curBcwpHrs,
-                    curBcwpTotal: total.curBcwpTotal,
-                    bcwpTotal: total.bcwpTotal,
-                    bcwpCOM:total.bcwpCOM,
-                    bcwpGA:total.bcwpGA,
-                    bcwpHrs: total.bcwpHrs,
-                    bcwpOH:total.bcwpOH,
-                    curbcwpCOM:total.curbcwpCOM,
-                    curbcwpGA:total.curbcwpGA,
-                    curbcwpOH:total.curbcwpOH
-        -->
         <tr>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 [Beginning of Period]
             </td>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                <%-combineData[0].bcwsTotal%>
-            </td>
-            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-combineData[0].curBcwsTotal%>
             </td>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%-combineData[0].bcwsFP%>
+            </td>
 
 
-            <%_.each(combineData[0].forcast,function(value,key){ %>
-            <%if(value.order < 7){%>
+            <%_.each(combineData[0].forcast.current,function(value,key){ %>
+            <%if(value.order <= 6){%>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-value.total%>
             </td>
@@ -900,12 +865,12 @@
             </td>
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                <%-combineData[0].bac%>
+                <%-combineData[0].bcwsTotal%>
             </td>
             <td colspan='1' class="no-paint" style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
 
-            <%_.each(combineData[0].forcast,function(value,key){ %>
-            <%if(value.order < 7){%>
+            <%_.each(combineData[0].forcast.future,function(value,key){ %>
+            <%if(value.order <= 6){%>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-value.total%>
             </td>
@@ -928,7 +893,7 @@
                 0
             </td>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
+                <%-combineData[0].bcwsUB%>
             </td>
 
             <td colspan='1'
@@ -1011,7 +976,7 @@
                 style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
+                <%-combineData[0].bcwsMR%>
             </td>
         </tr>
 
@@ -1050,7 +1015,7 @@
                 style='background-color:#CCC; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1'
                 style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                <%-combineData[0].bac%>
+                <%-combineData[0].totalBAC%>
             </td>
         </tr>
 

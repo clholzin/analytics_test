@@ -35,11 +35,11 @@
                 OBS
             </td>
 
-                <% _.each(combineData[1].dates,function(value,index){ %>
-                <td style='font-weight:bold;border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:5px 10px;'>
-                    <%-value.date%>
-                </td>
-                <% }); %>
+            <% _.each(combineData[1].dates,function(value,index){ %>
+            <td style='font-weight:bold;border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:5px 10px;'>
+                <%-value.Date%>
+            </td>
+            <% }); %>
         </tr>
         <% _.each(combineData[1].default,function(value,index){ %>
         <tr  class="">

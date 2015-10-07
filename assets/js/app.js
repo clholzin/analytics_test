@@ -273,10 +273,10 @@ define(['jquery', 'underscore', 'moment','' +
             this.project = {};
             this.hierarchy = [];
             //  this.hierarchyList = {};
-            this.snapShotList = [];
+            //this.snapShotList = [];
         },
         setData: function (Data, hData) {
-            this.rawChartdata = _.first(Data).d.results;
+            this.rawChartdata = _.isArray(Data) ? _.first(Data).d.results : Data.d.results
             this.filtered = App.VersionFilter(this.versions, this.rawChartdata);
             //console.log(this.filtered);
             var chartDataSource = App.FilterData(this.filtered, this.rawChartdata, this.versionSelection);
@@ -284,23 +284,25 @@ define(['jquery', 'underscore', 'moment','' +
             this.chart = App.AssignStore(refined.graph);
             this.chartTotals = refined.totals;
             this.gaugesData = refined.gauges;
-            this.hierarchy = _.first(hData).d.results;
+            this.hierarchy = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
         },
         setSpiCpiData: function (Data, hData) {
-            if(_.isArray(Data)){
-                this.rawspiCpiChartdata = _.first(Data).d.results;
-            }else{
-                this.rawspiCpiChartdata = Data.d.results;
-            }
+            this.rawspiCpiChartdata = _.isArray(Data) ? _.first(Data).d.results : Data.d.results;
             var cpiSpiTrendData = App.cpiSpiTrend(this.rawspiCpiChartdata,App.dataType);
             this.spiCpiChart = App.AssignStore(cpiSpiTrendData);
-            this.hierarchySv = _.first(hData).d.results;
+            this.hierarchySv = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
         },
         clearSpiCpiData: function () {
             this.rawspiCpiChartdata = [];
             this.spiCpiChart = [];
             this.hierarchySv = [];
         },
+    };
+
+    App.State = {
+       alternativeOption: '',
+       defaultSelection: '',
+       text :'Toggle Hierarchy'
     };
 
     App.unit = {
@@ -514,7 +516,17 @@ define(['jquery', 'underscore', 'moment','' +
     App.analyticsTplConfig = function (selector) {
         var name = $(selector).data('name'),//File Name to Export As
             $exportReportPDF = $(document).find('span.export-chart-pdf');
-        $exportReportPDF.attr('data-id', name);
+            $exportReportPDF.attr('data-id', name),
+            $baseline = $(document).find('select#baseline'),
+            $eac = $(document).find('select#eac'),
+            $snapshot = $(document).find('select#snapshot');
+        var baselineVal = _.first(App.DataStore.versionSelection).VersionSelection;
+        var eacVal = _.last(App.DataStore.versionSelection).VersionSelection;
+        var snapVal = _.chain(App.DataStore.snapShotList).where({'Default':'X'}).pluck('SnapshotSelection').first().value();
+        _.debounce($baseline.val(baselineVal),500);
+        _.debounce($eac.val(eacVal),500);
+        _.debounce( $snapshot.val(snapVal),500);
+
         //console.log($exportReportPDF);
     };
 
@@ -894,19 +906,55 @@ define(['jquery', 'underscore', 'moment','' +
     };
 
     App.formatThreeTotals = function (chartData,dataType) {
-
         var refined = App.FilterChartData(chartData, dataType);
         var rawSortedData = _.chain(refined.graph).flatten().sortBy('Date').value();
         if (_.isUndefined(refined.totals)) {
             var total = undefined;
             return;
         } else {
-            total = _.first(refined.totals);
+            total = App.convertArraytoObject(refined.totals);
         }
         var obj = {},forcast = {},
             start = moment(_.first(rawSortedData).Date).format('YYYY/MM'),
             end = moment(_.last(rawSortedData).Date).format('YYYY/MM'),
             snapShotDate = moment(_.first(rawSortedData).snapShotDate);
+        forcast.current = {};
+        forcast.future = {};
+        var dataCurrent = $.grep(rawSortedData,function(value){
+            if(value.Type === 'BCWS' && value.TransactionType === 'KPPS'){
+                return value.PeriodType === 'P';
+            }
+        });
+        _.each(dataCurrent,function(value,index){
+            var month = moment(value.Date).format('MM');
+            var targetYear = moment(value.SnapshotDate).format('YY');
+            var targetYearMinus = moment(value.SnapshotDate).subtract(1, 'y').format('YY');
+            var valueYear = moment(value.Date).format('YY');
+
+            var unit = App.unit.months[month-1];
+            if(targetYear === valueYear || targetYearMinus === valueYear){
+                var keys = _.keys(forcast.current);
+                if(keys.length >= 7)return;
+                if(!_.has(forcast.current,unit)){
+                    forcast.current[unit] = {};
+                    forcast.current[unit].data = [];
+                    forcast.current[unit].total = 0;
+                    forcast.current[unit].order = _.keys(forcast.current).length;
+                    forcast.current[unit].month = unit;
+                }
+                forcast.current[unit].data.push(value);
+            }
+        });
+        _.each(forcast.current,function(value,index){
+            var sum = 0;
+            _.each(value.data,function(item,key){
+                sum += parseFloat(item[dataType]);
+            });
+            value.total = sum.toFixed(0);
+        });
+
+
+
         var dataAfter = $.grep(rawSortedData,function(value){
             if(value.Type === 'BCWS'){
                 return value.PeriodType === 'F';
@@ -920,51 +968,50 @@ define(['jquery', 'underscore', 'moment','' +
 
             var unit = App.unit.months[month-1];
             if(targetYear === valueYear || targetYearPlus === valueYear){
-                var keys = _.keys(forcast);
+                var keys = _.keys(forcast.future);
                 if(keys.length === 7)return;
-                if(!_.has(forcast,unit)){
-                    forcast[unit] = {};
-                    forcast[unit].data = [];
-                    forcast[unit].total = 0;
-                    forcast[unit].order = _.keys(forcast).length;
-                    forcast[unit].month = unit;
+                if(!_.has(forcast.future,unit)){
+                    forcast.future[unit] = {};
+                    forcast.future[unit].data = [];
+                    forcast.future[unit].total = 0;
+                    forcast.future[unit].order = _.keys(forcast.future).length;
+                    forcast.future[unit].month = unit;
                 }
-                forcast[unit].data.push(value);
+                forcast.future[unit].data.push(value);
             }
         });
 
-        _.each(forcast,function(value,index){
+        _.each(forcast.future,function(value,index){
             var sum = 0;
             _.each(value.data,function(item,key){
                 sum += parseFloat(item[dataType]);
             });
             value.total = sum.toFixed(0);
         });
-        obj = {
-            "start": start,
-            "end": end,
-            bac:total.bcwsAll,
-            bcwsAll: total.bcwsAll,
-            bcwsTotal: total.bcwsTotal,
-            curBcwsHrs: total.curBcwsHrs,
-            curBcwsTotal: total.curBcwsTotal,
-            bcwsCOM:total.bcwsCOM,
-            bcwsGA:total.bcwsGA,
-            bcwsHrs: total.bcwsHrs,
-            bcwsOH:total.bcwsOH,
-            allbcwsCOM:total.allbcwsCOM,
-            allbcwsGA:total.allbcwsGA,
-            allbcwsOH:total.allbcwsOH,
-            curbcwsCOM:total.curbcwsCOM,
-            curbcwsGA:total.curbcwsGA,
-            curbcwsOH:total.curbcwsOH,
-            forcast:forcast
+        obj = total;
+        obj.start= start,
+        obj.end= end,
+        obj.forcast=forcast;
 
+        obj.curBcwsTotal = (obj.curBcwsTotal - obj.curbcwsOH)+obj.curbcwsCOM;
+        obj.bcwsTotal = (obj.bcwsTotal+obj.bcwsCOM);
+        obj.totalBAC = ((obj.bac + obj.bcwsUB)+obj.bcwsMR)+obj.allbcwsCOM;
+        obj.bac = ((obj.bac + obj.bcwsUB)+obj.allbcwsCOM);
 
-        };
+        var dataCurrentPeriod = $.grep(rawSortedData,function(value){
+            if(value.Type === 'BCWS' && value.TransactionType === 'KPPS'){
+                return value.PeriodType === 'C';
+            }
+        });
+        var sum = 0;
+        _.each(dataCurrentPeriod,function(value,index,list){
+            sum += parseFloat(list[index][dataType]);
+        });
+        obj.bcwsFP = sum;
+
         _.each(obj,function(value,key){
             if(key === 'start' || key === 'end' || key ==='forcast')return;
-            obj[key] = value.toFixed(0);
+            obj[key] = Number(value).toFixed(0);
         });
         return obj;
     };
@@ -1889,7 +1936,6 @@ define(['jquery', 'underscore', 'moment','' +
         return sendData;
     };
 
-
     App.VersionFilter = function (versions, results) {
         // console.log(versions);
         console.time('VersionFilter');
@@ -2790,7 +2836,7 @@ define(['jquery', 'underscore', 'moment','' +
         return master;
     };
 
-    App.SVfilter = function (costs,dataType) {
+    App.SVfilter = function (costs,dataType,hier) {
         if(dataType === 'Quantity'){
             var dataType = 'H';
         }else if(dataType ==='IntValProjCurr'){
@@ -2888,8 +2934,13 @@ define(['jquery', 'underscore', 'moment','' +
             if (_.isNaN(acwpCost)) acwpCost = 0;
             //  console.log(parseFloat(bcwp[index].IntValProjCurr).toFixed(2));
             var SV = _.isNaN(bcwpCost - bcwsCost) ? 0 : bcwpCost - bcwsCost;
+            var hierarchyTitle = _.chain(hier).filter(function(value){
+                                        return value.ObjectNumber === item.ObjectNumber;
+                                    }).pluck('Description').first().value();
+            var titleSplit = _.last(hierarchyTitle.split('-'));
             return {
                 "SV": App.Math.ceil10(SV, -0),
+                "title": titleSplit.trim(),
                 "BCWS": bcwsCost,
                 "BCWP": bcwpCost,
                 "ACWP": acwpCost,
@@ -2903,18 +2954,36 @@ define(['jquery', 'underscore', 'moment','' +
                 name: moment(value).format('MM/YYYY'),
                 type: "column",
                 field: "SV",
-                categoryField: "ObjectNumber",
+                categoryField: "title",
                 color: "#" + _.random(0, 9) + _.random(0, 9) + _.random(0, 9) + _.random(0, 9) + _.random(0, 9) + _.random(0, 9),
                 markers: {type: "circle"},
                 data: []
             });
             master[key].data = _.where(data,{'SnapshotDate':value});
         });
+       /* var copy = [];
+        _.each(master,function(v,i){
+            var copyNew = _.map(v.data,function(item){
+
+                    return {
+                        "SV":item.SV / 2,
+                        "BCWS": item.BCWS,
+                        "BCWP": item.BCWP,
+                        "ACWP": item.ACWP,
+                        "ObjectNumber": item.ObjectNumber+1,
+                        "Date": item.Date,
+                        "SnapshotDate": item.SnapshotDate
+                    };
+
+            });
+            master[i].data.push(_.first(copyNew));
+
+        });*/
        // console.log(master);
         return master;
     };
 
-    App.ESfilter = function (costs,dataType) {
+    App.ESfilter = function (costs,dataType,hier) {
         if(dataType === 'Quantity'){
             var dataType = 'H';
         }else if(dataType ==='IntValProjCurr'){
@@ -2939,7 +3008,7 @@ define(['jquery', 'underscore', 'moment','' +
                 name: moment(value).format('MM/YYYY'),
                 type: "column",
                 field: "ES",
-                categoryField: "ObjectNumber",
+                categoryField: "title",
                 color: "#"+_.random(0, 9)+_.random(0, 9)+_.random(0, 9)+_.random(0, 9)+_.random(0, 9)+_.random(0, 9),
                 markers: {type: "circle"},
                 data:[]
@@ -2949,8 +3018,13 @@ define(['jquery', 'underscore', 'moment','' +
                 .sortBy('SnapshotDate')
                 .where({'RecordType':dataType,'SnapshotDate':value})
                 .map(function(item){
+                     var hierarchyTitle = _.chain(hier).filter(function(value){
+                         return value.ObjectNumber === item.ObjectNumber;
+                     }).pluck('Description').first().value();
+                     var titleSplit = _.last(hierarchyTitle.split('-'));
                     return {
                             "ProjectSelection": item.ProjectSelection,
+                            "title":titleSplit.trim(),
                             "HierarchySelection": item.HierarchySelection,
                             "ObjectNumber": item.ObjectNumber,
                             "PlanVersionSelection": item.PlanVersionSelection,
@@ -2961,10 +3035,33 @@ define(['jquery', 'underscore', 'moment','' +
                             "ES": item.ES
                     };
                 }).value();
+
         });
 
 
-        console.log(master);
+           /* var copy = [];
+            _.each(master,function(v,i){
+                var copyNew = _.map(v.data,function(item){
+
+                            return {
+                                Date:item.Date,
+                                ES:item.ES / 2,
+                                FundApproved:item.FundApproved,
+                                HierarchySelection:item.HierarchySelection,
+                                ObjectNumber:item.ObjectNumber+'22222',
+                                PlanVersionSelection:item.PlanVersionSelection,
+                                ProjectSelection:item.ProjectSelection,
+                                RecordType:item.RecordType,
+                                SnapshotType:item.SnapshotType
+                            };
+                        });
+                master[i].data.push(_.first(copyNew));
+
+            });*/
+
+
+       // master = master.concat(copy);
+       // console.log(master);
         return master;
     };
 
@@ -2999,9 +3096,11 @@ define(['jquery', 'underscore', 'moment','' +
                             return item.Type === 'EAC';
                         }
                     });
-        var dates = _.chain(eacData).uniq('Date').pluck('Date').value();
+        var dates = _.chain(eacData).uniq(false, function(item, k, v){
+                            return moment(item.Date).unix();
+                        }).value();
 
-        var hierDefault = _.first(hierarchyFoo[firstArrayId]).slice();
+        var hierDefault = _.first(hierarchyFoo[firstArrayId]);
         master.default = _.map(hierDefault,function(item,key){
             var objResults = [],final=[],isEmpty = false;
             objResults = _.filter(eacData,function(value){
@@ -3013,7 +3112,7 @@ define(['jquery', 'underscore', 'moment','' +
             _.each(dates,function(v,k){
                 var total = 0;
                 var data = _.filter(objResults,function(value){
-                    return moment(value.Date).unix() === moment(v).unix();
+                    return moment(value.Date).unix() === moment(v.Date).unix();
                 });
                 if(_.isEmpty(data)){
                     return final[k] = total;
@@ -3039,7 +3138,7 @@ define(['jquery', 'underscore', 'moment','' +
             }
         });
 
-        var hierCopy = _.first(hierarchyFoo[lastArrayId]).slice();
+        var hierCopy = _.first(hierarchyFoo[lastArrayId]);
         master.obs = _.map(hierCopy,function(item,key){
                         var objResults = [],final=[],isEmpty = false;
                              objResults = _.filter(eacData,function(value){
@@ -3051,7 +3150,7 @@ define(['jquery', 'underscore', 'moment','' +
                             _.each(dates,function(v,k){
                                 var total = 0;
                                 var data = _.filter(objResults,function(value){
-                                    return moment(value.Date).unix() === moment(v).unix();
+                                    return moment(value.Date).unix() === moment(v.Date).unix();
                                 });
                                 if(_.isEmpty(data)){
                                     return final[k] = total;
@@ -3080,7 +3179,7 @@ define(['jquery', 'underscore', 'moment','' +
 
         master.dates = _.map(dates,function(item){
             return{
-                "date":moment(item).format('MM/YYYY')
+                "Date":moment(item.Date).format('MM/YYYY')
             }
         });
 
@@ -3110,6 +3209,8 @@ define(['jquery', 'underscore', 'moment','' +
         });
         var copydefault = master.default.slice();
         var copyobs = master.obs.slice();
+        master.default = [];
+        master.obs = [];
         master.obs = _.filter(copyobs,function(item,index){
             if(item.ReportingLevel === 'R' && !item.checkEmpty){
                 _.each(item.Total,function(value,key){
@@ -3428,17 +3529,19 @@ define(['jquery', 'underscore', 'moment','' +
     App.Math.round10 = function (value, exp) {
         return App.decimalAdjust('round', value, exp);
     };
-
 // Decimal floor
     App.Math.floor10 = function (value, exp) {
         return App.decimalAdjust('floor', value, exp);
     };
-
 // Decimal ceil
     App.Math.ceil10 = function (value, exp) {
         return App.decimalAdjust('ceil', value, exp);
     };
 
+    /* Added Default Attributes to Arrays and Object Contructors*/
+    Array.prototype.clone = function() {
+        return this.slice(0);
+    };
 
     return App;
 });
