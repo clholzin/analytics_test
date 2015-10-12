@@ -14,7 +14,7 @@
             <div class="col-xs-5 input-group">
                 <select class="col-xs-6 form-control dataType controller" id="dataType">
                     <option value="Quantity" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT">Hours</option>
-                <!--    <option value="Material" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT">Material</option>-->
+                    <option value="Material" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT">Material</option>
                     <option value="Costs" data-id="fooTable" data-temp="foo" data-name="FOO_REPORT" data-sheet="FOO_REPORT">Total Cost</option>
                 </select>
             </div>
@@ -29,7 +29,7 @@
 
         <tr  class="">
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:5px 10px;'>
-                <%-combineData[1].title.Description%>
+                <%-combineData[1].title.ExtID%>
             </td>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:5px 10px;'>
                 OBS
@@ -41,16 +41,17 @@
             </td>
             <% }); %>
         </tr>
-        <% _.each(combineData[1].default,function(value,index){ %>
+        <% _.each(combineData[1].obs,function(item,index){ %>
         <tr  class="">
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                <%-_.last(value.Description.split('-'))%>
+                <%-_.last(combineData[1].default[index].Description.split('-'))%>
             </td>
 
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                <%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[2]%> <%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[3]%>
+                <!--<%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[2]%> <%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[3]%>-->
+                <%-_.first(item.Description.split('-'))%> <%-_.last(item.Description.split('-'))%>
             </td>
-            <% _.each(combineData[1].obs[index].Total,function(item,key){ %>
+            <% _.each(item.Total,function(item){ %>
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <%-item%>
             </td>

@@ -46,7 +46,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
         var hierarchySets = App.projectData();
         $.when(hierarchySets).done(function (hData) {
-            if (_.isObject(hData)) {
+            if (_.isObject(hData) || !_.isUndefined(_first(hData))) {
                 combineData.push(hData.d.results);
                 console.log(combineData);
             } else {
@@ -75,21 +75,21 @@ define(['jquery', 'underscore', 'domReady', 'app',
         doc.on('change', '#projectSets', function (e) {
             e.preventDefault();
             var value = $("#projectSets").val();
-            console.log(value);
             if (_.isEmpty(value)) {
                 doc.find('.menuItem').addClass('menu-disabled');
                 value = undefined;
                 App.setProjectID(value);
             } else {
+                App.ClearDataStore();
                 App.setProjectID(value);
                 App.setVersion();
+                App.setSnapshotList();
                 if (!_.isEmpty(App.projectID) || !_.isUndefined(App.projectID)) {
                     doc.find('.menuItem').removeClass('menu-disabled');
                 }
-                App.ClearDataStore();
+
             }
-            console.log('Project ID: ' + App.projectID);
-            console.log('Project URLs: ' + App.urlSnapshotSet + '  ' + App.urlHierarchySet + '  ' + App.urlHierarchySelectionSet);
+            console.log('Project ID: ' + value);
         });
 
         doc.on('click', 'body', function (e) {
@@ -119,7 +119,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 if (App.CheckHierarchyId()) {
                     return;
                 } else {
-                   App.ClearDataStore();
+                   //App.ClearDataStore();
                     App.setHierarchySelection(chartType.toUpperCase());
                     self.val(App.HierarchySelectionID);
                 }
@@ -128,27 +128,29 @@ define(['jquery', 'underscore', 'domReady', 'app',
             App.dataType = 'Quantity';
             App.setDataSelection();
             var hierData = App.HierarchySet();
-            var chartData = App.SnapshotSet();
-            $.when(hierData,chartData).done(function (hData,cData) {
+            //var chartData = App.SnapshotSet();,chartData
+            $.when(hierData).done(function (hData) {
                 /** Error handler **/
-                if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
+                if (App.apiErrorHandler(e.currentTarget, loadingWheel, hData)) {
                     return;
                 }
 
-                 App.DataStore.setData(cData, hData);
-
+                // App.DataStore.setData(cData, hData);
+                App.DataStore.hierarchy = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
                 $treeList.destroy();
                 $hierarchyList.empty();
                 $chartGraph.destroy();
                 $chart.empty()
-                $hierarchyList.off()
+                $hierarchyList.off('click');
 
+                var refined = App.FilterChartData(App.DataStore.chart.options.data, App.dataType);
+                App.DataStore.chart = App.AssignStore(refined.graph);
                 App.createChart(App.DataStore.chart, App.series, false, App.dataType);
                 //$chartGraph.dataSource.data(App.DataStore.chart.options.data);
                 App.hierListInitialize(App.DataStore.hierarchy);
                 /** Clear Hierarchy and Chart **/
-                $(document).bind("kendo:skinChange", App.createChart);
-                $(".chart-type-chooser").bind("change", App.refreshChart);
+               /* $(document).bind("kendo:skinChange", App.createChart);
+                $(".chart-type-chooser").bind("change", App.refreshChart);*/
 
                 $('#dataType').val(App.dataType);
                 $('.costType').hide();
@@ -158,6 +160,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
             });
         });
+
         /* CPI SPI change hierarchy event */
         doc.on('change', '#cpiSpiChange', function (e) {
             e.preventDefault();
@@ -214,482 +217,70 @@ define(['jquery', 'underscore', 'domReady', 'app',
             });
         });
 
+        doc.on('click','button#refresh',function(e){
+            e.preventDefault();
+            var $self = $(this),
+                $selected = $('#snapshot').find(':selected'),
+                $selectedSnapShot = $selected.val(),
+                $selectedBaseline = $('#baseline').find(':selected').val(),
+                $selectedEac = $('#eac').find(':selected').val();
+            if($selectedSnapShot === '')return alert('Select SnapShot');
+            if($selectedBaseline === '')return alert('Select Baseline');
+            if($selectedEac === '')return alert('Select EAC');
+                    App.SnapshotSelectionID = $selectedSnapShot;
+                    App.DataStore.versions.setBaseline = $selectedBaseline;
+                    App.DataStore.versions.setEac = $selectedEac;
+                    App.setDataSelection();
+            App.DataStore.clearChartData();
+            $selected.on('click',App.getAnalytics);
+            $selected.trigger('click');
+            $selected.off('click');
+        });
+
+        doc.on('change','select#periodBack',function(e){
+            e.preventDefault();
+            var $self = $(this),
+                $selected = $(this).find(':selected'),
+                period = $self.val();
+            App.periodsBack = period;
+            App.setDataSelection();
+            $selected.on('click',App.getAnalytics);
+            $selected.trigger('click');
+            $selected.off('click');
+        });
+
         doc.on('click', '.homeTpl', function (e) {
             e.preventDefault();
             var combineData = [];
             var hierarchySets = App.projectData();
             $.when(hierarchySets).done(function (hData) {
-                combineData.push(hData.d.results);
-
+                var hierarchy = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
+                combineData.push(hierarchy);
                 App.SpinnerTpl(loadingWheel, 1);
                 var id = $(this).data('temp'),
                     name = $(this).data('name');
                 bkgChange.attr('id', 'indexBG');
                 App.Project(homeTpl, blankFooterTpl, combineData);
                 $("#projectSets").val(App.projectID);
+                App.ClearDataStore();
+                /** Reset SnapShotSelection As SPA and SPI CPI can alter this default**/
+               // App.SnapshotSelectionID = _.first(App.DataStore.snapShotList).SnapshotSelection;
+
+                /**
+                 * Resets to defaults
+                 */
+                App.setVersion();
+                App.setSnapshotList();
+                App.cpr3DHours = 'X';
+                App.cpr3DExt = '';
+
                 App.SpinnerTpl(loadingWheel, 0);
             });
         });
 
-        doc.on('click', '.getAnalytics', function (e) {
-            e.preventDefault();
-            if (App.CheckProdId()) {
-                return;
-            }
-            App.addSpinner(e.currentTarget);//bkg loading
-            App.SpinnerTpl(loadingWheel, 1);
-            var self = $(this),
-                combineData = [],
-                chartData = [],
-                esData = [],
-                svData = [],
-                hier ='',
-                ESData = '',
-                SVData='',
-                hierData = [],
-                vData = [],
-                version = '',
-                chartDataSource = '',
-                id = self.data('temp'),//Name of DIV
-                name = self.data('name');//File Name to Export As
-            /* this is to reset global dataType upon entry*/
-            console.log(id);
-            App.dataType = 'Quantity';
+        doc.on('click','.getAnalytics', App.getAnalytics);
 
-            App.setHierarchySelection(id.toUpperCase());
-            var List = App.HierarchyListSet();
-            App.HierarchySelectionID = '';
-            $.when(List).done(function (lData) {
-                App.DataStore.hierarchyList = lData.d.results;
-                var defList = $.grep(App.DataStore.hierarchyList, function (item) {
-                    if (App.DataStore.hierarchyList.length === 1) {
-                        return item;
-                    }
-                    return item.Default === "X";
-                });
-                console.log(defList);
-                if (defList.length >= 1) {
-                    App.HierarchySelectionID = _.first(defList).HierarchySelection;
-                }
-                console.log('HierarchySelectionID Selection: ' + App.HierarchySelectionID);
-
-                App.setDataSelection();
-                /**GET REPORT TPL ON THE FLY**/
-                var retrieveTpl = 'tpl!templates/analytics/' + id + '.html';
-                requirejs([retrieveTpl], function (tempTpl) {
-                    tplId = tempTpl;
-                    switch (name) {
-                        case 'projectAnalytics':
-                            tplFooter = analyticsFooterATpl;
-                            break;
-                        default:
-                            tplFooter = analyticsFooterBTpl;
-                            break;
-                    }
-                    combineData[0] = App.DataStore.snapShotList;
-                    combineData[1] = App.DataStore.hierarchyList;
-                    combineData[2] = App.DataStore.versions;
-                    App.Project(tplId, tplFooter, combineData);
-                    //$("#hChange").val(App.projectID);
-                    switch (name) {
-                        case 'earnedSchedule':
-                            App.createSplittersFT();
-                            esData = App.ESSet();
-                            hierData = App.HierarchySet();//always get hierarchy Data for now
-                            $.when(hierData,esData).done(function (hData, eData) {
-
-                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, eData)) {
-                                    return;
-                                }
-                                hier = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
-                                 ESData = _.isArray(eData) ? _.first(eData).d.results : eData.d.results;
-                                var filteredEs = App.ESfilter(ESData,App.dataType,hier);
-                               // var dataStore = App.AssignStore(filteredEs);
-
-                                App.createES_SV_Chart(filteredEs, true, App.dataType);
-
-                                App.analyticsTplConfig(self);
-                                //_.debounce(App.expandTreeList(hierarchyList), 500);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
-
-                            });
-                            break;
-                        case 'scheduleVAR':
-                            App.createSplittersFT();
-                            App.setDataSelection();
-                            var svData = App.SVSet();
-                            hierData = App.HierarchySet();//always get hierarchy Data for now
-                            $.when(hierData,svData).done(function (hData, sData) {
-                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, sData)) {
-                                    return;
-                                }
-                                hier = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
-                                 SVData = _.isArray(sData) ? _.first(sData).d.results : sData.d.results;
-                                var filteredSv = App.SVfilter(SVData,App.dataType,hier);
-                                //var dataStoreSv = App.AssignStore(filteredSv);
-
-                                App.createES_SV_Chart(filteredSv, false, App.dataType);
-
-                                App.analyticsTplConfig(self);
-                                //_.debounce(App.expandTreeList(hierarchyList), 500);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
-
-                            });
-                            break;
-                        case 'spiCPI':
-                            App.createSplittersFT();
-                            svData = App.SVSet();// get SnapShot Cost Data
-                            hierData = App.HierarchySet();//get hierarchy Data
-                            $.when(hierData, svData).done(function (hData, sData) {
-
-                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, sData)) {
-                                    return;
-                                }
-                                App.DataStore.setSpiCpiData(sData,hData);
-
-
-                                App.hierListInitialize(App.DataStore.hierarchySv);
-                                App.create_SPICPI_Chart(App.DataStore.spiCpiChart, App.CpiSpiSeries, false,App.dataType);
-
-                                //var projectName = App.DataStore.hierarchySv[0].ExtID;
-                                //$(document).bind("kendo:skinChange", App.create_SPICPI_Chart);
-                                //$(".chart-type-chooser").bind("change", App.refreshChart);
-                                var hierarchyList = $("div#treelist");
-                                App.hierSpiCpiEvent(hierarchyList,App.dataType);//event for changing chart data
-                                App.analyticsTplConfig(self);
-                                $('#cpiSpiChange').val(App.HierarchySelectionID);
-                                _.debounce(App.expandTreeList(hierarchyList), 500);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
-                            });
-                            break;
-                        case 'spa':
-                            App.createSplittersFT();
-                            if (_.isEmpty(App.DataStore.chart)) {
-                                chartData = App.SnapshotSet();// get SnapShot Cost Data
-                            }
-                            hierData = App.HierarchySet();//get hierarchy Data
-                            $.when(hierData, chartData).done(function (hData, cData) {
-
-                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
-                                    return;
-                                }
-
-                                if (!_.isEmpty(cData)) {
-                                    App.DataStore.setData(cData, hData);
-                                }else{
-                                    App.DataStore.hierarchy = _.first(hData).d.results;
-                                }
-
-                                App.hierListInitialize(App.DataStore.hierarchy);
-                                App.createChart(App.DataStore.chart, App.series, false, App.dataType);
-                                //var projectName = App.DataStore.hierarchy[0].ExtID;
-                                //$(document).bind("kendo:skinChange", App.createChart);
-                                //$(".chart-type-chooser").bind("change", App.refreshChart);
-                                var hierarchyList = $("div#treelist");
-                                App.hierEvent(hierarchyList, App.dataType, false);//event for changing chart data
-                                App.analyticsTplConfig(self);
-                                $('#hChange').val(App.HierarchySelectionID);
-                                _.debounce(App.expandTreeList(hierarchyList), 500);
-                                _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
-                            });
-
-                            break;
-                        default:
-                            console.log('hit default');
-                            break;
-                    }
-                });
-            });//when hierarchy default found
-        });
-
-        doc.on('click', '.getReport', function (e) {
-            e.preventDefault();
-            if (App.CheckProdId()) {
-                return;
-            }
-            /* this is to reset global dataType upon entry*/
-            ;
-            App.addSpinner(e.currentTarget);//bkg loading
-            App.SpinnerTpl(loadingWheel, 1);
-            var combineData = [],
-                self = $(this),
-                id = self.data('temp'),
-                sheet = self.data('sheet'),//Worksheet Name
-                version = '', projectData = '', hierData = '', svData='', cprHeaderData = '', cpr5Data ='', vData = '', hier = '', costs = '', chartData = '',
-                totals = '', gauges = '', chartDataSource = '', currentVersion = [],chartTotals = '', trendData = '',
-                retrieveTpl = 'tpl!templates/reports/' + id + '.html';
-            console.log(id);
-            App.dataType = 'Quantity';//set or reset upon entry as default
-            App.setHierarchySelection(id.toUpperCase());
-            var List = App.HierarchyListSet();
-            App.HierarchySelectionID = '';
-            $.when(List).done(function (lData) {
-                App.DataStore.hierarchyList = lData.d.results;
-                var defList = $.grep(App.DataStore.hierarchyList, function (item) {
-                    if (App.DataStore.hierarchyList.length === 1) {
-                        return item;
-                    }
-                    return item.Default === "X";
-                });
-               // console.log(defList);
-                if (!_.isEmpty(defList) || defList.length >= 1) {
-                    App.HierarchySelectionID = _.first(defList).HierarchySelection;
-                    App.State.alternativeOption = _.chain(App.DataStore.hierarchyList).filter(function(item){
-                                                    return item.HierarchyDescription === 'ESO';
-                                                }).pluck('HierarchySelection').first().value();
-                    App.State.defaultSelection = App.HierarchySelectionID;
-                }
-                console.log('HierarchySelection Selection: ' + App.HierarchySelectionID);
-
-                App.setDataSelection();
-
-                requirejs([retrieveTpl], function (tempTpl) {
-                    /*********   Data Processing  *************/
-                    hierData = App.HierarchySet();//always get hierarchy Data for now
-                    projectData = App.projectData();//always get project Data for now
-                    if (_.isEmpty(App.DataStore.chart)) {
-                        console.log('hit empty DataStore.chart request');
-                        chartData = App.SnapshotSet();// get SnapShot Cost Data
-
-                    }
-                    $.when(projectData, hierData, chartData).done(function (pData, hData, cData) {//holds on for async data calls
-                        /** Error handler **/
-                        if (App.apiErrorHandler(e.currentTarget, loadingWheel, cData)) {
-                            return;
-                        }
-                        /** Error handler **/
-                        if (!_.isEmpty(cData)) {
-                            App.DataStore.setData(cData, hData);//adds data to data store
-                        }
-                        App.DataStore.project = _.isArray(pData) ? _.first(pData).d.results : pData.d.results;
-                        App.DataStore.hierarchy = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
-                        hier = App.DataStore.hierarchy;
-                        costs = App.DataStore.chart.options.data;
-                        switch (sheet) {
-                            case 'CPR-1':
-                                console.log('hit 1');
-                                cprHeaderData = App.CPRHeaderSet();
-                                $.when(cprHeaderData).done(function (cHData) {
-                                    var data = App.FilterChartData(costs, App.dataType);
-                                    combineData[0] = App.DataStore.project;
-                                    combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
-                                    if(_.isEmpty(cHData)){
-                                        combineData[2] = [];
-                                    }else{
-                                        combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
-                                    }
-
-                                    /*********   Template Processing  *********/
-                                    tplId = tempTpl;
-                                    tplFooter = reportFooterTpl;
-                                    App.Project(tplId, tplFooter, combineData);
-                                    bkgChange.attr('id', 'cprBG');
-
-                                    _.debounce(doc.find('#cprHierarchyToggle')
-                                        .attr('data-hierarchy',App.State.alternativeOption)
-                                        .attr('data-default',App.State.defaultSelection),1000);
-
-                                    App.reportTplConfig(self);
-                                    /*********   End Template Processing  *****/
-                                    App.SpinnerTpl(loadingWheel, 0);
-                                });
-                                break;
-                            case 'CPR-2':
-                                console.log('hit 2');
-                                cprHeaderData = App.CPRHeaderSet();
-                                $.when(cprHeaderData).done(function (cHData) {
-                                    combineData[1] = App.formatOneTotals(hier, costs, App.dataType);//Return Totals for format one
-                                    if(_.isEmpty(cHData)){
-                                        combineData[2] = [];
-                                    }else{
-                                        combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
-                                    }
-                                    /*********   Template Processing  *********/
-                                    tplId = tempTpl;
-                                    tplFooter = reportFooterTpl;
-                                    App.Project(tplId, tplFooter, combineData);
-                                    bkgChange.attr('id', 'cprBG');
-                                    _.debounce(doc.find('#cprHierarchyToggle')
-                                        .attr('data-hierarchy',App.State.alternativeOption)
-                                        .attr('data-default',App.State.defaultSelection),1000);
-                                    App.reportTplConfig(self);
-                                    /*********   End Template Processing  *****/
-                                    App.SpinnerTpl(loadingWheel, 0);
-                                });
-                                break;
-                            case 'CPR-3':
-                                console.log('hit 3');
-                                cprHeaderData = App.CPRHeaderSet();
-                                $.when(cprHeaderData).done(function (cHData) {
-                                    combineData[0] = App.formatThreeTotals(costs, App.dataType);
-                                    if(_.isEmpty(cHData)){
-                                        combineData[1] = [];
-                                    }else{
-                                        combineData[1] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
-                                    }
-                                    /*********   Template Processing  *********/
-                                    tplId = tempTpl;
-                                    tplFooter = reportFooterTpl;
-                                    App.Project(tplId, tplFooter, combineData);
-                                    bkgChange.attr('id', 'cprBG');
-                                    App.reportTplConfig(self);
-                                    /*********   End Template Processing  *****/
-                                    App.SpinnerTpl(loadingWheel, 0);
-                                });
-                                break;
-                            case 'CPR-4':
-                                console.log('hit 4');
-                                cprHeaderData = App.CPRHeaderSet();
-                                $.when(cprHeaderData).done(function (cHData) {
-                                    combineData[0] = App.DataStore.project;
-                                    combineData[1] = App.formatFourTotals(costs);
-                                    combineData[2] = {"months": App.unit.months};
-                                    if(_.isEmpty(cHData)){
-                                        combineData[3] = [];
-                                    }else{
-                                        combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
-                                    }
-                                    /*********   Template Processing  *********/
-                                    tplId = tempTpl;
-                                    tplFooter = reportFooterTpl;
-                                    App.Project(tplId, tplFooter, combineData);
-                                    bkgChange.attr('id', 'cprBG');
-                                    App.reportTplConfig(self);
-                                    /*********   End Template Processing  *****/
-                                    App.SpinnerTpl(loadingWheel, 0);
-                                });
-                                break;
-                            case 'CPR-5':
-                                console.log('hit 5');
-                                cpr5Data = App.CPR5DetailSet();
-                                cprHeaderData = App.CPRHeaderSet();
-                                $.when(cpr5Data,cprHeaderData).done(function (fiveData,cHData) {
-                                    var data = App.FilterChartData(costs, App.dataType);
-                                        combineData[0] = App.DataStore.project;
-                                        combineData[1] = App.formatFiveTotals(data);
-                                        combineData[2] = _.isArray(fiveData) ? _.first(fiveData).d.results[0] : fiveData.d.results[0];
-                                    if(_.isEmpty(cHData)){
-                                        combineData[3] = [];
-                                    }else{
-                                        combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
-                                    }
-                                        /*********   Template Processing  *********/
-                                        tplId = tempTpl;
-                                        tplFooter = reportFooterTpl;
-                                        App.Project(tplId, tplFooter, combineData);
-                                        bkgChange.attr('id', 'cprBG');
-                                        App.reportTplConfig(self);
-                                        /*********   End Template Processing  *****/
-                                        App.SpinnerTpl(loadingWheel, 0);
-                                });
-                                break;
-                            case 'CPR-TWBS':
-                                console.log('hit TW');
-                                App.DataStore.clearSpiCpiData();//clear out data sv request data stored
-                                svData = App.SVSet();
-                                cprHeaderData = App.CPRHeaderSet();
-                                $.when(svData,cprHeaderData).done(function (sData,cHData) {
-                                    App.DataStore.setSpiCpiData(sData,hData);
-                                        combineData[0] = App.DataStore.project;
-                                        chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
-                                        trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata, App.dataType);
-                                        combineData[1] = App.setTrendToChartData(chartTotals, trendData);
-                                        if(_.isEmpty(cHData)){
-                                            combineData[2] = [];
-                                        }else{
-                                            combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
-                                        }
-                                        /*********   Template Processing  *********/
-                                        tplId = tempTpl;
-                                        tplFooter = reportFooterTpl;
-                                        App.Project(tplId, tplFooter, combineData);
-                                        bkgChange.attr('id', 'cprBG');
-                                        _.debounce(doc.find('#cprHierarchyToggle')
-                                            .attr('data-hierarchy',App.State.alternativeOption)
-                                            .attr('data-default',App.State.defaultSelection),1000);
-                                        App.reportTplConfig(self);
-                                        /*********   End Template Processing  *****/
-                                        App.SpinnerTpl(loadingWheel, 0);
-                                });
-                                break;
-                            case 'CPR-TOBS':
-                                console.log('hit TO');
-                                App.DataStore.clearSpiCpiData();//clear out data sv request data stored
-                                svData = App.SVSet();
-                                cprHeaderData = App.CPRHeaderSet();
-                                $.when(svData,cprHeaderData).done(function (sData,cHData) {
-                                    App.DataStore.setSpiCpiData(sData,hData);
-                                        combineData[0] = App.DataStore.project;
-                                        chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, App.dataType);//Return Totals for format one
-                                        trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata, App.dataType);
-                                        combineData[1] = App.setTrendToChartData(chartTotals, trendData);
-                                        if(_.isEmpty(cHData)){
-                                            combineData[2] = [];
-                                        }else{
-                                            combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
-                                        }
-                                        /*********   Template Processing  *********/
-                                        tplId = tempTpl;
-                                        tplFooter = reportFooterTpl;
-                                        App.Project(tplId, tplFooter, combineData);
-                                        bkgChange.attr('id', 'cprBG');
-                                        _.debounce(doc.find('#cprHierarchyToggle')
-                                        .attr('data-hierarchy',App.State.alternativeOption)
-                                        .attr('data-default',App.State.defaultSelection),1000);
-                                        App.reportTplConfig(self);
-                                        /*********   End Template Processing  *****/
-                                        App.SpinnerTpl(loadingWheel, 0);
-                                });
-                                break;
-                            case 'FOO_REPORT':
-                                console.log('hit FOO');
-                                    var group = {};
-                                    var array = [];
-                                    var deferred = $.Deferred();
-                                    _.each(App.DataStore.hierarchyList,function(item,key,list){
-                                        App.HierarchySelectionID = item.HierarchySelection;
-                                        App.setDataSelection();
-                                        array[key] = {};
-                                        array[key].data = App.HierarchySet();
-                                        array[key].name = item.ExtID;
-                                    });
-                                    var count = 0;
-                                    _.each(array,function(value,key){
-                                        $.when(value.data).done(function(data) {
-                                           group[_.first(data.d.results).HierarchySelection] = [];
-                                            group[_.first(data.d.results).HierarchySelection].push(data.d.results);
-                                            count += 1;
-                                            if(count === array.length){
-                                                deferred.resolve(group);
-                                            }
-                                        });
-                                    });
-
-                                $.when(deferred).done(function (data) {
-                                    var merged = data;//.concat(hierListTwo.d.results);
-                                    var processedFoo = App.FooFilter(merged,costs,App.dataType);
-                                    combineData[0] = App.DataStore.project;
-                                    combineData[1] = processedFoo;
-                                    /*********   Template Processing  *********/
-                                    tplId = tempTpl;
-                                    tplFooter = reportFooterTpl;
-                                    App.Project(tplId, tplFooter, combineData);
-                                    bkgChange.attr('id', 'cprBG');
-                                    App.reportTplConfig(self);
-                                    /*********   End Template Processing  *****/
-                                    App.SpinnerTpl(loadingWheel, 0);
-
-                                });
-                                break;
-                            default:
-                                console.log('hit default');
-                                break;
-                        }
-                    });//end of when clause
-                    /*********   End Data Processing  *********/
-                });//end of template require
-            });//when hierarchy default found
-        });
+        doc.on('click', '.getReport', App.getReports);
 
         doc.on('change', '.dataType', function (e) {
             e.preventDefault();
@@ -710,14 +301,20 @@ define(['jquery', 'underscore', 'domReady', 'app',
             App.dataType = dataType;
             if (dataType === 'Quantity') {
                 $('.costType').hide();
+                App.cpr3DHours = 'X';
+                App.cpr3DExt = '';
             } else if (dataType === 'Costs') {
                 dataType = 'IntValProjCurr';
                 App.dataType = dataType;
+                App.cpr3DHours = '';
+                App.cpr3DExt = 'X';
                 //$('.costType').show();
                 //App.SpinnerTpl(loadingWheel, 0);
                 //return;
             } else {
             }
+
+            App.setDataSelection();
 
              retrieveTpl = 'tpl!templates/reports/' + reportType + '.html';
              hier = App.DataStore.hierarchy;
@@ -738,7 +335,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             //var data = App.FilterChartData(costs, App.dataType);
                             combineData[0] = App.DataStore.project;
                             combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
-                            if(_.isEmpty(cHData)){
+                            if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
                                 combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
@@ -766,7 +363,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 }
                             }
                             _.debounce(doc.find('#cprHierarchyToggle')
-                                .text(App.State.text)
                                 .attr('data-hierarchy',App.State.alternativeOption)
                                 .attr('data-default',App.State.defaultSelection),1000);
                             /*********   End Template Processing  *****/
@@ -780,7 +376,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             //var data = App.FilterChartData(costs, App.dataType);
                             combineData[0] = App.DataStore.project;
                             combineData[1] = App.formatOneTotals(hier, costs, dataType);//Return Totals for format one
-                            if(_.isEmpty(cHData)){
+                            if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
                                 combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
@@ -808,7 +404,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 }
                             }
                             _.debounce(doc.find('#cprHierarchyToggle')
-                                .text(App.State.text)
                                 .attr('data-hierarchy',App.State.alternativeOption)
                                 .attr('data-default',App.State.defaultSelection),1000);
                             /*********   End Template Processing  *****/
@@ -817,13 +412,36 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         break;
                     case 'CPR-3':
                         console.log('hit 3');
+                        var savedDefaultSnapShot = App.SnapshotSelectionID;
+                        var cpr3Data = App.CPR3DetailSet();
+                        App.SnapshotSelectionID = App.DataStore.snapShotList[1].SnapshotSelection;
                         cprHeaderData = App.CPRHeaderSet();
-                        $.when(cprHeaderData).done(function (cHData) {
-                            combineData[0] = App.formatThreeTotals(costs,dataType);
-                            if(_.isEmpty(cHData)){
+                        App.setDataSelection();
+                        var lastSnapShot =  App.SnapshotSet();
+                        $.when(cpr3Data, cprHeaderData,lastSnapShot).done(function (threeData,cHData,lastSnap) {
+                            if (App.apiErrorHandler(self, loadingWheel, lastSnap)) {
+                                return;
+                            }
+                            var LastSnap = _.isArray(lastSnap) ? _.first(lastSnap).d.results : lastSnap.d.results
+                            var filtered = App.VersionFilter(App.DataStore.versions, LastSnap);
+                            var LastDataSource = App.FilterData(filtered, LastSnap, App.DataStore.versionSelection);
+
+                            var SnapShot = {};
+                            SnapShot.first  = costs;
+                            SnapShot.last  = LastDataSource.graph;
+
+                            combineData[0] = App.formatThreeTotals(SnapShot, dataType);
+
+                            if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[1] = [];
                             }else{
                                 combineData[1] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                            }
+
+                            if (App.apiErrorHandler(e.currentTarget, loadingWheel, threeData)) {
+                                combineData[2] = [];
+                            } else {
+                                combineData[2] = _.isArray(threeData) ? _.first(threeData).d.results : threeData.d.results;
                             }
                             /*********   Template Processing  *********/
                             tplId = tempTpl;
@@ -847,7 +465,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     $('#dataType').val('Costs');
                                 }
                             }
-
+                            App.SnapshotSelectionID = savedDefaultSnapShot;
+                            App.setDataSelection();
                             /*********   End Template Processing  *****/
                             App.SpinnerTpl(loadingWheel, 0);
                         });
@@ -860,7 +479,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             combineData[0] = App.DataStore.project;
                             combineData[1] = App.formatFourTotals(costs, dataType);
                             combineData[2] = {"months": App.unit.months};
-                            if(_.isEmpty(cHData)){
+                            if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[3] = [];
                             }else{
                                 combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
@@ -902,8 +521,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 //var data = App.FilterChartData(costs, App.dataType);
                                 combineData[0] = App.DataStore.project;
                                 combineData[1] = App.formatFiveTotals(data);
-                                combineData[2] = _.isArray(fiveData) ? _.first(fiveData).d.results : fiveData.d.results;
-                                if(_.isEmpty(cHData)){
+                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, fiveData)) {
+                                    combineData[2] = [];
+                                }else{
+                                    combineData[2] = _.isArray(fiveData) ? _.first(fiveData).d.results[0] : fiveData.d.results[0];
+                                }
+                                if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                     combineData[3] = [];
                                 }else{
                                     combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
@@ -950,7 +573,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
                             trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
                             combineData[1] = App.setTrendToChartData(chartTotals,trendData);
-                            if(_.isEmpty(cHData)){
+                            if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
                                 combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
@@ -984,7 +607,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 }
                             }
                             _.debounce(doc.find('#cprHierarchyToggle')
-                                .text(App.State.text)
                                 .attr('data-hierarchy',App.State.alternativeOption)
                                 .attr('data-default',App.State.defaultSelection),1000);
                             /*********   End Template Processing  *****/
@@ -1000,7 +622,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             chartTotals = App.formatOneTotals(App.DataStore.hierarchySv, costs, dataType);//Return Totals for format one
                             trendData = App.cpiSpiTrend(App.DataStore.rawspiCpiChartdata,dataType);
                             combineData[1] = App.setTrendToChartData(chartTotals,trendData);
-                            if(_.isEmpty(cHData)){
+                            if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
                                 combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
@@ -1033,7 +655,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 }
                             }
                             _.debounce(doc.find('#cprHierarchyToggle')
-                                .text(App.State.text)
                                 .attr('data-hierarchy',App.State.alternativeOption)
                                 .attr('data-default',App.State.defaultSelection),1000);
                             /*********   End Template Processing  *****/
@@ -1218,11 +839,16 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         });//filter data
                         App.dataType = 'IntValProjCurr';
                         material = 1;
+                        if(_.isEmpty(costs)){
+                            App.SpinnerTpl(loadingWheel, 0);
+                            return alert('No Data for Material selection.');
+                        };
                     }
 
                      App.hierListInitialize(hier);
                     var refined = App.FilterChartData(costs, App.dataType);
-                    App.createChart(App.AssignStore(refined.graph), App.series, false, App.dataType);
+                    var graph = _.flatten(refined.graph);
+                    App.createChart(App.AssignStore(graph), App.series, false, App.dataType);
                     hierarchyList = $("div#treelist");
                     App.hierEvent(hierarchyList, App.dataType,material);//event for changing chart data
                     App.analyticsTplConfig(self);
@@ -1240,7 +866,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                          $('.costType').val('ExtValProjCurr');
                          }*/
                     }
-                    $('#hChange').val(App.HierarchySelectionID);
                     _.debounce(App.expandTreeList(hierarchyList), 500);
                     _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
 
@@ -1292,7 +917,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 sheet = self.data('sheet'),
                 hierarchySelection = self.data('hierarchy'),
                 defaultSelection = self.data('default'),
-                hierData = '',hier = '',costs = '';
+                hierData = '',hier = '',costs = '',cprHeaderData='';
             App.dataType = 'Quantity';
             App.SpinnerTpl(loadingWheel, 1);
             retrieveTpl = 'tpl!templates/reports/' + id + '.html';
@@ -1307,12 +932,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
                 $.when(hierData).done(function (hData) {
 
-                    App.DataStore.hierarchy = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
+                    App.DataStore.hierarchy = _.isArray(hData) ? _.first(hData).d.results :  hData.d.results ;
                     hier = App.DataStore.hierarchy;
                     costs = App.DataStore.chart.options.data;
                     switch (sheet) {
                         case 'CPR-1':
-                            cprHeaderData = App.CPRHeaderSet();
+                             cprHeaderData = App.CPRHeaderSet();
                             $.when(cprHeaderData).done(function (cHData) {
                                 var data = App.FilterChartData(costs, App.dataType);
                                 combineData[0] = App.DataStore.project;
@@ -1332,7 +957,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 App.SpinnerTpl(loadingWheel, 0);
                                 /* Switch the values here */
                                 _.debounce(doc.find('#cprHierarchyToggle')
-                                    .text(App.State.text)
                                     .attr('data-hierarchy',App.State.alternativeOption)
                                     .attr('data-default',App.State.defaultSelection),1000);
                             });
@@ -1354,7 +978,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 bkgChange.attr('id', 'cprBG');
                                 /* Switch the values here */
                                 _.debounce(doc.find('#cprHierarchyToggle')
-                                    .text(App.State.text)
                                     .attr('data-hierarchy',App.State.alternativeOption)
                                     .attr('data-default',App.State.defaultSelection),1000);
                                 App.reportTplConfig(self);
@@ -1385,7 +1008,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 bkgChange.attr('id', 'cprBG');
                                 /* Switch the values here */
                                 _.debounce(doc.find('#cprHierarchyToggle')
-                                    .text(App.State.text)
                                     .attr('data-hierarchy',App.State.alternativeOption)
                                     .attr('data-default',App.State.defaultSelection),1000);
                                 App.reportTplConfig(self);
@@ -1418,7 +1040,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     bkgChange.attr('id', 'cprBG');
                                     /* Switch the values here */
                                     _.debounce(doc.find('#cprHierarchyToggle')
-                                        .text(App.State.text)
                                         .attr('data-hierarchy',App.State.alternativeOption)
                                         .attr('data-default',App.State.defaultSelection),1000);
                                     App.reportTplConfig(self);

@@ -11,13 +11,12 @@
         <li style="padding-bottom: 2px">
             <form>
                 <select class="form-control selectpicker" tabindex="-1" id="baseline" style="padding: 3px 6px 3px 6px; cursor: pointer">
-                    <% if (combineData[2].length < 2) { %>
-                    <% $.each(combineData[2],function(key,value){ %>
+                    <% if (combineData[2].baseline.length < 2) { %>
+                    <% $.each(combineData[2].baseline,function(key,value){ %>
                     <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
                     <%});
                     } else { %>
-                    <option value="">Select Baseline Version</option>
-                    <% $.each(combineData[2],function(key,value){ %>
+                    <% $.each(combineData[2].baseline,function(key,value){ %>
                     <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
                     <%});
 
@@ -28,13 +27,12 @@
         <li style="padding-bottom: 2px">
             <form>
                 <select tabindex="-1" class="form-control selectpicker" id="eac" style="padding: 3px 6px 3px 6px; cursor: pointer">
-                    <% if (combineData[2].length < 2) { %>
-                    <% $.each(combineData[2],function(key,value){ %>
+                    <% if (combineData[2].eac.length < 2) { %>
+                    <% $.each(combineData[2].eac,function(key,value){ %>
                     <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
                     <%});
                     } else { %>
-                    <option value="">Select EAC Version</option>
-                    <% $.each(combineData[2],function(key,value){ %>
+                    <% $.each(combineData[2].eac,function(key,value){ %>
                     <option value="<%-value.VersionSelection%>" data-title="<%-value.VersionDescription%>" data-chartType="SPA"><%-value.VersionDescription%></option>
                     <%});
 
@@ -47,12 +45,11 @@
                 <select tabindex="-1" class="form-control selectpicker" id="snapshot" style="padding: 3px 6px 3px 6px; cursor: pointer">
                     <% if (combineData[0].length < 2) { %>
                     <% $.each(combineData[0],function(key,value){ %>
-                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-chartType="SPA"><%-value.SnapshotSelection%></option>
+                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI" data-chartType="SPA"><%-value.SnapshotSelection%></option>
                     <%});
                     } else { %>
-                    <option value="">Select SnapShot Date</option>
                     <% $.each(combineData[0],function(key,value){ %>
-                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-chartType="SPA"><%-value.SnapshotSelection%></option>
+                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI" data-chartType="SPA"><%-value.SnapshotSelection%></option>
                     <%});
 
                     }%>
@@ -60,7 +57,7 @@
             </form>
         </li>
         <li class="divider"></li>
-        <li><a tabindex="-1" href="#">Refresh</a></li>
+        <li><button tabindex="-1" id="refresh" class="btn btn-default btn-block">Refresh</button></li>
     </ul>
     </span>
         </h1>
@@ -86,6 +83,8 @@
                             }%>
                         </select>
                     </div>
+
+
                 </form>
             </div>
             <div id="treelist" style="height: 92%; border: 0"></div>
@@ -101,10 +100,19 @@
                                 <option value="Costs" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">Total Cost</option>
                             </select>
                         </div>
+
                         <!--div class="col-xs-5 input-group">
                             <select class="col-xs-6 form-control dataTypeAnalytics costType" id="costType" style="display: none;">
                                 <option value="IntValProjCurr" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">Internal Cost</option>
                                 <option value="ExtValProjCurr" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">External Cost</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <select class="col-lg-2 col-md-3 col-sm-4 col-xs-5 form-control" id="periodBack">
+                                <option value="2" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">2</option>
+                                <option value="4" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">4</option>
+                                <option value="6" data-id="spiCPI" data-temp="spiCPI" data-name="spiCPI">6</option>
                             </select>
                         </div-->
                     </form>

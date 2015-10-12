@@ -12,7 +12,7 @@
                 class="k-icon k-i-hbars"></span></a>
         <ul class="dropdown-menu" role="menu">
             <li>
-                <a href="#" id="cprHierarchyToggle" tabindex="-1" data-temp="cprTWBS" data-sheet="CPR-TWBS" data-hierarchy="" data-default="" style="cursor: pointer">Switch to ESO</a>
+                <a href="#" id="cprHierarchyToggle" tabindex="-1" data-temp="cprTWBS" data-sheet="CPR-TWBS" data-hierarchy="" data-default="" style="cursor: pointer">Toggle Hiearchy</a>
             </li>
             <li class="divider"></li>
             <li id="applyRAGButton" style="display: none">
@@ -479,7 +479,7 @@
         <% if(!_.isEmpty(value.trend)){ %>
         <%  for (var i = value.trend.length - 1; i >= 0; i--) { %>
         <% if(i >= (value.trend.length -6)){%>
-        <td colspan='1' class="no-paint rag" data-colour="<%-value.trend[i].SPIColour%>" style='background-color:<%-value.trend[i].SPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.trend[i].SPI%></td>
+        <td colspan='1' class="no-paint rag" data-colour="<%-value.trend[i].SPIColour%>" title="<%-value.trend[i].SnapshotDate%>" style='background-color:<%-value.trend[i].SPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.trend[i].SPI%></td>
         <% }else{ %>
         <% } %>
         <% } %>
@@ -497,7 +497,7 @@
         <% if(!_.isEmpty(value.trend)){ %>
         <%  for (var i = value.trend.length - 1; i >= 0; i--) { %>
         <% if(i >= (value.trend.length -6)){%>
-        <td colspan='1' class="no-paint rag" data-colour="<%-value.trend[i].CPIColour%>" style='background-color:<%-value.trend[i].CPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.trend[i].CPI%></td>
+        <td colspan='1' class="no-paint rag" data-colour="<%-value.trend[i].CPIColour%>" title="<%-value.trend[i].SnapshotDate%>" style='background-color:<%-value.trend[i].CPIColour%>; border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'><%-value.trend[i].CPI%></td>
         <% }else{ %>
         <% } %>
         <% } %>

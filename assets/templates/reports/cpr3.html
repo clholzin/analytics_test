@@ -273,7 +273,7 @@
                 REPORT
             </td>
 
-            <%_.each(combineData[0].forcast.future,function(value,key){ %>
+            <%_.each(combineData[0].forcast.current,function(value,key){ %>
             <%if(value.order < 7){%>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-value.month%>
@@ -526,14 +526,14 @@
                 [Beginning of Period]
             </td>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                <%-combineData[0].curBcwsTotal%>
-            </td>
-            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-combineData[0].bcwsFP%>
             </td>
+            <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
+                <%-combineData[0].curBcwsTotalFP%>
+            </td>
 
 
-            <%_.each(combineData[0].forcast.current,function(value,key){ %>
+            <%_.each(combineData[0].forcast.past,function(value,key){ %>
             <%if(value.order <= 6){%>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-value.total%>
@@ -557,10 +557,10 @@
                 0
             </td>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
+                <%-combineData[0].bcwsUBFP%>
             </td>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                0
+                <%-combineData[0].bcwsTotalFP%>
             </td>
         </tr>
 
@@ -712,40 +712,44 @@
                 style='border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
         </tr>
 
+        <!-- FOR EACH ITEM -->
+        <% $.each(combineData[2],function(key,value){ %>
         <tr>
             <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'><%-value.ChangeNumber%></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1' class="no-paint"
-                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
             <td colspan='1'
-                style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
+                style='border-top:none; border-left:1px solid black; border-bottom:none; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'><%-parseFloat(value.Value).toFixed(0)%></td>
         </tr>
+        <%});%>
+        <!-- END OF FOR EACH -->
 
         <tr>
             <td colspan='1'
@@ -869,7 +873,7 @@
             </td>
             <td colspan='1' class="no-paint" style='background-color:#CCC; border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'></td>
 
-            <%_.each(combineData[0].forcast.future,function(value,key){ %>
+            <%_.each(combineData[0].forcast.current,function(value,key){ %>
             <%if(value.order <= 6){%>
             <td colspan='1' style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
                 <%-value.total%>
@@ -898,7 +902,7 @@
 
             <td colspan='1'
                 style='border-top:none; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; font-weight: bold; padding:2px'>
-                <%-combineData[0].bac%>
+                <%-combineData[0].subBAC%>
             </td>
         </tr>
 
