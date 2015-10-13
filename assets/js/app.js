@@ -413,12 +413,12 @@ define(['jquery', 'underscore', 'moment',
             vData = [],
             version = '',
             chartDataSource = '',
+            tplId = '',tplFooter='',
             id = self.data('temp'),//Name of DIV
             name = self.data('name');//File Name to Export As
         /* this is to reset global dataType upon entry*/
         console.log(id);
         App.dataType = 'Quantity';
-
         App.setHierarchySelection(id.toUpperCase());
         var List = App.HierarchyListSet();
         App.HierarchySelectionID = '';
@@ -460,7 +460,6 @@ define(['jquery', 'underscore', 'moment',
                         esData = App.ESSet();
                         hierData = App.HierarchySet();//always get hierarchy Data for now
                         $.when(hierData, esData).done(function (hData, eData) {
-                            console.log(eData);
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, eData)) {
                                 return;
                             }
@@ -504,7 +503,6 @@ define(['jquery', 'underscore', 'moment',
                         svData = App.SVSet();// get SnapShot Cost Data
                         hierData = App.HierarchySet();//get hierarchy Data
                         $.when(hierData, svData).done(function (hData, sData) {
-
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, sData)) {
                                 return;
                             }

@@ -1071,7 +1071,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
             $parent.on('click',App.getAnalytics);
             $parent.trigger('click');
             $parent.off('click');
-           
+
         });
 
         doc.on('click', 'a#switchWeekly', function (e) {
