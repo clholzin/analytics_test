@@ -273,7 +273,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 App.setSnapshotList();
                 App.cpr3DHours = 'X';
                 App.cpr3DExt = '';
-
+                App.SnapshotType = '';
                 App.SpinnerTpl(loadingWheel, 0);
             });
         });
@@ -284,6 +284,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
         doc.on('change', '.dataType', function (e) {
             e.preventDefault();
+            console.log(App.SnapshotType);
             App.SpinnerTpl(loadingWheel, 1);
             var self = $(this).find(':selected'),
                 dataType = self.val(),
@@ -718,13 +719,14 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
         doc.on('change', '.dataTypeAnalytics', function (e) {
             e.preventDefault();
-
+            console.log(App.SnapshotType);
             App.SpinnerTpl(loadingWheel, 1);
             var self = $(this).find(':selected'),
                 dataType = self.val(),
                 $chartGraph = doc.find("div#chart"),
                 logic = self.attr('data-name'),
                 combineData = [],
+                hierData = '',
                 hier = '',
                 costs = '',
                 esData = [],
@@ -733,7 +735,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 SVData='',
                 material = 0,
                 reportType = self.attr('data-temp');
-                $("div#treelist").off();
+                $("div#treelist").off('click');
                 App.dataType = dataType;
 
             if (App.dataType === 'Quantity') {
@@ -746,7 +748,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
             var retrieveTpl = 'tpl!templates/analytics/' + reportType + '.html';
             /* send hierarchy list to template*/
-            combineData[0] = App.DataStore.snapShotList;
+            combineData[0] = App.ParseSnapShotDates(App.DataStore.snapShotList);
             combineData[1] = App.DataStore.hierarchyList;
             combineData[2] = App.DataStore.versions;
             switch (logic) {
@@ -773,7 +775,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         ESData = _.isArray(eData) ? _.first(eData).d.results : eData.d.results;
                         var filteredEs = App.ESfilter(ESData, App.dataType,hier);
-                        App.createES_SV_Chart(filteredEs, true, App.dataType);
+                        App.createES_Chart(filteredEs, true, App.dataType);
 
                         App.analyticsTplConfig(self);
                         console.info("Selected Type " + dataType);
@@ -807,7 +809,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                         }
                         SVData = _.isArray(sData) ? _.first(sData).d.results : sData.d.results;
                         var filteredSv = App.SVfilter(SVData,App.dataType,hier);
-                        App.createES_SV_Chart(filteredSv, false, App.dataType);
+                        App.createSV_Chart(filteredSv, false, App.dataType);
 
 
                         App.analyticsTplConfig(self);
@@ -831,7 +833,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                     break;
                 case 'spa':
                      App.createSplittersFT();
-                     costs = App.DataStore.chart.options.data;
+                     costs = App.DataStore.chart.options.data;costs = App.DataStore.chart.options.data;
                      hier = App.DataStore.hierarchy;
                     if (App.dataType === 'Material') {
                         costs = $.grep(costs, function (item) {
@@ -1058,6 +1060,34 @@ define(['jquery', 'underscore', 'domReady', 'app',
             });
         });
 
+        doc.on('click', 'a#switchMonthly', function (e) {
+            e.preventDefault();
+            var $self = $(this),
+                $parent = $self.parent();//used to initiat trigger
+                $selectedSnapShotType = $self.data('type');
+            App.SnapshotType = $selectedSnapShotType;
+            App.setDataSelection();
+            App.DataStore.clearChartData();
+            $parent.on('click',App.getAnalytics);
+            $parent.trigger('click');
+            $parent.off('click');
+           
+        });
+
+        doc.on('click', 'a#switchWeekly', function (e) {
+            e.preventDefault();
+            var $self = $(this),
+                $parent = $self.parent();//used to initiat trigger
+            $selectedSnapShotType = $self.data('type');
+            App.SnapshotType = $selectedSnapShotType;
+            App.setDataSelection();
+            App.DataStore.clearChartData();
+            $parent.on('click',App.getAnalytics);
+            $parent.trigger('click');
+            $parent.off('click');
+
+        });
+
         doc.on('click', 'span.export-excel', function (e) {
             e.preventDefault();
             var tableName = $(this).data('id'),
@@ -1082,7 +1112,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 kendo.drawing.pdf.saveAs(group, fileName + ".pdf");
             });
         });
-
         doc.on('click', 'a#clearRAG', function (e) {
             e.preventDefault();
             doc.find('.rag').each(function (key, value) {

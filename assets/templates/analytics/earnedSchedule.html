@@ -4,7 +4,22 @@
             <a class="homeTpl" data-id="wbsTable" data-temp="#indexTpl" data-name="home" role="button" href="#">
                 <img src="./assets/img/home.png"></a>
         </span>
-        <h1 class="panel-title" style="font-size: 24px; font-weight: bold; text-align: center">Earned Schedule</h1>
+
+        <h1 class="panel-title" style="font-size: 24px; font-weight: bold; text-align: center">Earned Schedule
+            <span class="pull-right dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                <span class="k-icon k-i-hbars"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li id="switchWeeklyButton" style="display:none;"  data-id="earnedSchedule" data-temp="earnedSchedule"
+                        data-name="earnedSchedule">
+                        <a tabindex="-1" href="#" id="switchWeekly"  data-type="W" style="cursor: pointer">Switch to Weekly</a>
+                    </li>
+                    <li id="switchMonthlyButton" data-id="earnedSchedule" data-temp="earnedSchedule"
+                        data-name="earnedSchedule">
+                        <a tabindex="-1" href="#" id="switchMonthly"  data-type="M" style="cursor: pointer">Switch to Monthly</a>
+                    </li>
+                </ul>
+                </span></h1>
     </div>
 
     <div id="vertical">
@@ -12,9 +27,15 @@
             <form class="form-inline">
                 <div class="col-xs-5 input-group">
                     <select class="col-xs-6 form-control dataTypeAnalytics controller" id="dataType">
-                        <option value="Quantity" data-id="earnedSchedule" data-temp="earnedSchedule" data-name="earnedSchedule">Hours</option>
-                        <option value="Material" data-id="earnedSchedule" data-temp="earnedSchedule" data-name="earnedSchedule">Material</option>
-                        <option value="Costs" data-id="earnedSchedule" data-temp="earnedSchedule" data-name="earnedSchedule">Total Cost</option>
+                        <option value="Quantity" data-id="earnedSchedule" data-temp="earnedSchedule"
+                                data-name="earnedSchedule">Hours
+                        </option>
+                        <option value="Material" data-id="earnedSchedule" data-temp="earnedSchedule"
+                                data-name="earnedSchedule">Material
+                        </option>
+                        <option value="Costs" data-id="earnedSchedule" data-temp="earnedSchedule"
+                                data-name="earnedSchedule">Total Cost
+                        </option>
                     </select>
                 </div>
                 <!--div class="col-xs-5 input-group">

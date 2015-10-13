@@ -31,13 +31,15 @@ define(['jquery', 'underscore', 'moment',
     App.HierarchySelectionID = '';
     App.SnapshotSelectionID = '';
     App.ChartType = '';
-
+    App.SnapshotType = '';
     /**
      * CONSTANTS
      *
      * **/
     App.dataType = 'Quantity';
     App.periodsBack = 6;
+    App.SnapshotType = '';
+    console.log(App.SnapshotType);
     App.cpr3DHours = 'X';
     App.cpr3DExt = '';
     App.Math = {};
@@ -378,6 +380,12 @@ define(['jquery', 'underscore', 'moment',
         }
     };
 
+    App.parseHeaderDates = function(headerInfo) {
+        headerInfo.ReportStartDate = moment(headerInfo.ReportStartDate).format('DD/MM/YYYY');
+        headerInfo.ReportEndDate = moment(headerInfo.ReportEndDate).format('DD/MM/YYYY');
+        return headerInfo;
+    }
+
     /** This is the event now rolled into a function call for the event
      * Doing this way allows us to add and trigger the function independently of its event delegation
      * @param e
@@ -387,6 +395,10 @@ define(['jquery', 'underscore', 'moment',
         if (App.CheckProdId()) {
             return;
         }
+        if(App.SnapshotType === ''){
+            App.SnapshotType = 'W';
+        }
+        console.log('SnapshotType : '+App.SnapshotType);
         App.addSpinner(e.currentTarget);//bkg loading
         App.SpinnerTpl(loadingWheel, 1);
         var self = $(this),
@@ -437,7 +449,7 @@ define(['jquery', 'underscore', 'moment',
                         tplFooter = analyticsFooterBTpl;
                         break;
                 }
-                combineData[0] = App.DataStore.snapShotList;
+                combineData[0] = App.ParseSnapShotDates(App.DataStore.snapShotList);
                 combineData[1] = App.DataStore.hierarchyList;
                 combineData[2] = App.DataStore.versions;
                 App.Project(tplId, tplFooter, combineData);
@@ -457,7 +469,7 @@ define(['jquery', 'underscore', 'moment',
                             var filteredEs = App.ESfilter(ESData, App.dataType, hier);
                             // var dataStore = App.AssignStore(filteredEs);
 
-                            App.createES_SV_Chart(filteredEs, true, App.dataType);
+                            App.createES_Chart(filteredEs, true, App.dataType);
 
                             App.analyticsTplConfig(self);
                             //_.debounce(App.expandTreeList(hierarchyList), 500);
@@ -479,7 +491,7 @@ define(['jquery', 'underscore', 'moment',
                             var filteredSv = App.SVfilter(SVData, App.dataType, hier);
                             //var dataStoreSv = App.AssignStore(filteredSv);
 
-                            App.createES_SV_Chart(filteredSv, false, App.dataType);
+                            App.createSV_Chart(filteredSv, false, App.dataType);
 
                             App.analyticsTplConfig(self);
                             //_.debounce(App.expandTreeList(hierarchyList), 500);
@@ -562,6 +574,10 @@ define(['jquery', 'underscore', 'moment',
         if (App.CheckProdId()) {
             return;
         }
+        if(App.SnapshotType === ''){
+            App.SnapshotType = 'M';
+        }
+        console.log('SnapshotType : '+App.SnapshotType);
         /* this is to reset global dataType upon entry*/
         ;
         App.addSpinner(e.currentTarget);//bkg loading
@@ -732,7 +748,8 @@ define(['jquery', 'underscore', 'moment',
                                 if (App.apiErrorHandler(self, loadingWheel, cHData)) {
                                     combineData[3] = [];
                                 } else {
-                                    combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[3] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -760,7 +777,8 @@ define(['jquery', 'underscore', 'moment',
                                 if (App.apiErrorHandler(self, loadingWheel, cHData)) {
                                     combineData[3] = [];
                                 } else {
-                                    combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[3] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -916,7 +934,7 @@ define(['jquery', 'underscore', 'moment',
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
             "',EACVersionSelection='" + this.DataStore.versions.setEac +
             "',SnapshotDate='" + this.SnapshotSelectionID +
-            "',SnapshotType='M')?$format=json";
+            "',SnapshotType='" + App.SnapshotType + "')?$format=json";
 
         this.urlHierarchySet = "/HierarchyDataSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
@@ -925,28 +943,28 @@ define(['jquery', 'underscore', 'moment',
         this.urlESSet = "/EarnedScheduleDataSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
-            "',SnapshotType='M',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
+            "',SnapshotType='" + App.SnapshotType + "',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
 //',PeriodsBack='"+this.periodsBack+
 
         this.urlSVSet = "/BcwsBcwpAcwpDataSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
             "',EACVersionSelection='" + this.DataStore.versions.setEac +
-            "',SnapshotType='M',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
+            "',SnapshotType='" + App.SnapshotType + "',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
 //',PeriodsBack='"+this.periodsBack+
         this.urlCPR5Set = "/CPR5DetailSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',SnapshotSelection='" + this.SnapshotSelectionID +
-            "',SnapshotType='M',ExternalCost='')?$format=json";
+            "',SnapshotType='" + App.SnapshotType + "',ExternalCost='')?$format=json";
 
         this.urlCPR3Set = "/CPR3DetailSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
             "',SnapshotSelection='" + this.SnapshotSelectionID +
-            "',SnapshotType='M',Hours='" + App.cpr3DHours + "',ExternalCost='" + App.cpr3DExt + "')?$format=json";
+            "',SnapshotType='" + App.SnapshotType + "',Hours='" + App.cpr3DHours + "',ExternalCost='" + App.cpr3DExt + "')?$format=json";
 
         this.urlCPRHSet = "/CPRHeaderSet(ProjectSelection='" + this.projectID +
-            "',SnapshotType='M',SnapshotSelection='" + this.SnapshotSelectionID +
+            "',SnapshotType='" + App.SnapshotType + "',SnapshotSelection='" + this.SnapshotSelectionID +
             "')?$format=json";
     };
 
@@ -1196,10 +1214,32 @@ define(['jquery', 'underscore', 'moment',
         $baseline.val(baselineVal);
         $eac.val(eacVal);
         $snapshot.val(snapVal);
-
+        if(App.SnapshotType === 'M'){
+            /*show weekly*/
+            doc.find('li#switchWeeklyButton').show();
+            doc.find('li#switchMonthlyButton').hide();
+        }else{
+            /*show Monthly*/
+            doc.find('li#switchWeeklyButton').hide();
+            doc.find('li#switchMonthlyButton').show();
+        }
         ////console.log($exportReportPDF);
     };
 
+
+    App.ParseSnapShotDates = function(data){
+        var change = _.map(data,function(item,key){
+                            return {
+                                Default: item.Default,
+                                ProjectSelection: item.ProjectSelection,
+                                SnapshotSelection: item.SnapshotSelection,
+                                formatDate : moment(item.SnapshotSelection).format('DD/MM/YYYY'),
+                                SnapshotType: item.SnapshotType
+                            }
+                        });
+        return change;
+
+    };
     /**
      *
      * @param selector
@@ -3520,7 +3560,7 @@ define(['jquery', 'underscore', 'moment',
             roundetcTotal = App.Math.ceil10(etcTotal, -2);
 
 
-        var eacCum = _.isNaN(roundacwpTotal + roundetcTotal) ? 0 : roundacwpTotal + roundetcTotal;
+        var eacCum = _.isNaN(eacTotal-eacCOM) ? 0 : eacTotal-eacCOM;
 
         master.totals.push({"eacCum": App.Math.ceil10(eacCum, -2)});
 
@@ -3613,11 +3653,11 @@ define(['jquery', 'underscore', 'moment',
         /**
          * roundetcTotal  = EAC - ACWP CUM
          */
-        var EAC_TCPI = _.isNaN(((roundbcwsAll - roundbcwsTotal) / roundetcTotal)) ? 0 : ((roundbcwsAll - roundbcwsTotal) / roundetcTotal);
+        var EAC_TCPI = _.isNaN(((bac - (roundbcwpTotal-bcwpCOM)) / ((eacTotal-eacCOM) - roundacwpTotal))) ? 0 : ((bac - (roundbcwpTotal-bcwpCOM)) / ((eacTotal-eacCOM) - roundacwpTotal));
         if (EAC_TCPI === Infinity)EAC_TCPI = 0;
         master.totals.push({"EAC_TCPI": App.Math.ceil10(EAC_TCPI, 0)});
 
-        var BAC_TCPI = _.isNaN(((roundbcwsAll - roundbcwsTotal) / (roundbcwsAll - roundacwpTotal))) ? 0 : ((roundbcwsAll - roundbcwsTotal) / (roundbcwsAll - roundacwpTotal));
+        var BAC_TCPI = _.isNaN(((bac - (roundbcwpTotal-bcwpCOM)) / (bac - roundacwpTotal))) ? 0 : ((bac - (roundbcwpTotal-bcwpCOM)) / (bac - roundacwpTotal));
         if (BAC_TCPI === Infinity)BAC_TCPI = 0;
         master.totals.push({"BAC_TCPI": App.Math.ceil10(BAC_TCPI, 0)});
 
@@ -4287,7 +4327,7 @@ define(['jquery', 'underscore', 'moment',
      * @param reverse
      * @param type
      */
-    App.createES_SV_Chart = function (series, reverse, type) {
+    App.createES_Chart = function (series, reverse, type) {
         if (_.isUndefined(reverse)) {
             reverse = false;
         }
@@ -4333,6 +4373,74 @@ define(['jquery', 'underscore', 'moment',
                     reverse: reverse,
                     title: {
                         text: 'Weeks'//dataTypeTitle
+                    },
+                    labels: {
+                        format: "{0}"
+                    },
+                    line: {
+                        visible: false
+                    }
+                }
+            ],
+            tooltip: {
+                visible: true,
+                shared: true,
+                sharedTemplate: kendo.template("<div>#: category #</div>" +
+                    " # for (var i = 0; i < points.length; i++) {" +
+                    " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('{0}', points[i].value) #</div># } #")
+                //template: "#= kendo.format('{0}',value) #"
+                //format:kendo.format("{0}")
+                //kendo.format("{0:c}", 99)
+            }
+        });
+    };
+
+    App.createSV_Chart = function (series, reverse, type) {
+        if (_.isUndefined(reverse)) {
+            reverse = false;
+        }
+        if (type === 'Quantity') {
+            var dataType = "{0}hrs";
+            var dataTypeTitle = "Hours";
+        } else {
+            dataType = "\u00a3{0}";
+            dataTypeTitle = "\u00a3";
+        }
+        $("#chart").kendoChart({
+            pdf: {
+                fileName: "SnapShot Costs Export.pdf",
+                proxyURL: this.serviceRoot + "/kendo-ui/service/export"
+            },
+            //dataSource: dataSource,
+            chartArea: {
+                // width: 200,
+                //height: 475
+            },
+            legend: {
+                position: "bottom"
+            },
+            seriesDefaults: {
+                type: "line",
+                style: "smooth",
+                highlight: {visible: false},
+                markers: {
+                    size: 5
+                }
+            },
+            series: series,
+            categoryAxis: {
+                majorGridLines: {
+                    visible: false
+                },
+                line: {
+                    visible: false
+                }
+            },
+            valueAxis: [
+                {
+                    reverse: reverse,
+                    title: {
+                        text: dataTypeTitle
                     },
                     labels: {
                         format: "{0}"

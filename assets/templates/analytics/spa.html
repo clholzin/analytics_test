@@ -3,9 +3,16 @@
         <span class="pull-left"><a class="homeTpl" data-id="wbsTable" data-temp="#indexTpl" data-name="home" role="button" href="#"><img src="./assets/img/home.png"></a></span>
         <h1 class="panel-title" style="font-size: 24px; font-weight: bold; text-align: center">SPA Chart
     <span class="pull-right dropdown">
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span
-            class="k-icon k-i-hbars"></span></a>
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+        <span class="k-icon k-i-hbars"></span>
+    </a>
     <ul class="dropdown-menu" role="menu" style="min-width: 180px; padding: 5px 2px">
+        <li id="switchWeeklyButton" style="display:none;" data-id="spa" data-temp="spa" data-name="spa">
+            <a tabindex="-1" href="#" id="switchWeekly"  data-type="W" style="cursor: pointer">Switch to Weekly</a>
+        </li>
+        <li id="switchMonthlyButton" data-id="spa" data-temp="spa" data-name="spa">
+            <a tabindex="-1" href="#" id="switchMonthly"  data-type="M" style="cursor: pointer">Switch to Monthly</a>
+        </li>
         <li style="padding-bottom: 2px">
             <form>
                 <select class="form-control selectpicker" id="baseline" tabindex="-1" style="padding: 3px 6px 3px 6px; cursor: pointer">
@@ -43,11 +50,11 @@
                 <select tabindex="-1" class="form-control selectpicker" id="snapshot" style="padding: 3px 6px 3px 6px; cursor: pointer">
                     <% if (combineData[0].length < 2) { %>
                     <% $.each(combineData[0],function(key,value){ %>
-                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-id="spa" data-temp="spa" data-name="spa" data-chartType="SPA"><%-value.SnapshotSelection%></option>
+                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-id="spa" data-temp="spa" data-name="spa" data-chartType="SPA"><%-value.formatDate%></option>
                     <%});
                     } else { %>
                     <% $.each(combineData[0],function(key,value){ %>
-                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-id="spa" data-temp="spa" data-name="spa" data-chartType="SPA"><%-value.SnapshotSelection%></option>
+                    <option value="<%-value.SnapshotSelection%>" data-title="<%-value.ProjectSelection%>" data-id="spa" data-temp="spa" data-name="spa" data-chartType="SPA"><%-value.formatDate%></option>
                     <%});
 
                     }%>
