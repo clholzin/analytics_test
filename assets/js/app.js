@@ -38,13 +38,11 @@ define(['jquery', 'underscore', 'moment',
      * **/
     App.dataType = 'Quantity';
     App.periodsBack = 6;
-    App.SnapshotType = '';
-    console.log(App.SnapshotType);
     App.cpr3DHours = 'X';
     App.cpr3DExt = '';
     App.Math = {};
     var loadingWheel = spinnerTpl;
-    var doc = $('document');
+    var doc = $(document);
     var bkgChange = $('.bkgChange');
     moment.locale('en');
     App.tdColor = '#ede330';
@@ -420,20 +418,11 @@ define(['jquery', 'underscore', 'moment',
         console.log(id);
         App.dataType = 'Quantity';
         App.setHierarchySelection(id.toUpperCase());
-        var List = App.HierarchyListSet();
+        var hierarchyListPromise = App.setHierarchyList();
         App.HierarchySelectionID = '';
-        $.when(List).done(function (lData) {
-            App.DataStore.hierarchyList = lData.d.results;
-            var defList = $.grep(App.DataStore.hierarchyList, function (item) {
-                if (App.DataStore.hierarchyList.length === 1) {
-                    return item;
-                }
-                return item.Default === "X";
-            });
-            console.log(defList);
-            if (defList.length >= 1) {
-                App.HierarchySelectionID = _.first(defList).HierarchySelection;
-            }
+        App.setProjectID();
+        var promise = App.setSnapshotList();
+        $.when(hierarchyListPromise,promise).done(function (l,p) {
             console.log('HierarchySelectionID Selection: ' + App.HierarchySelectionID);
 
             App.setDataSelection();
@@ -591,24 +580,12 @@ define(['jquery', 'underscore', 'moment',
         console.log(id);
         App.dataType = 'Quantity';//set or reset upon entry as default
         App.setHierarchySelection(id.toUpperCase());
-        var List = App.HierarchyListSet();
+        var hierarchyListPromise = App.setHierarchyList();
         App.HierarchySelectionID = '';
-        $.when(List).done(function (lData) {
-            App.DataStore.hierarchyList = lData.d.results;
-            var defList = $.grep(App.DataStore.hierarchyList, function (item) {
-                if (App.DataStore.hierarchyList.length === 1) {
-                    return item;
-                }
-                return item.Default === "X";
-            });
-            // console.log(defList);
-            if (!_.isEmpty(defList) || defList.length >= 1) {
-                App.HierarchySelectionID = _.first(defList).HierarchySelection;
-                App.State.alternativeOption = _.chain(App.DataStore.hierarchyList).filter(function (item) {
-                    return item.HierarchyDescription === 'ESO';
-                }).pluck('HierarchySelection').first().value();
-                App.State.defaultSelection = App.HierarchySelectionID;
-            }
+        App.setProjectID();
+        var promise = App.setSnapshotList();
+        $.when(hierarchyListPromise,promise).done(function (l,p) {
+
             console.log('HierarchySelection Selection: ' + App.HierarchySelectionID);
             //App.periodsBack = 6;reset to default incase trend report selected
             App.setDataSelection();//Set URLS for the blow requests
@@ -647,7 +624,8 @@ define(['jquery', 'underscore', 'moment',
                                 if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                     combineData[2] = [];
                                 } else {
-                                    combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[2] = App.parseHeaderDates(headerInfo);
                                 }
 
                                 /*********   Template Processing  *********/
@@ -673,7 +651,8 @@ define(['jquery', 'underscore', 'moment',
                                 if (App.apiErrorHandler(self, loadingWheel, cHData)) {
                                     combineData[2] = [];
                                 } else {
-                                    combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[2] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -713,7 +692,8 @@ define(['jquery', 'underscore', 'moment',
                                 if (App.apiErrorHandler(self, loadingWheel, cHData)) {
                                     combineData[1] = [];
                                 } else {
-                                    combineData[1] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[1] = App.parseHeaderDates(headerInfo);
                                 }
 
                                 if (App.apiErrorHandler(self, loadingWheel, threeData)) {
@@ -805,7 +785,8 @@ define(['jquery', 'underscore', 'moment',
                                 if (App.apiErrorHandler(self, loadingWheel, cHData)) {
                                     combineData[2] = [];
                                 } else {
-                                    combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[2] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -838,7 +819,8 @@ define(['jquery', 'underscore', 'moment',
                                 if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                     combineData[2] = [];
                                 } else {
-                                    combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[2] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -909,9 +891,14 @@ define(['jquery', 'underscore', 'moment',
      * @param value
      */
     App.setProjectID = function (value) {
-        this.projectID = value;
+        if(value === '' || value === undefined){
+
+        }else{
+            this.projectID = value;
+        }
+
         this.urlVersionSet = "/VersionSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
-        this.urlSnapshotListSet = "/SnapshotSelectionSet(ProjectSelection='" + this.projectID + "')?$format=json";
+        this.urlSnapshotListSet = "/SnapshotSelectionSet(ProjectSelection='" + this.projectID + ",SnapshotType='" + this.SnapshotType + "')?$format=json";
     };
 
     /**
@@ -932,7 +919,7 @@ define(['jquery', 'underscore', 'moment',
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
             "',EACVersionSelection='" + this.DataStore.versions.setEac +
             "',SnapshotDate='" + this.SnapshotSelectionID +
-            "',SnapshotType='" + App.SnapshotType + "')?$format=json";
+            "',SnapshotType='" + this.SnapshotType + "')?$format=json";
 
         this.urlHierarchySet = "/HierarchyDataSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
@@ -941,28 +928,28 @@ define(['jquery', 'underscore', 'moment',
         this.urlESSet = "/EarnedScheduleDataSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
-            "',SnapshotType='" + App.SnapshotType + "',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
+            "',SnapshotType='" + this.SnapshotType + "',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
 //',PeriodsBack='"+this.periodsBack+
 
         this.urlSVSet = "/BcwsBcwpAcwpDataSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
             "',EACVersionSelection='" + this.DataStore.versions.setEac +
-            "',SnapshotType='" + App.SnapshotType + "',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
+            "',SnapshotType='" + this.SnapshotType + "',SnapshotDate='" + this.SnapshotSelectionID + "')?$format=json";
 //',PeriodsBack='"+this.periodsBack+
         this.urlCPR5Set = "/CPR5DetailSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',SnapshotSelection='" + this.SnapshotSelectionID +
-            "',SnapshotType='" + App.SnapshotType + "',ExternalCost='')?$format=json";
+            "',SnapshotType='" + this.SnapshotType + "',ExternalCost='')?$format=json";
 
         this.urlCPR3Set = "/CPR3DetailSet(ProjectSelection='" + this.projectID +
             "',HierarchySelection='" + this.HierarchySelectionID +
             "',PlanVersionSelection='" + this.DataStore.versions.setBaseline +
             "',SnapshotSelection='" + this.SnapshotSelectionID +
-            "',SnapshotType='" + App.SnapshotType + "',Hours='" + App.cpr3DHours + "',ExternalCost='" + App.cpr3DExt + "')?$format=json";
+            "',SnapshotType='" + this.SnapshotType + "',Hours='" + App.cpr3DHours + "',ExternalCost='" + App.cpr3DExt + "')?$format=json";
 
         this.urlCPRHSet = "/CPRHeaderSet(ProjectSelection='" + this.projectID +
-            "',SnapshotType='" + App.SnapshotType + "',SnapshotSelection='" + this.SnapshotSelectionID +
+            "',SnapshotType='" + this.SnapshotType + "',SnapshotSelection='" + this.SnapshotSelectionID +
             "')?$format=json";
     };
 
@@ -990,10 +977,29 @@ define(['jquery', 'underscore', 'moment',
      * None
      */
     App.setHierarchyList = function () {
+        var defer = new $.Deferred();
         var List = this.HierarchyListSet();
         App.HierarchySelectionID = '';
         $.when(List).done(function (lData) {
-            App.DataStore.hierarchyList = _.isArray(lData) ? _first(lData).d.results : lData.d.results;
+            App.DataStore.hierarchyList = _.isArray(lData) ? _.first(lData).d.results : lData.d.results;
+            var defList = $.grep(App.DataStore.hierarchyList, function (item) {
+                if (App.DataStore.hierarchyList.length === 1) {
+                    return item;
+                }
+                return item.Default === "X";
+            });
+            // console.log(defList);
+            if (!_.isEmpty(defList) || defList.length >= 1) {
+                App.HierarchySelectionID = _.first(defList).HierarchySelection;
+                App.State.alternativeOption = _.chain(App.DataStore.hierarchyList).filter(function (item) {
+                    return item.HierarchyDescription === 'ESO';
+                }).pluck('HierarchySelection').first().value();
+                App.State.defaultSelection = App.HierarchySelectionID;
+            }
+            defer.resolve('complete');
+
+
+          /*  App.DataStore.hierarchyList = _.isArray(lData) ? _first(lData).d.results : lData.d.results;
             var defList = $.grep(App.DataStore.hierarchyList, function (item) {
                 if (App.DataStore.hierarchyList.length === 1) {
                     return item;
@@ -1004,27 +1010,35 @@ define(['jquery', 'underscore', 'moment',
             if (defList.length >= 1) {
                 App.HierarchySelectionID = _.first(defList).HierarchySelection;
             }
-            //            console.log('HierarchySelectionID Selection: ' + App.HierarchySelectionID);
+           */ //            console.log('HierarchySelectionID Selection: ' + App.HierarchySelectionID);
         });
+        return defer.promise();
     };
 
     /**
      * None
      */
     App.setSnapshotList = function () {
-        var List = this.SnapshotListSet();
-        App.SnapshotSelectionID = '';
+        var defer = new $.Deferred();
+        var List = this.SnapshotListSetRequest();
+       // App.SnapshotSelectionID = '';
         $.when(List).done(function (lData) {
+            if(_.isUndefined(lData)){
+                App.DataStore.snapShotList = [];
+                return;
+            }
             App.DataStore.snapShotList = _.isArray(lData) ? _first(lData).d.results : lData.d.results;
             var defList = $.grep(App.DataStore.snapShotList, function (item) {
                 return item.Default === "X";
             });
             //            console.log(defList);
-            if (defList.length >= 1) {
+            if (defList.length >= 1 && App.SnapshotSelectionID === '') {
                 App.SnapshotSelectionID = _.first(defList).SnapshotSelection;
             }
+            defer.resolve('complete');
             //            console.log('SnapshotSelectionID Selection: ' + App.SnapshotSelectionID);
         });
+        return defer.promise();
     };
 
     /**
@@ -1036,13 +1050,14 @@ define(['jquery', 'underscore', 'moment',
      */
     App.apiErrorHandler = function (target, loadingWheel, data) {
         /** Error handler **///(_.isUndefined(_.first(data))) ||
-        if (_.isEmpty(data)) {
-            return true;
-        }
         if (_.isArray(data) && _.isUndefined(_.first(data))) {
             //alert('Selection does not have Data, try again.');
             _.debounce(App.SpinnerTpl(loadingWheel, 0), 1000);
             App.addSpinner(target, false);//bkg loading
+            return true;
+        }
+        if (_.isEmpty(data)) {
+            App.SpinnerTpl(loadingWheel, 0);//bkg loading
             return true;
         }
         return false;
@@ -1212,14 +1227,16 @@ define(['jquery', 'underscore', 'moment',
         $baseline.val(baselineVal);
         $eac.val(eacVal);
         $snapshot.val(snapVal);
+        var $weeklyBtn = $('li#switchWeeklyButton');
+        var $monthlyBtn = $('li#switchMonthlyButton');
         if(App.SnapshotType === 'M'){
             /*show weekly*/
-            doc.find('li#switchWeeklyButton').show();
-            doc.find('li#switchMonthlyButton').hide();
+            $weeklyBtn.show();
+            $monthlyBtn.hide();
         }else{
             /*show Monthly*/
-            doc.find('li#switchWeeklyButton').hide();
-            doc.find('li#switchMonthlyButton').show();
+            $weeklyBtn.hide();
+            $monthlyBtn.show();
         }
         ////console.log($exportReportPDF);
     };
@@ -1355,7 +1372,7 @@ define(['jquery', 'underscore', 'moment',
      * @returns {string}
      */
     App.formatOneTotals = function (hier, costs, dataType) {
-        console.time('Format One Totals');
+
         if (_.isUndefined(dataType)) {
             var Type = 'Quantity';
         } else {
@@ -1636,7 +1653,7 @@ define(['jquery', 'underscore', 'moment',
         });
 
         _.first(hierarchy).com = com;
-        console.timeEnd('Format One Totals');
+
         return hierarchy;
     };
 
@@ -1821,7 +1838,7 @@ define(['jquery', 'underscore', 'moment',
             month = '';
         if (_.isArray(costs)) {
             var length = Number(costs.length);
-            console.time('formatFourTotals loop');
+
             //            console.log('costs length ' + length);
             var beginDate = moment(costs[0].Date).format('YY');
             //            console.log('beginDate ' + beginDate);
@@ -1845,7 +1862,7 @@ define(['jquery', 'underscore', 'moment',
                     return item;
                 }
             });
-            console.time('BCWS loop');
+
             //            console.log('BCWS len ' + BCWS.length);
             $.each(BCWS, function (ka, va) {
                 year = moment(va.Date).format('YY');
@@ -1869,8 +1886,8 @@ define(['jquery', 'underscore', 'moment',
                     };
                 }
             });
-            console.timeEnd('BCWS loop');
-            console.time('BCWP loop');
+
+
             //            console.log('BCWP len ' + BCWP.length);
             $.each(BCWP, function (kb, vb) {
                 year = moment(vb.Date).format('YY');
@@ -1894,8 +1911,8 @@ define(['jquery', 'underscore', 'moment',
                     };
                 }
             });
-            console.timeEnd('BCWP loop');
-            console.time('EAC loop');
+
+
             //            console.log('EAC len ' + EAC.length);
             $.each(EAC, function (kc, vc) {
                 year = moment(vc.Date).format('YY');
@@ -1920,8 +1937,8 @@ define(['jquery', 'underscore', 'moment',
                     };
                 }
             });
-            console.timeEnd('EAC loop');
-            console.time('ACWP loop');
+
+
             //            console.log('ACWP len ' + ACWP.length);
             $.each(ACWP, function (kd, vd) {
                 year = moment(vd.Date).format('YY');
@@ -1945,9 +1962,9 @@ define(['jquery', 'underscore', 'moment',
                     };
                 }
             });
-            console.timeEnd('ACWP loop');
+
         }
-        console.timeEnd('formatFourTotals loop');
+
         return master;
     };
 
@@ -2709,7 +2726,7 @@ define(['jquery', 'underscore', 'moment',
      * @returns {*}
      * @constructor
      */
-    App.SnapshotListSet = function () {
+    App.SnapshotListSetRequest = function () {
         var rawData = $.ajax({
             url: this.serviceRoot + this.urlSnapshotListSet,
             method: "GET",
@@ -2866,7 +2883,6 @@ define(['jquery', 'underscore', 'moment',
      */
     App.VersionFilter = function (versions, results) {
 
-        console.time('VersionFilter');
         var master = {};
         master.versions = [];
         master.category = [];
@@ -2932,7 +2948,7 @@ define(['jquery', 'underscore', 'moment',
                 });//add array to master array
             });
         }
-        console.timeEnd('VersionFilter');
+
         return master.category;
 
     };
@@ -4329,12 +4345,15 @@ define(['jquery', 'underscore', 'moment',
         if (_.isUndefined(reverse)) {
             reverse = false;
         }
+        if (App.SnapshotType === 'M') {
+            var dataTypeTitle = "Months";
+        } else {
+            dataTypeTitle = "Weeks";
+        }
         if (type === 'Quantity') {
             var dataType = "{0}hrs";
-            var dataTypeTitle = "Hours";
         } else {
             dataType = "\u00a3{0}";
-            dataTypeTitle = "\u00a3";
         }
         $("#chart").kendoChart({
             pdf: {
@@ -4370,7 +4389,7 @@ define(['jquery', 'underscore', 'moment',
                 {
                     reverse: reverse,
                     title: {
-                        text: 'Weeks'//dataTypeTitle
+                        text: dataTypeTitle
                     },
                     labels: {
                         format: "{0}"

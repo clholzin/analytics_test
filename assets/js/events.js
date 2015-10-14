@@ -60,7 +60,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 var project = _.first(combineData[0]);
                 App.setProjectID(project.ProjectSelection);
                 App.setVersion();
-                App.setSnapshotList();
+               // App.setSnapshotList();
             }
             App.SpinnerTpl(loadingWheel, 0);//remove spinner after load + 1 sec
         });
@@ -83,7 +83,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 App.ClearDataStore();
                 App.setProjectID(value);
                 App.setVersion();
-                App.setSnapshotList();
+               // App.setSnapshotList();
                 if (!_.isEmpty(App.projectID) || !_.isUndefined(App.projectID)) {
                     doc.find('.menuItem').removeClass('menu-disabled');
                 }
@@ -131,10 +131,12 @@ define(['jquery', 'underscore', 'domReady', 'app',
             //var chartData = App.SnapshotSet();,chartData
             $.when(hierData).done(function (hData) {
                 /** Error handler **/
-                if (App.apiErrorHandler(e.currentTarget, loadingWheel, hData)) {
+                if (App.apiErrorHandler(e.currentTarget, loadingWheel, App.DataStore.chart)) {
                     return;
                 }
-
+                if (App.apiErrorHandler(e.currentTarget, loadingWheel, App.DataStore.chart)) {
+                    return;
+                }
                 // App.DataStore.setData(cData, hData);
                 App.DataStore.hierarchy = _.isArray(hData) ? _.first(hData).d.results : hData.d.results;
                 $treeList.destroy();
@@ -270,7 +272,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                  * Resets to defaults
                  */
                 App.setVersion();
-                App.setSnapshotList();
+                App.SnapshotSelectionID = '';
                 App.cpr3DHours = 'X';
                 App.cpr3DExt = '';
                 App.SnapshotType = '';
@@ -339,7 +341,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
-                                combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                combineData[2] = App.parseHeaderDates(headerInfo);
                             }
                             /*********   Template Processing  *********/
                             tplId = tempTpl;
@@ -380,7 +383,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
-                                combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                combineData[2] = App.parseHeaderDates(headerInfo);
                             }
                             /*********   Template Processing  *********/
                             tplId = tempTpl;
@@ -436,7 +440,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[1] = [];
                             }else{
-                                combineData[1] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                combineData[1] = App.parseHeaderDates(headerInfo);
                             }
 
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, threeData)) {
@@ -483,7 +488,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[3] = [];
                             }else{
-                                combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                combineData[3] = App.parseHeaderDates(headerInfo);
                             }
 
                             /*********   Template Processing  *********/
@@ -530,7 +536,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                     combineData[3] = [];
                                 }else{
-                                    combineData[3] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[3] = App.parseHeaderDates(headerInfo);
                                 }
 
                                 /*********   Template Processing  *********/
@@ -577,7 +584,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
-                                combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                combineData[2] = App.parseHeaderDates(headerInfo);
                             }
 
                             /*********   Template Processing  *********/
@@ -626,7 +634,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                             if (App.apiErrorHandler(e.currentTarget, loadingWheel, cHData)) {
                                 combineData[2] = [];
                             }else{
-                                combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                combineData[2] = App.parseHeaderDates(headerInfo);
                             }
                             /*********   Template Processing  *********/
                             tplId = tempTpl;
@@ -833,7 +842,10 @@ define(['jquery', 'underscore', 'domReady', 'app',
                     break;
                 case 'spa':
                      App.createSplittersFT();
-                     costs = App.DataStore.chart.options.data;costs = App.DataStore.chart.options.data;
+                    if (App.apiErrorHandler(e.currentTarget, loadingWheel, App.DataStore.chart)) {
+                            return;
+                        }
+                    costs =  App.DataStore.chart.options.data;
                      hier = App.DataStore.hierarchy;
                     if (App.dataType === 'Material') {
                         costs = $.grep(costs, function (item) {
@@ -873,9 +885,13 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
                     break;
                 case 'spiCPI':
+                    App.createSplittersFT();
+                    if (App.apiErrorHandler(e.currentTarget, loadingWheel, App.DataStore.rawspiCpiChartdata)) {
+                        return;
+                    }
                     hier = App.DataStore.hierarchySv;
                     costs = App.DataStore.rawspiCpiChartdata;
-                    App.createSplittersFT();
+
                     App.hierListInitialize(hier);
                     var cpiSpiTrendData = App.cpiSpiTrend(costs, App.dataType);
                     var cpiSpiTrend = App.AssignStore(cpiSpiTrendData);
@@ -947,7 +963,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if(_.isEmpty(cHData)){
                                     combineData[2] = [];
                                 }else{
-                                    combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[2] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -971,7 +988,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if(_.isEmpty(cHData)){
                                     combineData[2] = [];
                                 }else{
-                                    combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[2] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -1001,7 +1019,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                 if(_.isEmpty(cHData)){
                                     combineData[2] = [];
                                 }else{
-                                    combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                    combineData[2] = App.parseHeaderDates(headerInfo);
                                 }
                                 /*********   Template Processing  *********/
                                 tplId = tempTpl;
@@ -1033,7 +1052,8 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     if(_.isEmpty(cHData)){
                                         combineData[2] = [];
                                     }else{
-                                        combineData[2] = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                        var headerInfo = _.isArray(cHData) ? _.first(cHData).d.results[0] : cHData.d.results[0];
+                                        combineData[2] = App.parseHeaderDates(headerInfo);
                                     }
                                     /*********   Template Processing  *********/
                                     tplId = tempTpl;
@@ -1067,11 +1087,11 @@ define(['jquery', 'underscore', 'domReady', 'app',
                 $selectedSnapShotType = $self.data('type');
             App.SnapshotType = $selectedSnapShotType;
             App.setDataSelection();
+            App.SnapshotSelectionID = '';//reset to empty
             App.DataStore.clearChartData();
             $parent.on('click',App.getAnalytics);
             $parent.trigger('click');
             $parent.off('click');
-
         });
 
         doc.on('click', 'a#switchWeekly', function (e) {
@@ -1081,11 +1101,11 @@ define(['jquery', 'underscore', 'domReady', 'app',
             $selectedSnapShotType = $self.data('type');
             App.SnapshotType = $selectedSnapShotType;
             App.setDataSelection();
+            App.SnapshotSelectionID = '';//reset to empty
             App.DataStore.clearChartData();
             $parent.on('click',App.getAnalytics);
             $parent.trigger('click');
             $parent.off('click');
-
         });
 
         doc.on('click', 'span.export-excel', function (e) {
