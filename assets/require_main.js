@@ -17,10 +17,11 @@ requirejs.config({
         uglify:"js/uglify",
         //typedArrays:"js/typedArrays",
         "jquery.table2excel":"js/jquery.table2excel",
-        jszip:"js/jszip.min",
+        jszip:"js/jszip",
         moment:"js/moment",
         underscore:"js/underscore",
         "en-GB":"js/cultures/kendo.culture.en-GB.min",
+        xlsx:"js/xlsx",
         app:"js/app",
         events:"js/events",
         requireLib :'js/require',
@@ -40,6 +41,10 @@ requirejs.config({
         moment: {
             exports: "moment"
         },
+        xlsx: {
+            deps:["Blob","FileSaver","jszip"],
+            exports: "xlsx"
+        },
         bootstrap: {
             deps: ["jquery"],
             exports: "bootstrap"
@@ -55,7 +60,7 @@ requirejs.config({
             deps:["jquery","underscore","app"]
         },
         "jquery.table2excel":{
-            deps:["jquery","base64","Blob","FileSaver"]
+            deps:["jquery","base64","Blob","FileSaver","jszip","xlsx"]
         },
         tpl: ["text"]
     }

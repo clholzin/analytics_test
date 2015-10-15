@@ -20,15 +20,16 @@ define(['jquery', 'underscore', 'domReady', 'app',
     'tpl!templates/reports/cprTOBS.html',
     'tpl!templates/reports/foo.html',
 
-    'moment', 'kendo', 'FileSaver', 'en-GB', 'bootstrap-select',
-    'Blob', 'base64', 'jszip',
-    'jquery.table2excel', 'bootstrap'], function ($, _, domReady, App,
+    'moment','jszip', 'kendo', 'FileSaver', 'en-GB', 'bootstrap-select',
+    'Blob', 'base64',
+    'jquery.table2excel', 'bootstrap','xlsx'], function ($, _, domReady, App,
                                                   homeTpl, projectAnalyticsFTTpl, earnedScheduleTpl, scheduleTpl, spaTpl, spiCPITpl,
                                                   reportFooterTpl, blankFooterTpl, analyticsFooterATpl, analyticsFooterBTpl,
-                                                  spinnerTpl, cpr1, cpr2, cpr3, cpr4a, cpr4b, cpr5, cprTWBS, cprTOBS,fooTpl, moment) {
+                                                  spinnerTpl, cpr1, cpr2, cpr3, cpr4a, cpr4b, cpr5, cprTWBS, cprTOBS,fooTpl, moment,JSZip) {
 
     domReady(function () {
         kendo.culture('en-GB');
+        window.jszip = JSZip;
         var doc = $(document),
             bkgChange = $('.bkgChange'),
             mainBody = $('div.mainBody'),

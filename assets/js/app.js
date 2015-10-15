@@ -22,11 +22,12 @@ define(['jquery', 'underscore', 'moment',
     'tpl!templates/reports/cpr5.html',
     'tpl!templates/reports/cprTWBS.html',
     'tpl!templates/reports/cprTOBS.html',
-    'tpl!templates/reports/foo.html', 'kendo', 'Blob', 'base64', 'jszip', 'FileSaver',
+    'tpl!templates/reports/foo.html', 'jszip', 'kendo', 'Blob', 'base64', 'FileSaver','xlsx',
     'jquery.table2excel'], function ($, _, moment, homeTpl, projectAnalyticsFTTpl, earnedScheduleTpl, scheduleTpl, spaTpl, spiCPITpl,
                                      reportFooterTpl, blankFooterTpl, analyticsFooterATpl, analyticsFooterBTpl,
-                                     spinnerTpl, cpr1, cpr2, cpr3, cpr4a, cpr4b, cpr5, cprTWBS, cprTOBS, fooTpl) {
+                                     spinnerTpl, cpr1, cpr2, cpr3, cpr4a, cpr4b, cpr5, cprTWBS, cprTOBS, fooTpl,jszip) {
     var App = App || {};
+
     App.projectID = "";
     App.HierarchySelectionID = '';
     App.SnapshotSelectionID = '';
