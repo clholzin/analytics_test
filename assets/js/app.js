@@ -1233,10 +1233,12 @@ define(['jquery', 'underscore', 'moment',
             /*show weekly*/
             $weeklyBtn.show();
             $monthlyBtn.hide();
+            $('#weekMonth').html('(Monthly)');
         }else{
             /*show Monthly*/
             $weeklyBtn.hide();
             $monthlyBtn.show();
+            $('#weekMonth').html('(Weekly)');
         }
         ////console.log($exportReportPDF);
     };
@@ -3497,12 +3499,12 @@ define(['jquery', 'underscore', 'moment',
                 }
             }).value(); //convert IntValProjCurr key for Chart Series
             _.chain(EACdata).sortBy('Date').each(function (item,k) {
-               if (item.PeriodType === 'P') {
+               if (moment(item.SnapshotDate).unix() > moment(item.Date).unix()) {//&& item.ValueType === '04'
                     item.runningEAC = null;
                 }
             });
             if(_.isEmpty(ACWP)){
-                EACdata.unshift({
+                EACdata.unshift({ // add this to the beginning of the EAC array if ACWP is empty
                     "Date":firstSnapshot.SnapshotDate,
                     "runningEAC": 0,
                     "TransactionType": 'KPPP',
@@ -3833,93 +3835,34 @@ define(['jquery', 'underscore', 'moment',
 
         var master,
             spiTotal,
-            cpiTotal;
-        var bcws = _.chain(costs)
-            .sortBy('SnapshotDate')
-            .filter('BCWS')
-            .where({'RecordType': dataType})
-            .map(function (item) {
-                return {
-                    BCWS: item.BCWS,
-                    type: 'BCWS',
-                    EACVersionSelection: item.EACVersionSelection,
-                    FundApproved: item.FundApproved,
-                    ObjectNumber: item.ObjectNumber,
-                    HierarchySelection: item.HierarchySelection,
-                    PlanVersionSelection: item.PlanVersionSelection,
-                    ProjectSelection: item.ProjectSelection,
-                    RecordType: item.RecordType,
-                    SnapshotDate: item.SnapshotDate,
-                    SnapshotType: item.SnapshotType
-                };
-            }).value();
-
-        var bcwp = _.chain(costs)
-            .sortBy('SnapshotDate')
-            .filter('BCWP')
-            .where({'RecordType': dataType})
-            .map(function (item) {
-                return {
-                    BCWP: item.BCWP,
-                    type: 'BCWP',
-                    EACVersionSelection: item.EACVersionSelection,
-                    FundApproved: item.FundApproved,
-                    ObjectNumber: item.ObjectNumber,
-                    HierarchySelection: item.HierarchySelection,
-                    PlanVersionSelection: item.PlanVersionSelection,
-                    ProjectSelection: item.ProjectSelection,
-                    RecordType: item.RecordType,
-                    SnapshotDate: item.SnapshotDate,
-                    SnapshotType: item.SnapshotType
-                };
-            }).value();
-
-        var acwp = _.chain(costs)
-            .sortBy('SnapshotDate')
-            .filter('ACWP')
-            .where({'RecordType': dataType})
-            .map(function (item) {
-                return {
-                    ACWP: item.ACWP,
-                    type: 'ACWP',
-                    EACVersionSelection: item.EACVersionSelection,
-                    FundApproved: item.FundApproved,
-                    ObjectNumber: item.ObjectNumber,
-                    HierarchySelection: item.HierarchySelection,
-                    PlanVersionSelection: item.PlanVersionSelection,
-                    ProjectSelection: item.ProjectSelection,
-                    RecordType: item.RecordType,
-                    SnapshotDate: item.SnapshotDate,
-                    SnapshotType: item.SnapshotType
-                };
-            }).value();
+            cpiTotal,
+            parsedName,
+            values = _.chain(costs)
+                .sortBy('SnapshotDate')
+                .sortBy('ObjectNumber')
+                .where({'RecordType': dataType})
+                .value();
 
         var master = [];
-        var uniquObjs = _.chain(acwp)
+        var uniquObjs = _.chain(values)
             .uniq(function (item) {
                 return item.SnapshotDate;
-            })
-            .pluck('SnapshotDate')
-            .value();
-        var data = _.map(acwp, function (item, index) {
-            if (!_.isUndefined(bcws[index]) || (!_.isEmpty(bcws[index]))) {
-                var bcwsCost = bcws[index][bcws[index].type];
-            }
-            if (!_.isUndefined(bcwp[index]) || (!_.isEmpty(bcwp[index]))) {
-                var bcwpCost = bcwp[index][bcwp[index].type];
-            }
-            if (!_.isUndefined(acwp[index]) || (!_.isEmpty(acwp[index]))) {
-                var acwpCost = acwp[index][acwp[index].type];
-            }
-            ////console.log(index+' bcwsCost '+bcwsCost+' bcwpCost '+bcwpCost+' acwpCost '+acwpCost);
+            }).pluck('SnapshotDate')
+              .value();
+
+        var data = _.map(values, function (item, index) {
+            var bcwsCost = Number(item.BCWS),
+                bcwpCost = Number(item.BCWP),
+                acwpCost = Number(item.ACWP);
             if (_.isNaN(bcwsCost)) bcwsCost = 0;
             if (_.isNaN(bcwpCost)) bcwpCost = 0;
             if (_.isNaN(acwpCost)) acwpCost = 0;
-            ////  console.log(parseFloat(bcwp[index].IntValProjCurr).toFixed(2));
+
             var SV = _.isNaN(bcwpCost - bcwsCost) ? 0 : bcwpCost - bcwsCost;
             var hierarchyTitle = _.chain(hier).filter(function (value) {
                 return value.ObjectNumber === item.ObjectNumber;
             }).pluck('Description').first().value();
+
             var titleSplit = _.last(hierarchyTitle.split('-'));
             return {
                 "SV": App.Math.ceil10(SV, -0),
@@ -3928,15 +3871,20 @@ define(['jquery', 'underscore', 'moment',
                 "BCWP": bcwpCost,
                 "ACWP": acwpCost,
                 "ObjectNumber": item.ObjectNumber,
-                "Date": new Date(item.SnapshotDate),
+                "Date":new Date(item.SnapshotDate),
                 "SnapshotDate": item.SnapshotDate
             };
         });
 
         var chartColour = ['#003366', '#336699', '#003399', '#000099', '#006699', '#0066CC', '#009999', '#0099FF', '#00FFFF', '#3366FF', '#66FFFF', '#E6E6F5'];
         _.each(uniquObjs, function (value, key) {
+            if(App.SnapshotType === 'W'){
+                 parsedName = moment(value).weeks() +'/'+moment(value).format('YYYY');
+            }else{
+                parsedName = moment(value).format('MM/YYYY');
+            }
             master.push({
-                name: moment(value).format('MM/YYYY'),
+                name: parsedName,
                 type: "column",
                 field: "SV",
                 categoryField: "title",
@@ -3990,6 +3938,7 @@ define(['jquery', 'underscore', 'moment',
          _.flatten(uniquObjs);*/
         var master = [];
         var uniquObjs = _.chain(costs)
+            .sortBy('SnapshotDate')
             .uniq(function (item) {
                 return item.SnapshotDate;
             })
@@ -3998,8 +3947,13 @@ define(['jquery', 'underscore', 'moment',
         var chartColour = ['#0000cc', '#cc0000', '#00cc00', '#0000ff', '#ff0000', '#00ff00'];
         //var colors = ['#ddddd','#dsdsds'];
         _.each(uniquObjs, function (value, key) {
+            if(App.SnapshotType === 'W'){
+                parsedName = moment(value).isoWeeks() +'/'+moment(value).format('YYYY');
+            }else{
+                parsedName = moment(value).format('MM/YYYY');
+            }
             master.push({
-                name: moment(value).format('MM/YYYY'),
+                name: parsedName,
                 type: "column",
                 field: "ES",
                 categoryField: "title",
@@ -4252,9 +4206,11 @@ define(['jquery', 'underscore', 'moment',
      * @param type
      */
     App.create_SPICPI_Chart = function (dataSource, series, reverse, type) {
+        var tootipFormat ='',categoryFormat = '',dataType='',weeksMonths ='';
         if (_.isUndefined(reverse)) {
             reverse = false;
         }
+
         if (type === 'Quantity') {
             var dataType = "{0}hrs";
             var dataTypeTitle = "Hours";
@@ -4262,6 +4218,23 @@ define(['jquery', 'underscore', 'moment',
             dataType = "\u00a3{0}";
             dataTypeTitle = "\u00a3";
         }
+
+        if(App.SnapshotType === 'W'){
+            tootipFormat = kendo.template("<div>#: kendo.toString(weekYear( new Date(category)))# # function weekYear( date) {var d = new Date(+date);d.setHours(0,0,0);d.setDate(d.getDate()+4-(d.getDay()||7));return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7)} #/#: kendo.toString(new Date(category), 'yyyy') #</div>" +
+                " # for (var i = 0; i < points.length; i++) {" +
+                " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('" + dataType +
+                "', points[i].value) #</div># } #");
+            categoryFormat = kendo.template("#: kendo.toString(weekYearc( new Date(value)))#/#: kendo.toString(new Date(value), 'yyyy') # # function weekYearc( date) {var d = new Date(+date);d.setHours(0,0,0);d.setDate(d.getDate()+4-(d.getDay()||7));return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7)} #");
+            weeksMonths = 'weeks';
+        }else{
+            tootipFormat = kendo.template("<div>#: kendo.toString(new Date(category), 'MM/yyyy') #</div>" +
+                " # for (var i = 0; i < points.length; i++) {" +
+                " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('" + dataType +
+                "', points[i].value) #</div># } #");
+            categoryFormat = kendo.template("#: kendo.toString(new Date(value), 'MM/yyyy') #");
+            weeksMonths = 'months';
+        }
+
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -4285,25 +4258,37 @@ define(['jquery', 'underscore', 'moment',
             },
             series: series,
             categoryAxis: {
-                baseUnit: "fit",
-                baseUnitStep: "fit",
+                baseUnit: weeksMonths,
+                //baseUnitStep: "fit",
+                //title: { text: "Date" },
                 field: "Date",
                 labels: {
                     rotation: -60,
+                    //format: "Year: {0}",
                     dateFormats: {
-                        // months: "MMM-yy"
+                        weeks: "M-yyyy",//"M-d",
                         months: "M-yyyy"
-                    }
+                    },
+                    template: categoryFormat
                 },
                 autoBaseUnitSteps: {
-                    days: [0],
-                    weeks: [0],
+                    days: [],
+                    weeks: [1],
                     months: [1],
                     years: []
                 },
+                maxDateGroups: 45,
                 crosshair: {
+                    tooltip: {
+                        //format: "M-yyyy",
+                        visible: false
+                    },
                     visible: false
                 },
+                /*tooltip: {
+                 format: "M-yyyy",
+                 visible: true
+                 },*/
                 line: {
                     visible: false
                 },
@@ -4325,7 +4310,86 @@ define(['jquery', 'underscore', 'moment',
             tooltip: {
                 visible: true,
                 shared: true,
-                sharedTemplate: kendo.template("<div>#: kendo.toString(new Date(category), 'MM/yyyy') #</div>" +
+                sharedTemplate:tootipFormat
+                //template: "#= kendo.format('{0}',value) #"
+                //format:kendo.format("{0}")
+                //kendo.format("{0:c}", 99)
+            }
+        });
+    };
+
+    /**
+     *
+     * @param series
+     * @param reverse
+     * @param type
+     */
+    App.createES_Chart = function (series, reverse, type) {
+        var dataTypeTitle='';
+        if (_.isUndefined(reverse)) {
+            reverse = false;
+        }
+
+        if (type === 'Quantity') {
+            dataType = "{0}hrs";
+        } else {
+            dataType = "\u00a3{0}";
+        }
+
+        if(App.SnapshotType === 'W'){
+            dataTypeTitle = "Weeks";
+        }else{
+            dataTypeTitle = "Months";
+        }
+
+        $("#chart").kendoChart({
+            pdf: {
+                fileName: "SnapShot Costs Export.pdf",
+                proxyURL: this.serviceRoot + "/kendo-ui/service/export"
+            },
+            //dataSource: dataSource,
+            chartArea: {
+                // width: 200,
+                //height: 475
+            },
+            legend: {
+                position: "bottom"
+            },
+            seriesDefaults: {
+                type: "line",
+                style: "smooth",
+                highlight: {visible: false},
+                markers: {
+                    size: 5
+                }
+            },
+            series: series,
+            categoryAxis: {
+                majorGridLines: {
+                    visible: false
+                },
+                line: {
+                    visible: false
+                }
+            },
+            valueAxis: [
+                {
+                    reverse: reverse,
+                    title: {
+                        text: dataTypeTitle
+                    },
+                    labels: {
+                        format: "{0}"
+                    },
+                    line: {
+                        visible: false
+                    }
+                }
+            ],
+            tooltip: {
+                visible: true,
+                shared: true,
+                sharedTemplate: kendo.template("<div>#: category #</div>" +
                     " # for (var i = 0; i < points.length; i++) {" +
                     " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('{0}', points[i].value) #</div># } #")
                 //template: "#= kendo.format('{0}',value) #"
@@ -4341,20 +4405,20 @@ define(['jquery', 'underscore', 'moment',
      * @param reverse
      * @param type
      */
-    App.createES_Chart = function (series, reverse, type) {
+    App.createSV_Chart = function (series, reverse, type) {
+        var dataTypeTitle='';
         if (_.isUndefined(reverse)) {
             reverse = false;
         }
-        if (App.SnapshotType === 'M') {
-            var dataTypeTitle = "Months";
-        } else {
-            dataTypeTitle = "Weeks";
-        }
+
         if (type === 'Quantity') {
-            var dataType = "{0}hrs";
+            dataType = "{0}hrs";
+            dataTypeTitle = "Hours";
         } else {
             dataType = "\u00a3{0}";
+            dataTypeTitle = "\u00a3";
         }
+
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -4412,73 +4476,6 @@ define(['jquery', 'underscore', 'moment',
         });
     };
 
-    App.createSV_Chart = function (series, reverse, type) {
-        if (_.isUndefined(reverse)) {
-            reverse = false;
-        }
-        if (type === 'Quantity') {
-            var dataType = "{0}hrs";
-            var dataTypeTitle = "Hours";
-        } else {
-            dataType = "\u00a3{0}";
-            dataTypeTitle = "\u00a3";
-        }
-        $("#chart").kendoChart({
-            pdf: {
-                fileName: "SnapShot Costs Export.pdf",
-                proxyURL: this.serviceRoot + "/kendo-ui/service/export"
-            },
-            //dataSource: dataSource,
-            chartArea: {
-                // width: 200,
-                //height: 475
-            },
-            legend: {
-                position: "bottom"
-            },
-            seriesDefaults: {
-                type: "line",
-                style: "smooth",
-                highlight: {visible: false},
-                markers: {
-                    size: 5
-                }
-            },
-            series: series,
-            categoryAxis: {
-                majorGridLines: {
-                    visible: false
-                },
-                line: {
-                    visible: false
-                }
-            },
-            valueAxis: [
-                {
-                    reverse: reverse,
-                    title: {
-                        text: dataTypeTitle
-                    },
-                    labels: {
-                        format: "{0}"
-                    },
-                    line: {
-                        visible: false
-                    }
-                }
-            ],
-            tooltip: {
-                visible: true,
-                shared: true,
-                sharedTemplate: kendo.template("<div>#: category #</div>" +
-                    " # for (var i = 0; i < points.length; i++) {" +
-                    " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('{0}', points[i].value) #</div># } #")
-                //template: "#= kendo.format('{0}',value) #"
-                //format:kendo.format("{0}")
-                //kendo.format("{0:c}", 99)
-            }
-        });
-    };
 
     /**
      *
@@ -4487,17 +4484,35 @@ define(['jquery', 'underscore', 'moment',
      * @param reverse
      * @param dataType
      */
-    App.createChart = function (dataSource, series, reverse, dataType) {
+    App.createChart = function (dataSource, series, reverse, Dtype) {
+        var tootipFormat ='',categoryFormat = '',dataType='',weeksMonths ='',dataTypeTitle='';
         if (_.isUndefined(reverse)) {
             var reverse = false;
         }
-        if (dataType === 'Quantity') {
-            var dataType = "{0}hrs";
-            var dataTypeTitle = "Hours";
+        if (Dtype === 'Quantity') {
+            dataType = "{0}hrs";
+            dataTypeTitle = "Hours";
         } else {
             dataType = "\u00a3{0}";
             dataTypeTitle = "\u00a3";
         }
+
+        if(App.SnapshotType === 'W'){
+            tootipFormat = kendo.template("<div>#: kendo.toString(weekYear( new Date(category)))# # function weekYear( date) {var d = new Date(+date);d.setHours(0,0,0);d.setDate(d.getDate()+4-(d.getDay()||7));return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7)} #/#: kendo.toString(new Date(category), 'yyyy') #</div>" +
+                " # for (var i = 0; i < points.length; i++) {" +
+                " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('" + dataType +
+                "', points[i].value.toFixed(0)) #</div># } #");
+            categoryFormat = kendo.template("#: kendo.toString(weekYearc( new Date(value)))#/#: kendo.toString(new Date(value), 'yyyy') # # function weekYearc( date) {var d = new Date(+date);d.setHours(0,0,0);d.setDate(d.getDate()+4-(d.getDay()||7));return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7)} #");
+            weeksMonths = 'weeks';
+        }else{
+            tootipFormat = kendo.template("<div>#: kendo.toString(new Date(category), 'MM/yyyy') #</div>" +
+                " # for (var i = 0; i < points.length; i++) {" +
+                " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('" + dataType +
+                "', points[i].value.toFixed(0)) #</div># } #");
+            categoryFormat = kendo.template("#: kendo.toString(new Date(value), 'MM/yyyy') #");
+            weeksMonths = 'months';
+        }
+
         $("#chart").kendoChart({
             pdf: {
                 fileName: "SnapShot Costs Export.pdf",
@@ -4510,6 +4525,7 @@ define(['jquery', 'underscore', 'moment',
                 // width: 200,
                 //height: 475
             },
+           // moment : require('moment'),
             legend: {
                 position: "bottom",
                 align: "center"
@@ -4527,28 +4543,29 @@ define(['jquery', 'underscore', 'moment',
             },
             series: series,
             categoryAxis: {
-                baseUnit: "fit",
-                baseUnitStep: "fit",
+                baseUnit: weeksMonths,
+                //baseUnitStep: "fit",
                 //title: { text: "Date" },
                 field: "Date",
                 labels: {
                     rotation: -60,
                     //format: "Year: {0}",
                     dateFormats: {
-                        // months: "MMM-yy"
+                        weeks: "M-yyyy",//"M-d",
                         months: "M-yyyy"
-                    }
+                    },
+                    template: categoryFormat
                 },
                 autoBaseUnitSteps: {
-                    days: [0],
-                    weeks: [0],
+                    days: [],
+                    weeks: [1],
                     months: [1],
                     years: []
                 },
                 maxDateGroups: 45,
                 crosshair: {
                     tooltip: {
-                        format: "M-yyyy",
+                        //format: "M-yyyy",
                         visible: false
                     },
                     visible: false
@@ -4586,11 +4603,7 @@ define(['jquery', 'underscore', 'moment',
                     width: 2,
                     color: "black"
                 },
-                sharedTemplate: kendo.template("<div>#: kendo.toString(new Date(category), 'MM/yyyy') #</div>" +
-                    " # for (var i = 0; i < points.length; i++) {" +
-                    " #<div style='padding:3px 0 0 0; text-align:left;'>#: points[i].series.name# : #: kendo.format('" + dataType + "', points[i].value.toFixed(0)) #</div># } #")
-                //template: "#= kendo.format('"+dataType+"', value.toFixed(0)) #"//points[i].value.toFixed(0)
-                //template: "#: value.x # - #: value.y # (#: value.size #)"
+                sharedTemplate:tootipFormat
             }
         });
     };
@@ -4653,6 +4666,14 @@ define(['jquery', 'underscore', 'moment',
     App.Math.ceil10 = function (value, exp) {
         return App.decimalAdjust('ceil', value, exp);
     };
+
+    Date.prototype.getWeekNumber = function(date) {
+     var d = new Date(+date);
+         d.setHours(0,0,0);
+         d.setDate(d.getDate()+4-(d.getDay()||7));
+         return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7);
+    };
+
 
     /**
      *

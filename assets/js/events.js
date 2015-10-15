@@ -29,7 +29,6 @@ define(['jquery', 'underscore', 'domReady', 'app',
 
     domReady(function () {
         kendo.culture('en-GB');
-        window.moment = function(){return moment};
         var doc = $(document),
             bkgChange = $('.bkgChange'),
             mainBody = $('div.mainBody'),
@@ -509,7 +508,7 @@ define(['jquery', 'underscore', 'domReady', 'app',
                                     $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (MANHOURS)');
                                 } else {
                                     //$('.costType').show();
-                                    $('#units').text('&pound;');
+                                    $('#units').html('&pound;');
                                     $('#cpr4Title').text('CPR FORMAT 4 - STAFFING/FORECAST (TOTAL COST)');
                                     $('#dataType').val('Costs');
                                 }

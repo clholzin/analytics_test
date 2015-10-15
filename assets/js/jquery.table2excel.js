@@ -62,7 +62,7 @@
             tableToExcel: function (table, name) {
                 var e = this, fullTemplate = "", i, link, a;
                 //e.uri = "data:application/vnd.ms-excel;base64,";
-                e.uri = "data:application/application/vnd.ms-excel;base64,";//application/vnd.ms-excel
+                e.uri = "data:application/vnd.ms-excel;base64,";//application/vnd.ms-excel
                 e.base64 = function (s) {
                     return Base64.encode(unescape(encodeURIComponent(s)));
                 };
@@ -102,6 +102,10 @@
                     }
                 }
                 delete e.ctx.table;
+
+
+
+
 
 
                 console.log('userAgent ' + navigator.userAgent);
