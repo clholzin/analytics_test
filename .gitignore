@@ -5,3 +5,4 @@ resources/
 .idea/
 !index.html
 !favicon.html
+node_modules/

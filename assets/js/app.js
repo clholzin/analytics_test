@@ -418,10 +418,10 @@ define(['jquery', 'underscore', 'moment',
         console.log(id);
         App.dataType = 'Quantity';
         App.setHierarchySelection(id.toUpperCase());
-        var hierarchyListPromise = App.setHierarchyList();
+        var hierarchyListPromise = App.setHierarchyList(e);
         App.HierarchySelectionID = '';
         App.setProjectID();
-        var promise = App.setSnapshotList();
+        var promise = App.setSnapshotList(e);
         $.when(hierarchyListPromise,promise).done(function (l,p) {
             console.log('HierarchySelectionID Selection: ' + App.HierarchySelectionID);
 
@@ -580,10 +580,10 @@ define(['jquery', 'underscore', 'moment',
         console.log(id);
         App.dataType = 'Quantity';//set or reset upon entry as default
         App.setHierarchySelection(id.toUpperCase());
-        var hierarchyListPromise = App.setHierarchyList();
+        var hierarchyListPromise = App.setHierarchyList(e);
         App.HierarchySelectionID = '';
         App.setProjectID();
-        var promise = App.setSnapshotList();
+        var promise = App.setSnapshotList(e);
         $.when(hierarchyListPromise,promise).done(function (l,p) {
 
             console.log('HierarchySelection Selection: ' + App.HierarchySelectionID);
@@ -960,6 +960,7 @@ define(['jquery', 'underscore', 'moment',
         var versionData = this.VersionData();
         App.DataStore.versionSelection = '';
         $.when(versionData).done(function (vData) {
+
             App.DataStore.versions = _.isArray(vData) ? _first(vData).d.results : vData.d.results;
             var defVersion = $.grep(App.DataStore.versions, function (item) {
                 return item.Default === "X";
@@ -976,11 +977,14 @@ define(['jquery', 'underscore', 'moment',
     /**
      * None
      */
-    App.setHierarchyList = function () {
+    App.setHierarchyList = function (e) {
         var defer = new $.Deferred();
         var List = this.HierarchyListSet();
         App.HierarchySelectionID = '';
         $.when(List).done(function (lData) {
+            if (App.apiErrorHandler(e.currentTarget, loadingWheel, lData)) {
+                return;
+            }
             App.DataStore.hierarchyList = _.isArray(lData) ? _.first(lData).d.results : lData.d.results;
             var defList = $.grep(App.DataStore.hierarchyList, function (item) {
                 if (App.DataStore.hierarchyList.length === 1) {
@@ -1018,11 +1022,15 @@ define(['jquery', 'underscore', 'moment',
     /**
      * None
      */
-    App.setSnapshotList = function () {
+    App.setSnapshotList = function (e) {
         var defer = new $.Deferred();
         var List = this.SnapshotListSetRequest();
        // App.SnapshotSelectionID = '';
         $.when(List).done(function (lData) {
+            if (App.apiErrorHandler(e.currentTarget, loadingWheel, lData)) {
+                App.SnapshotType = 'M';
+                return alert('No Data for Selection, try again.');
+            }
             if(_.isUndefined(lData)){
                 App.DataStore.snapShotList = [];
                 return;
@@ -1058,6 +1066,7 @@ define(['jquery', 'underscore', 'moment',
         }
         if (_.isEmpty(data)) {
             App.SpinnerTpl(loadingWheel, 0);//bkg loading
+            App.addSpinner(target, false);//bkg loading
             return true;
         }
         return false;
