@@ -1001,20 +1001,7 @@ define(['jquery', 'underscore', 'moment',
                 App.State.defaultSelection = App.HierarchySelectionID;
             }
             defer.resolve('complete');
-
-
-          /*  App.DataStore.hierarchyList = _.isArray(lData) ? _first(lData).d.results : lData.d.results;
-            var defList = $.grep(App.DataStore.hierarchyList, function (item) {
-                if (App.DataStore.hierarchyList.length === 1) {
-                    return item;
-                }
-                return item.Default === "X";
-            });
-            //            console.log(defList);
-            if (defList.length >= 1) {
-                App.HierarchySelectionID = _.first(defList).HierarchySelection;
-            }
-           */ //            console.log('HierarchySelectionID Selection: ' + App.HierarchySelectionID);
+            
         });
         return defer.promise();
     };
