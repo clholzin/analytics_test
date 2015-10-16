@@ -30,7 +30,7 @@
             init: function () {
                 var e = this;
 
-                e.template = {
+             /*   e.template = {
                     head: "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>",
                     sheet: {
                         head: "<x:ExcelWorksheet><x:Name>",
@@ -42,7 +42,7 @@
                         tail: "</table>"
                     },
                     foot: "</body></html>"
-                };
+                };*/
 
 
                 e.tableRows = [];
@@ -56,10 +56,41 @@
                         e.tableRows[i] = [];
                         $(o).children().each(function(k,value){
                             var obj = {};
-                            obj.value = _.isNaN(Number(value.innerText)) ? value.innerText : Number(value.innerText);
-                            if(value.style.border != 'none') {
-                                var style = _.map(value.style,function(item){return item;});
-                                obj.style = $(value).css(style);
+                            obj.value = value.innerText;//_.isNaN(Number(value.innerText)) ? value.innerText : Number(value.innerText);
+                            var style = _.map(value.style,function(item){return item;});
+                            var parsedStyles = {}
+                            parsedStyles =  $(value).css(style);
+                            if(!_.isEmpty(parsedStyles)) {
+                                obj.style = {
+                                    "numFmt": "General",
+                                    "fill": {
+                                        /*"patternType": "darkHorizontal",*/
+                                        "fgColor": {
+                                            rgb: "FFFFFF"
+                                                //_.isUndefined(parsedStyles.background-color) ? 'FFFFFFF':parsedStyles.background-color
+                                            //"theme": 9,
+                                           // "tint": -0.249977111117893
+                                        }/*,
+                                        "bgColor": {
+                                            "theme": 5,
+                                            "tint": 0.3999755851924192
+                                        }*/
+                                    },
+                                    "font": {
+                                        "sz": "10",
+                                        "color": {
+                                            "theme": "1"
+                                        },
+                                        "bold":parsedStyles.bold === 'bold'? true : false,
+                                        "name": "Calibri"
+                                    },
+                                    "border": {
+                                        "top":{ style:'thin', color: {auto: 1} },
+                                        "left":{ style:'thin', color:{auto: 1} },
+                                        "right":{ style:'thin', color: {auto: 1} },
+                                        "bottom":{ style:'thin', color:{auto: 1} }
+                                    }
+                                };
                             }
                             obj.colSpan = value.colSpan;
                             e.tableRows[i].push(obj);
@@ -101,28 +132,42 @@
                             if(range.e.c < C) range.e.c = C;
                             var cell = {v: data[R][C].value };
                             if(cell.v == null) continue;
+                            if(!_.isUndefined(data[R][C].style)){
+                                cell.s = data[R][C].style;
+                            }
                             if(typeof cell.v === 'number') cell.t = 'n';
                             else if(typeof cell.v === 'boolean') cell.t = 'b';
                             else if(cell.v instanceof Date) {
-                                cell.t = 'n'; cell.z = XLSX.SSF._table[14];
-                                cell.v = datenum(cell.v);
+                                cell.t = 'n'; cell.s.numFmt = XLSX.SSF._table[15];
+                                cell.v = moment(cell.v);
+                                //cell.s.numFmt = "General";
                             } else cell.t = 's';
 
-                         /*   if(!_.isUndefined(data[R][C].style)){
-                                cell.s = data[R][C].style;
-                            }*/
+
                             var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
                             ws[cell_ref] = cell;
-                           /**/ var mergeCellValue = undefined;
-                            if(!_.isUndefined(data[R][C].colSpan) && data[R][C].colSpan >= 2){
-                                var added =  C+data[R][C].colSpan;
-                                var merge_ref = XLSX.utils.encode_cell({c:added,r:R});
-                                 mergeCellValue = cell_ref+':'+merge_ref;
-                            }
 
-                            if(!_.isUndefined(mergeCellValue)){
+                             if(!_.isUndefined(data[R][C].colSpan) && data[R][C].colSpan > 1){
+
+                               //  var merge_ref = XLSX.utils.encode_cell({c:added,r:R});
+                               //  var merge =  cell_ref+':'+merge_ref;
+                                 var mergeCellValue = '',added ='';
+                                 added =  (C+data[R][C].colSpan);
+                                 var findLast = _.find(ws['!merges'],function(item){
+                                     if(item.e.c === added && item.e.r === R)return item;
+                                 });
+                                 if(!_.isUndefined(findLast)){
+                                    // mergeCellValue = {s: {c:findLast.e.c+1,r:R}, e: {c:added,r:R}};
+                                     mergeCellValue = {s: {c:C,r:R}, e: {c:added,r:R}};
+                                 }else{
+                                      added =  (C+data[R][C].colSpan);
+                                      mergeCellValue = {s: {c:C,r:R}, e: {c:added,r:R}};
+                                 }
+
                                 ws['!merges'].push(mergeCellValue);
-                            }
+                           }
+
+
                         }
                     }
                     if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
@@ -148,7 +193,7 @@
 
                 wb.SheetNames.push(e.ctx.worksheet);
                 wb.Sheets[e.ctx.worksheet] = ws;
-                var wbOut = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+                var wbOut = XLSX.write(wb, {bookType:'xlsb', bookSST:true, type: 'binary'});
                 /* fullTemplate = e.template.head;
 
                if ($.isArray(table)) {
@@ -207,7 +252,7 @@
                     //  console.log('encoding' + encode2);
                     //var blob = new Blob([format2], {type: "application/vnd.ms-excel"});//text/html
                     //saveAs(blob, getFileName(e.settings));//saves xls as usual for modern browsers
-                    saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsx")
+                    saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsb")
                 }
 
                 return true;
