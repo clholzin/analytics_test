@@ -56,7 +56,7 @@
                         e.tableRows[i] = [];
                         $(o).children().each(function(k,value){
                             var obj = {};
-                            obj.value = value.innerText;//_.isNaN(Number(value.innerText)) ? value.innerText : Number(value.innerText);
+                            obj.value = _.isNaN(Number(value.innerText)) ? value.innerText : Number(value.innerText);
                             var style = _.map(value.style,function(item){return item;});
                             var parsedStyles = {}
                             parsedStyles =  $(value).css(style);
@@ -86,7 +86,7 @@
                                     },
                                     "border": {
                                         "top":{ style:'thin', color: {auto: 1} },
-                                        "left":{ style:'thin', color:{auto: 1} },
+                                        //"left":{ style:'thin', color:{auto: 1} },
                                         "right":{ style:'thin', color: {auto: 1} },
                                         "bottom":{ style:'thin', color:{auto: 1} }
                                     }
@@ -130,12 +130,15 @@
                             if(range.s.c > C) range.s.c = C;
                             if(range.e.r < R) range.e.r = R;
                             if(range.e.c < C) range.e.c = C;
-                            var cell = {v: data[R][C].value };
+                            var cell = {v: data[R][C].value,s:{}};
                             if(cell.v == null) continue;
                             if(!_.isUndefined(data[R][C].style)){
                                 cell.s = data[R][C].style;
                             }
-                            if(typeof cell.v === 'number') cell.t = 'n';
+                            if(typeof cell.v === 'number'){
+                                cell.t = 'n';
+                                cell.s.numFmt = XLSX.SSF._table[1];
+                            }
                             else if(typeof cell.v === 'boolean') cell.t = 'b';
                             else if(cell.v instanceof Date) {
                                 cell.t = 'n'; cell.s.numFmt = XLSX.SSF._table[15];
@@ -144,16 +147,26 @@
                             } else cell.t = 's';
 
 
-                            var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
-                            ws[cell_ref] = cell;
-
-                             if(!_.isUndefined(data[R][C].colSpan) && data[R][C].colSpan > 1){
+                           //  if(!_.isUndefined(data[R][C].colSpan) && data[R][C].colSpan >= 1){
 
                                //  var merge_ref = XLSX.utils.encode_cell({c:added,r:R});
                                //  var merge =  cell_ref+':'+merge_ref;
                                  var mergeCellValue = '',added ='';
-                                 added =  (C+data[R][C].colSpan);
-                                 var findLast = _.find(ws['!merges'],function(item){
+                                 added =  Number(C+data[R][C].colSpan) === 0 ? 1 : (C+data[R][C].colSpan)+1;
+
+                                 var lastMerge = _.isEmpty(ws['!merges']) ? undefined : _.last(ws['!merges']);
+
+                                 if(_.isUndefined(lastMerge))lastMerge = {s: {c:C,r:R}, e: {c:C,r:R}};//last merge equals current c and r
+                                 if(!_.isUndefined(lastMerge) && lastMerge.s.r < R){
+                                     lastMerge = {s: {c:C,r:R}, e: {c:C,r:R}};
+                                 }//if new row, equal current c and r
+
+                                 var cellStart = (C != 0 ? {c:lastMerge.e.c,r:R} : {c:C,r:R});
+                                     mergeCellValue = {s: cellStart, e: {c:added,r:R}};
+                                 var cell_ref = XLSX.utils.encode_cell(cellStart);
+                                     ws[cell_ref] = cell;
+                                     ws['!merges'].push(mergeCellValue);
+                               /*var findLast = _.find(ws['!merges'],function(item){
                                      if(item.e.c === added && item.e.r === R)return item;
                                  });
                                  if(!_.isUndefined(findLast)){
@@ -162,10 +175,9 @@
                                  }else{
                                       added =  (C+data[R][C].colSpan);
                                       mergeCellValue = {s: {c:C,r:R}, e: {c:added,r:R}};
-                                 }
+                                 }*/
 
-                                ws['!merges'].push(mergeCellValue);
-                           }
+                           //}
 
 
                         }
@@ -193,7 +205,7 @@
 
                 wb.SheetNames.push(e.ctx.worksheet);
                 wb.Sheets[e.ctx.worksheet] = ws;
-                var wbOut = XLSX.write(wb, {bookType:'xlsb', bookSST:true, type: 'binary'});
+                var wbOut = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
                 /* fullTemplate = e.template.head;
 
                if ($.isArray(table)) {
@@ -246,13 +258,8 @@
                     }
                 } else if (bowser.firefox || bowser.chrome || bowser.safari || bowser.iphone || bowser.android) {
                     console.log(bowser.version);
-                   // var format2 = e.format(fullTemplate, e.ctx);
-                   // console.log('format ' + format2.length);
-                    //var encode = base64.encode(format2);
-                    //  console.log('encoding' + encode2);
-                    //var blob = new Blob([format2], {type: "application/vnd.ms-excel"});//text/html
-                    //saveAs(blob, getFileName(e.settings));//saves xls as usual for modern browsers
-                    saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsb")
+               
+                    saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsx")
                 }
 
                 return true;

@@ -21,7 +21,7 @@ requirejs.config({
         moment:"js/moment",
         underscore:"js/underscore",
         "en-GB":"js/cultures/kendo.culture.en-GB.min",
-        xlsx:"js/node_modules/xlsx-style/dist/xlsx",
+        xlsx:"js/xlsx",
        // "xlsx.min.map":"js/node_modules/xlsx-style/dist/xlsx.min.map",
         app:"js/app",
         events:"js/events",
