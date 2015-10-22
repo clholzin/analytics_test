@@ -123,7 +123,7 @@
                 e.sheet_from_array_of_arrays = function(data, opts) {
                     var ws = {};
                     var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
-                    ws['!merges'] = [];
+                    ws['!merges'] = [];var colspan = [];
                     for(var R = 0; R != data.length; ++R) {
                         for(var C = 0; C != data[R].length; ++C) {
                             if(range.s.r > R) range.s.r = R;
@@ -146,13 +146,32 @@
                                 //cell.s.numFmt = "General";
                             } else cell.t = 's';
 
+                            var mergeCellValue = '',added ='',cellPos={};
+                            colspan.push(data[R][C].colSpan);
 
-                           //  if(!_.isUndefined(data[R][C].colSpan) && data[R][C].colSpan >= 1){
+                            if(C === 0){
+                                colspan = [];
+                                colspan.push(data[R][C].colSpan); //start over for new column
+                                cellPos = {s: {c:C,r:R}, e: {c:C,r:R}};
+                                cellPos.e.c += colspan[C];
+                            }else{
+                                cellPos = {s: {c:C,r:R}, e: {c:C,r:R}};
+                                cellPos.s.c += colspan[C-1];//add last colspan to start
+                                cellPos.e.c += colspan[C]; //add current colspan to end
+                            }
 
-                               //  var merge_ref = XLSX.utils.encode_cell({c:added,r:R});
-                               //  var merge =  cell_ref+':'+merge_ref;
-                                 var mergeCellValue = '',added ='';
-                                 added =  Number(C+data[R][C].colSpan) === 0 ? 1 : (C+data[R][C].colSpan)+1;
+                            console.log(cellPos);
+                            var cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
+                            ws[cell_ref] = cell;
+
+                            ws['!merges'].push(cellPos);
+
+                            //  if(!_.isUndefined(data[R][C].colSpan) && data[R][C].colSpan >= 1){
+
+                            //  var merge_ref = XLSX.utils.encode_cell({c:added,r:R});
+                            //  var merge =  cell_ref+':'+merge_ref;
+
+                            /*   added =  Number(C+data[R][C].colSpan) === 0 ? 1 : (C+data[R][C].colSpan)+1;
 
                                  var lastMerge = _.isEmpty(ws['!merges']) ? undefined : _.last(ws['!merges']);
 
@@ -161,21 +180,22 @@
                                      lastMerge = {s: {c:C,r:R}, e: {c:C,r:R}};
                                  }//if new row, equal current c and r
 
-                                 var cellStart = (C != 0 ? {c:lastMerge.e.c,r:R} : {c:C,r:R});
-                                     mergeCellValue = {s: cellStart, e: {c:added,r:R}};
-                                 var cell_ref = XLSX.utils.encode_cell(cellStart);
-                                     ws[cell_ref] = cell;
-                                     ws['!merges'].push(mergeCellValue);
-                               /*var findLast = _.find(ws['!merges'],function(item){
+
+                                   mergeCellValue = {s: {c:added,r:R}, e: {c:added,r:R}};
+
+
+                             var findLast = _.find(ws['!merges'],function(item){
                                      if(item.e.c === added && item.e.r === R)return item;
-                                 });
-                                 if(!_.isUndefined(findLast)){
+                                 });*/
+                              /*  if(!_.isUndefined(findLast)){
                                     // mergeCellValue = {s: {c:findLast.e.c+1,r:R}, e: {c:added,r:R}};
                                      mergeCellValue = {s: {c:C,r:R}, e: {c:added,r:R}};
                                  }else{
                                       added =  (C+data[R][C].colSpan);
                                       mergeCellValue = {s: {c:C,r:R}, e: {c:added,r:R}};
-                                 }*/
+                                 }  */
+
+
 
                            //}
 
