@@ -185,25 +185,30 @@
                                 mergeCellPos.e.c = data[R][C].colSpan;
                                  cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
                                 ws[cell_ref] = cell;
-                                for(var w = cellPos.s.c+1; w < data[R][C].colSpan +1;w++){
-                                    Blankcell = {v: "",s:{"border": {
-                                        "top":{ style:'thin', color: {auto: 1} },
-                                         "left":{ style:'thin', color:{auto: 1} },
-                                         "right":{ style:'thin', color: {auto: 1} },
-                                        "bottom":{ style:'thin', color:{auto: 1} }
-                                    }}};
-                                    newCell = {c:w,r:R};
-                                    newCell_ref = XLSX.utils.encode_cell(newCell);
-                                    ws[newCell_ref] = Blankcell;
-                                    colspan.push(w);
-                                }
-                                ws['!merges'].push(mergeCellPos);
+                                    for (var w = cellPos.s.c + 1; w < data[R][C].colSpan + 1; w++) {
+                                        Blankcell = {
+                                            v: "", s: {
+                                                "border": {
+                                                    "top": {style: 'thin', color: {auto: 1}},
+                                                    "left": {style: 'thin', color: {auto: 1}},
+                                                    "right": {style: 'thin', color: {auto: 1}},
+                                                    "bottom": {style: 'thin', color: {auto: 1}}
+                                                }
+                                            }
+                                        };
+                                        newCell = {c: w, r: R};
+                                        newCell_ref = XLSX.utils.encode_cell(newCell);
+                                        ws[newCell_ref] = Blankcell;
+                                        colspan.push(w);
+                                    }
+                                    ws['!merges'].push(mergeCellPos);
+
                             }else{
                                 cellPos = {s: {c:C,r:R}, e: {c:C,r:R}};
                                 cellPos.s.c = (_.last(colspan)+1);
                                 mergeCellPos = cellPos;
                                 mergeCellPos.s.c = cellPos.s.c;//add last colspan to start
-                                mergeCellPos.e.c = (data[R][C].colSpan > 1 ? data[R][C].colSpan : 2); //add current colspan to end
+                                mergeCellPos.e.c = (data[R][C].colSpan > 1 ? _.last(colspan)+data[R][C].colSpan : _.last(colspan)+1); //add current colspan to end
                                 cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
                                 ws[cell_ref] = cell;
                                 if(data[R][C].colSpan > 1){
