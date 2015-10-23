@@ -44,6 +44,27 @@
                     foot: "</body></html>"
                 };*/
 
+                e.convertHex = function(hex,opacity){
+                    hex = hex.replace('#','');
+                    r = parseInt(hex.substring(0,2), 16);
+                    g = parseInt(hex.substring(2,4), 16);
+                    b = parseInt(hex.substring(4,6), 16);
+                    if(opacity=== undefined)opacity = 100;
+                    result = 'rgb('+r+','+g+','+b+','+opacity/100+')';
+                    return result;
+                };
+
+                e.convertRGB = function(rgb){
+                    var color = rgb.split("(")[1].split(")")[0],
+                    hex  = color.split(',');//array
+                    var b = hex.map(function(x){            //For each array element
+                        x = parseInt(x).toString(16);      //Convert to a base16 string
+                        return (x.length==1) ? "0"+x : x; //Add zero if we get only one character
+                    });
+                    b = 'FF'+b.join("");
+                    return b;
+                };
+
 
                 e.tableRows = [];
 
@@ -57,27 +78,35 @@
                         $(o).children().each(function(k,value){
                             var obj = {};
                             obj.value = _.isNaN(Number(value.innerText)) ? value.innerText : Number(value.innerText);
+                            if(obj.value === 0)obj.value = '';
                             var style = _.map(value.style,function(item){return item;});
                             var parsedStyles = {}
                             parsedStyles =  $(value).css(style);
+                            console.log('1');
                             if(!_.isEmpty(parsedStyles)) {
+                             var bgColor = _.has(parsedStyles, "background-color") ? parsedStyles['background-color'] != 'transparent' ? e.convertRGB(parsedStyles['background-color']) : "FFFFFFFF" : "FFFFFFFF"
                                 obj.style = {
                                     "numFmt": "General",
                                     "fill": {
                                         /*"patternType": "darkHorizontal",*/
                                         "fgColor": {
-                                            rgb: "FFFFFF"
-                                                //_.isUndefined(parsedStyles.background-color) ? 'FFFFFFF':parsedStyles.background-color
-                                            //"theme": 9,
-                                           // "tint": -0.249977111117893
-                                        }/*,
-                                        "bgColor": {
-                                            "theme": 5,
-                                            "tint": 0.3999755851924192
+                                             "rgb": bgColor
+                                        }
+                                       /* "bgColor": {
+                                            "theme": 1,
+                                            "tint": -0.25,
+                                            "auto": 1,
+                                            "rgb": bgColor,
+                                         //   "indexed": 64
                                         }*/
                                     },
+                                    "alignment":{
+                                        "vertical":"center",
+                                        "horizontal":"center",
+                                        "wrapText":false
+                                    },
                                     "font": {
-                                        "sz": "10",
+                                        "sz": 8,
                                         "color": {
                                             "theme": "1"
                                         },
@@ -86,8 +115,8 @@
                                     },
                                     "border": {
                                         "top":{ style:'thin', color: {auto: 1} },
-                                        //"left":{ style:'thin', color:{auto: 1} },
-                                        "right":{ style:'thin', color: {auto: 1} },
+                                         //"left":{ style:'thin', color:{auto: 1} },
+                                         "right":{ style:'thin', color: {auto: 1} },
                                         "bottom":{ style:'thin', color:{auto: 1} }
                                     }
                                 };
@@ -137,7 +166,7 @@
                             }
                             if(typeof cell.v === 'number'){
                                 cell.t = 'n';
-                                cell.s.numFmt = XLSX.SSF._table[1];
+                                cell.s.numFmt = XLSX.SSF._table[2];
                             }
                             else if(typeof cell.v === 'boolean') cell.t = 'b';
                             else if(cell.v instanceof Date) {
@@ -146,59 +175,57 @@
                                 //cell.s.numFmt = "General";
                             } else cell.t = 's';
 
-                            var mergeCellValue = '',added ='',cellPos={};
-                            colspan.push(data[R][C].colSpan);
+                            var mergeCellPos = '',cell_ref={},added ='',cellPos={},Blankcell='',newCell='',newCell_ref='';
 
                             if(C === 0){
                                 colspan = [];
                                 colspan.push(data[R][C].colSpan); //start over for new column
                                 cellPos = {s: {c:C,r:R}, e: {c:C,r:R}};
-                                cellPos.e.c += colspan[C];
+                                mergeCellPos = cellPos;
+                                mergeCellPos.e.c = data[R][C].colSpan;
+                                 cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
+                                ws[cell_ref] = cell;
+                                for(var w = cellPos.s.c+1; w < data[R][C].colSpan +1;w++){
+                                    Blankcell = {v: "",s:{"border": {
+                                        "top":{ style:'thin', color: {auto: 1} },
+                                         "left":{ style:'thin', color:{auto: 1} },
+                                         "right":{ style:'thin', color: {auto: 1} },
+                                        "bottom":{ style:'thin', color:{auto: 1} }
+                                    }}};
+                                    newCell = {c:w,r:R};
+                                    newCell_ref = XLSX.utils.encode_cell(newCell);
+                                    ws[newCell_ref] = Blankcell;
+                                    colspan.push(w);
+                                }
+                                ws['!merges'].push(mergeCellPos);
                             }else{
                                 cellPos = {s: {c:C,r:R}, e: {c:C,r:R}};
-                                cellPos.s.c += colspan[C-1];//add last colspan to start
-                                cellPos.e.c += colspan[C]; //add current colspan to end
+                                cellPos.s.c = (_.last(colspan)+1);
+                                mergeCellPos = cellPos;
+                                mergeCellPos.s.c = cellPos.s.c;//add last colspan to start
+                                mergeCellPos.e.c = (data[R][C].colSpan > 1 ? data[R][C].colSpan : 2); //add current colspan to end
+                                cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
+                                ws[cell_ref] = cell;
+                                if(data[R][C].colSpan > 1){
+                                    var len = (data[R][C].colSpan + cellPos.s.c);
+                                    for(var d = cellPos.s.c+1; d < len; d++){
+                                        Blankcell = {v: "",s:{"border": {
+                                            "top":{ style:'thin', color: {auto: 1} },
+                                            "left":{ style:'thin', color:{auto: 1} },
+                                            "right":{ style:'thin', color: {auto: 1} },
+                                            "bottom":{ style:'thin', color:{auto: 1} }
+                                        }}};
+                                        newCell = {c:d,r:R};
+                                        newCell_ref = XLSX.utils.encode_cell(newCell);
+                                        ws[newCell_ref] = Blankcell;
+                                        colspan.push(d);//push in current
+                                    }
+                                    ws['!merges'].push(mergeCellPos);
+                                }else{
+                                    colspan.push(cellPos.s.c);
+                                }
+
                             }
-
-                            console.log(cellPos);
-                            var cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
-                            ws[cell_ref] = cell;
-
-                            ws['!merges'].push(cellPos);
-
-                            //  if(!_.isUndefined(data[R][C].colSpan) && data[R][C].colSpan >= 1){
-
-                            //  var merge_ref = XLSX.utils.encode_cell({c:added,r:R});
-                            //  var merge =  cell_ref+':'+merge_ref;
-
-                            /*   added =  Number(C+data[R][C].colSpan) === 0 ? 1 : (C+data[R][C].colSpan)+1;
-
-                                 var lastMerge = _.isEmpty(ws['!merges']) ? undefined : _.last(ws['!merges']);
-
-                                 if(_.isUndefined(lastMerge))lastMerge = {s: {c:C,r:R}, e: {c:C,r:R}};//last merge equals current c and r
-                                 if(!_.isUndefined(lastMerge) && lastMerge.s.r < R){
-                                     lastMerge = {s: {c:C,r:R}, e: {c:C,r:R}};
-                                 }//if new row, equal current c and r
-
-
-                                   mergeCellValue = {s: {c:added,r:R}, e: {c:added,r:R}};
-
-
-                             var findLast = _.find(ws['!merges'],function(item){
-                                     if(item.e.c === added && item.e.r === R)return item;
-                                 });*/
-                              /*  if(!_.isUndefined(findLast)){
-                                    // mergeCellValue = {s: {c:findLast.e.c+1,r:R}, e: {c:added,r:R}};
-                                     mergeCellValue = {s: {c:C,r:R}, e: {c:added,r:R}};
-                                 }else{
-                                      added =  (C+data[R][C].colSpan);
-                                      mergeCellValue = {s: {c:C,r:R}, e: {c:added,r:R}};
-                                 }  */
-
-
-
-                           //}
-
 
                         }
                     }
