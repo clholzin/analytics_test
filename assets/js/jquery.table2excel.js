@@ -77,12 +77,11 @@
                         e.tableRows[i] = [];
                         $(o).children().each(function(k,value){
                             var obj = {};
-                            obj.value = _.isNaN(Number(value.innerText)) ? value.innerText : Number(value.innerText);
-                            if(obj.value === 0)obj.value = '';
+                            obj.value = _.isNaN(Number(value.innerText)) ? value.innerText :   Number(value.innerText);
+                            if(obj.value == 0 && String(obj.value).indexOf(".") == -1) obj.value = '';
                             var style = _.map(value.style,function(item){return item;});
                             var parsedStyles = {}
                             parsedStyles =  $(value).css(style);
-                            console.log('1');
                             if(!_.isEmpty(parsedStyles)) {
                              var bgColor = _.has(parsedStyles, "background-color") ? parsedStyles['background-color'] != 'transparent' ? e.convertRGB(parsedStyles['background-color']) : "FFFFFFFF" : "FFFFFFFF"
                                 obj.style = {
