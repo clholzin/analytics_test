@@ -15,7 +15,7 @@ requirejs.config({
         domReady:"js/domReady",
         FileSaver:"js/FileSaver",
         uglify:"js/uglify",
-        //typedArrays:"js/typedArrays",
+        typedArrays:"js/typedArrays",
         "jquery.table2excel":"js/jquery.table2excel",
         jszip:"js/jszip",
         moment:"js/moment",
@@ -67,7 +67,7 @@ requirejs.config({
     }
 });
 //load the main app and events files
-requirejs(['events']);
+requirejs(['events','typedArrays']);
 
 /**
 define(['jquery','underscore','kendo','FileSaver',

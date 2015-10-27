@@ -1,24 +1,22 @@
-<div class="panel panel-default" style="background-color: transparent; margin-bottom: 56px; box-shadow: none; border: none">
+<div class="panel panel-default" style="background-color: transparent; margin-bottom: 56px; box-shadow: none; border: none;">
     <div class="panel-heading">
         <h1 class="panel-title" style="font-size: 30px; font-weight: bold;  text-align: center">Analytics Dashboard</h1>
     </div>
     <div class="panel-body animated fadeIn" style="margin-left: 10px; margin-right: 10px">
-        <div class="row" style="margin: 15px 0">
+        <div class="row" style="margin: 15px 0;">
             <div class="col-sm-6 col-md-4">
                 <form class="form-inline">
                     <div class="input-group">
                         <div class="input-group-addon dashboardTitle">Project</div>
                         <select class="form-control" id="projectSets">
                             <% if (combineData[0].length < 2) { %>
-                                <% $.each(combineData[0],function(key,value){ %>
+                                <% _.each(combineData[0],function(value,key){ %>
                                 <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
-                                <%});
-                            } else { %>
+                                <% });  } else { %>
                                 <option value="">Select Project</option>
-                                <% $.each(combineData[0],function(key,value){ %>
+                                <% _.each(combineData[0],function(value,key){ %>
                                 <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
-                                <%});
-                            }%>
+                                <% }); }%>
                         </select>
                     </div>
                 </form>

@@ -7,6 +7,7 @@
 ;
 (function ($, window, document, undefined) {
         var pluginName = "table2excel",
+            type = {},
             defaults = {
                 exclude: ".noExl",
                 name: "Table2Excel"
@@ -26,7 +27,9 @@
             this.init();
         }
 
-        Plugin.prototype = {
+
+
+        type.xlsxExport = {
             init: function () {
                 var e = this;
 
@@ -64,8 +67,8 @@
                         e.tableRows[i] = [], len = this.length;
                         $(o).children().each(function(k,value){
                             var obj = {};
-                            obj.value = _.isNaN(Number(value.innerText)) ? value.innerText :   Number(value.innerText);
-                            if(obj.value == 0 && String(obj.value).indexOf(".") == -1) obj.value = '';
+                            obj.value = _.isNaN(Number(value.innerText)) ? value.innerText :   (value.innerText === "" ? "" : Number(value.innerText) );
+                          //  if(obj.value == 0 && String(obj.value).indexOf(".") == -1) obj.value = '';
                             var style = _.map(value.style,function(item){return item;});
                             var parsedStyles = {},
                                 alignment = _.isUndefined(value.align) ? 'left' : value.align === '' ? 'left':value.align;
@@ -91,7 +94,7 @@
                                     "alignment":{
                                         "vertical":"center",
                                         "horizontal":alignment,
-                                        "wrapText":false
+                                        "wrapText":true
                                     },
                                     "font": {
                                         "sz": 8,
@@ -113,7 +116,7 @@
                             e.tableRows[i].push(obj);
                         });
                     });
-                   // e.tableRows[i].push(data); // tempRows += "<tr>" + $(o).html() + "</tr>";
+
                 });
 
                 e.tableToExcel(e.tableRows, e.settings.name);
@@ -138,9 +141,9 @@
                 };
 
                 e.sheet_from_array_of_arrays = function(data, opts) {
-                    var ws = {};
+                    var ws = {},  colspan = [];
                     var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
-                    ws['!merges'] = [],ws['!cols']=[];var colspan = [];
+                    ws['!merges'] = [],ws['!cols']=[];
                     for(var R = 0; R != data.length; ++R) {
                         for(var C = 0; C != data[R].length; ++C) {
                             if(range.s.r > R) range.s.r = R;
@@ -154,12 +157,12 @@
                             }
                             if(typeof cell.v === 'number'){
                                 cell.t = 'n';
-                                cell.s.numFmt = XLSX.SSF._table[2];
+                                cell.s.numFmt = XLSX.SSF._table[0];
                             }
                             else if(typeof cell.v === 'boolean') cell.t = 'b';
                             else if(cell.v instanceof Date) {
                                 cell.t = 'n'; cell.s.numFmt = XLSX.SSF._table[15];
-                                cell.v = moment(cell.v);
+                                cell.v = new Date(moment(cell.v,'MM/YYYY'));
                                 //cell.s.numFmt = "General";
                             } else cell.t = 's';
 
@@ -168,12 +171,11 @@
                                 Blankcell='',newCell='',newCell_ref='',
                                 lastArrayKey = (data[R][C].length -1),
                                 iteratee='';
-                                /*,wscols = [
-                                {wch:6},
-                                {wch:7},
-                                {wch:10},
-                                {wch:20}
-                            ];*/
+
+                            /**
+                             * Lines 175 - 182
+                             * Parse character lenghts for cell sizing
+                             */
                             var stringLength = String(data[R][C].value).length;
                             stringLength = (stringLength === 0 ? 10 : stringLength);
                             if(stringLength > 15){
@@ -183,6 +185,9 @@
                             }
                             ws['!cols'].push({wch:stringLength});
 
+                            /**
+                             * Parse Cell colspan and convert to merged cells
+                             */
                             if(C === 0){
                                 colspan = [];
                                 cellPos = {s: {c:C,r:R}, e: {c:C,r:R}};
@@ -207,6 +212,7 @@
                                         newCell_ref = XLSX.utils.encode_cell(newCell);
                                         ws[newCell_ref] = Blankcell;
                                         colspan.push(w);
+                                        ws['!cols'].push({wch:7});
                                     }
                                     ws['!merges'].push(mergeCellPos);
 
@@ -236,6 +242,7 @@
                                         newCell_ref = XLSX.utils.encode_cell(newCell);
                                         ws[newCell_ref] = Blankcell;
                                         colspan.push(d);//push in current
+                                        ws['!cols'].push({wch:7});
                                     }
                                     ws['!merges'].push(mergeCellPos);
                                 }else{
@@ -265,70 +272,124 @@
                     return buf;
                 };
 
-                var wb = new Workbook(), ws =  e.sheet_from_array_of_arrays(e.ctx.table);
+                var wb = new Workbook(),
+                    ws =  e.sheet_from_array_of_arrays(e.ctx.table);
 
                 wb.SheetNames.push(e.ctx.worksheet);
                 wb.Sheets[e.ctx.worksheet] = ws;
                 var wbOut = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
-                /* fullTemplate = e.template.head;
-
-               if ($.isArray(table)) {
-                    for (i in table) {
-                        //fullTemplate += e.template.sheet.head + "{worksheet" + i + "}" + e.template.sheet.tail;
-                        fullTemplate += e.template.sheet.head + name + " " + e.template.sheet.tail;
-                        //fullTemplate += e.template.sheet.head + "Table" + i + name +"" + e.template.sheet.tail;
-                    }
-                }
-
-                fullTemplate += e.template.mid;
-
-                if ($.isArray(table)) {
-                    for (i in table) {
-                        fullTemplate += e.template.table.head + "{table" + i + "}" + e.template.table.tail;
-                    }
-                }
-
-                fullTemplate += e.template.foot;
-
-                for (i in table) {
-                    if (table.hasOwnProperty(i)) {
-                        e.ctx["table" + i] = table[i];
-                    }
-                }
-                delete e.ctx.table;*/
 
 
-
-
-
-
-                console.log('userAgent ' + navigator.userAgent);
-
-
-                if (bowser.msie && bowser.version >= 5) {
-                    if (bowser.msie) {
-
-                        if (bowser.version <= 9) {
-                            alert('For IE 9 and below, Save Text file as .XLS.')
-                        }
-
-                    //    console.log('IE browser ' + bowser.version);
-                    //    var format1 = e.format(fullTemplate, e.ctx);
-                     //   console.log('format ' + format1.length);
-                      //  saveTextAs(format1, getFileName(e.settings));//alerts user to save txt file as xls
-
-                    } else {
-                        alert('IE 5 and lower not supported');
-                    }
-                } else if (bowser.firefox || bowser.chrome || bowser.safari || bowser.iphone || bowser.android) {
-                    console.log(bowser.version);
-               
-                    saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsx")
-                }
-
+                console.log(bowser.version+ ' - userAgent ' + navigator.userAgent +' : '+bowser.version);
+                saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsx");
                 return true;
             }
         };
+
+        type.xlsExport  = {
+                init: function() {
+                    var e = this;
+
+                    e.template = {
+                        head: "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>",
+                        sheet: {
+                            head: "<x:ExcelWorksheet><x:Name>",
+                            tail: "</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>"
+                        },
+                        mid: "</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>",
+                        table: {
+                            head: "<table>",
+                            tail: "</table>"
+                        },
+                        foot: "</body></html>"
+                    };
+
+
+                    e.tableRows = [];
+
+                    // get contents of table except for exclude
+                    $(e.element).each(function (i, o) {
+                        var tempRows = "";
+                        $(o).find("tr").not(e.settings.exclude).each(function (i, o) {
+                            tempRows += "<tr>" + $(o).html() + "</tr>";
+                        });
+                        e.tableRows.push(tempRows);
+                    });
+
+                    e.tableToExcel(e.tableRows, e.settings.name);
+                },
+
+                tableToExcel: function (table, name) {
+                    var e = this, fullTemplate = "", i, link, a;
+                    //e.uri = "data:application/vnd.ms-excel;base64,";
+                    e.uri = "data:application/application/vnd.ms-excel;base64,";//application/vnd.ms-excel
+                    e.base64 = function (s) {
+                        return Base64.encode(unescape(encodeURIComponent(s)));
+                    };
+                    e.format = function (s, c) {
+                        return s.replace(/{(\w+)}/g, function (m, p) {
+                            return c[p];
+                        });
+                    };
+                    e.ctx = {
+                        worksheet: name || "Worksheet",
+                        table: table
+                    };
+
+                    fullTemplate = e.template.head;
+
+                    if ($.isArray(table)) {
+                        for (i in table) {
+                            //fullTemplate += e.template.sheet.head + "{worksheet" + i + "}" + e.template.sheet.tail;
+                            fullTemplate += e.template.sheet.head + name + " " + e.template.sheet.tail;
+                            //fullTemplate += e.template.sheet.head + "Table" + i + name +"" + e.template.sheet.tail;
+                        }
+                    }
+
+                    fullTemplate += e.template.mid;
+
+                    if ($.isArray(table)) {
+                        for (i in table) {
+                            fullTemplate += e.template.table.head + "{table" + i + "}" + e.template.table.tail;
+                        }
+                    }
+
+                    fullTemplate += e.template.foot;
+
+                    for (i in table) {
+                        if (table.hasOwnProperty(i)) {
+                            e.ctx["table" + i] = table[i];
+                        }
+                    }
+                    delete e.ctx.table;
+
+
+                    console.log(bowser.version+ ' - userAgent ' + navigator.userAgent);
+
+                    var format1 = e.format(fullTemplate, e.ctx);
+                    //console.log('format ' + format1.length);
+                    saveTextAs(format1, getFileName(e.settings));//alerts user to save txt file as xls
+                    return true;
+                }
+            };
+
+        if (bowser.msie && bowser.version >= 5) {
+                if (bowser.version >= 5) {
+                    if (bowser.version <= 9) {
+                        Plugin.prototype = type.xlsExport;
+                    }else if (bowser.version >= 10) {
+                        Plugin.prototype = type.xlsxExport;
+                    }
+
+                } else {
+                    alert('IE 5 and lower not supported');
+                    Plugin.prototype = { init:function(){return true} }
+                }
+            } else if (bowser.firefox || bowser.chrome || bowser.safari || bowser.iphone || bowser.android) {
+                Plugin.prototype = type.xlsxExport;
+
+        }
+
 
         function getFileName(settings) {
             return ( settings.filename ? settings.filename : "table2excel") + '.xls';//removed xlsx and it worked. bug

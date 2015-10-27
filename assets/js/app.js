@@ -340,7 +340,7 @@ define(['jquery', 'underscore', 'moment',
             this.rawspiCpiChartdata = [];
             this.spiCpiChart = [];
             this.hierarchySv = [];
-        },
+        }
     };
 
     App.State = {
@@ -351,7 +351,7 @@ define(['jquery', 'underscore', 'moment',
 
     App.unit = {
         _monthAttr: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        get months() {
+          months: function(){
             return this._monthAttr;
         }
     };
@@ -1196,7 +1196,7 @@ define(['jquery', 'underscore', 'moment',
         //  pageFooter.empty();
         var pageData = id;
         var footerData = foot;
-        pageBody.html(pageData({'combineData': data}));
+        pageBody.html(pageData({"combineData": data}));
         pageFooter.html(footerData);
     };
 
@@ -4054,7 +4054,7 @@ define(['jquery', 'underscore', 'moment',
         }).value();
 
         var hierDefault = _.first(hierarchyFoo[firstArrayId]);
-        master.default = _.map(hierDefault, function (item, key) {
+        master.def = _.map(hierDefault, function (item, key) {
             var objResults = [], final = [], isEmpty = false;
             objResults = _.filter(eacData, function (value) {
                 return value.ObjectNumber === item.ObjectNumber;
@@ -4148,21 +4148,21 @@ define(['jquery', 'underscore', 'moment',
                 });
             }
         });
-        _.each(master.default, function (item, i, list) {
+        _.each(master.def, function (item, i, list) {
             var array = [];
             if (!item.checkEmpty) {
                 var index = _.findIndex(list, function (search) {
                     return search.ObjectNumber === item.ParentObjNum;
                 });
-                master.default[index].checkEmpty = item.checkEmpty;
+                master.def[index].checkEmpty = item.checkEmpty;
                 _.each(item.Total, function (value, key) {
-                    master.default[index].Total[key] += parseFloat(value);
+                    master.def[index].Total[key] += parseFloat(value);
                 });
             }
         });
-        var copydefault = master.default.slice();
+        var copydefault = master.def.slice();
         var copyobs = master.obs.slice();
-        master.default = [];
+        master.def = [];
         master.obs = [];
         master.obs = _.filter(copyobs, function (item, index) {
             if (item.ReportingLevel === 'R' && !item.checkEmpty) {
@@ -4172,7 +4172,7 @@ define(['jquery', 'underscore', 'moment',
                 return item;
             }
         });
-        master.default = _.filter(copydefault, function (item, index) {
+        master.def = _.filter(copydefault, function (item, index) {
             if (item.ReportingLevel === 'R' && !item.checkEmpty) {
                 _.each(item.Total, function (value, key) {
                     item.Total[key] = value.toFixed(0);
@@ -4182,7 +4182,7 @@ define(['jquery', 'underscore', 'moment',
         });
         //  var copydefault = master.default.slice();
 
-        /*  master.default = _.filter(master.default,function(item,i){
+        /*  master.def = _.filter(master.default,function(item,i){
          if(item.ReportingLevel === 'R') {
          if(!item.checkEmpty)return item;
          }

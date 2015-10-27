@@ -20,9 +20,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
     'tpl!templates/reports/cprTOBS.html',
     'tpl!templates/reports/foo.html',
 
-    'moment','jszip', 'kendo', 'FileSaver', 'en-GB', 'bootstrap-select',
+    'moment','jszip','kendo', 'FileSaver', 'en-GB', 'bootstrap-select',
     'Blob', 'base64',
-    'jquery.table2excel', 'bootstrap','xlsx'], function ($, _, domReady, App,
+    'jquery.table2excel', 'bootstrap'], function ($, _, domReady, App,
                                                   homeTpl, projectAnalyticsFTTpl, earnedScheduleTpl, scheduleTpl, spaTpl, spiCPITpl,
                                                   reportFooterTpl, blankFooterTpl, analyticsFooterATpl, analyticsFooterBTpl,
                                                   spinnerTpl, cpr1, cpr2, cpr3, cpr4a, cpr4b, cpr5, cprTWBS, cprTOBS,fooTpl, moment,JSZip) {
@@ -52,8 +52,9 @@ define(['jquery', 'underscore', 'domReady', 'app',
             } else {
                 combineData.push(_.first(hData).d.results);
             }
-            mainBody.html(homeTpl({'combineData': combineData}));
-            footer.html(blankFooterTpl);
+            App.Project(homeTpl,blankFooterTpl,combineData);
+            //mainBody.html(homeTpl({'combineData': combineData}));
+            //footer.html(blankFooterTpl);
             if (combineData[0].length > 1) {
                 doc.find('.menuItem').addClass('menu-disabled');
             } else {
