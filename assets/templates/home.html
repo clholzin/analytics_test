@@ -10,12 +10,12 @@
                         <div class="input-group-addon dashboardTitle">Project</div>
                         <select class="form-control" id="projectSets">
                             <% if (combineData[0].length < 2) { %>
-                                <% _.each(combineData[0],function(value,key){ %>
-                                <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
+                                <% $.each(combineData[0],function(key,value){ %>
+                                <option value="<%-value.ProjectSelection%>"><%-value['Description']%></option>
                                 <% });  } else { %>
                                 <option value="">Select Project</option>
-                                <% _.each(combineData[0],function(value,key){ %>
-                                <option value="<%-value.ProjectSelection%>"><%-value.Description%></option>
+                                <% $.each(combineData[0],function(key,value){ %>
+                                <option value="<%-value.ProjectSelection%>"><%-value['Description']%></option>
                                 <% }); }%>
                         </select>
                     </div>

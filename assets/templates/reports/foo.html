@@ -44,9 +44,8 @@
         <% _.each(combineData[1].obs,function(item,index){ %>
         <tr  class="">
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
-                <%-_.last(combineData[1].default[index].Description.split('-'))%>
+                <%-_.last(combineData[1].def[index].Description.split('-'))%>
             </td>
-
             <td style='border-top:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; font-size:12px; padding:2px'>
                 <!--<%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[2]%> <%-_.last(combineData[1].obs[index].Description.split('-')).split(' ')[3]%>-->
                 <%-_.first(item.Description.split('-'))%> <%-_.last(item.Description.split('-'))%>

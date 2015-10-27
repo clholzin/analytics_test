@@ -7,6 +7,7 @@
 ;
 (function ($, window, document, undefined) {
         var pluginName = "table2excel",
+            exportValue = '',
             type = {},
             defaults = {
                 exclude: ".noExl",
@@ -280,7 +281,7 @@
                 var wbOut = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
 
 
-                console.log(bowser.version+ ' - userAgent ' + navigator.userAgent +' : '+bowser.version);
+                console.log(bowser.version+ ' - userAgent ' + navigator.userAgent);
                 saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsx");
                 return true;
             }
@@ -364,10 +365,10 @@
                     delete e.ctx.table;
 
 
-                    console.log(bowser.version+ ' - userAgent ' + navigator.userAgent);
+                    console.log(bowser.version+' '+bowser.msie+' - userAgent ' + navigator.userAgent);
 
                     var format1 = e.format(fullTemplate, e.ctx);
-                    //console.log('format ' + format1.length);
+                    alert('Save this file as: \n .XLS \n Replace .txt on SaveAs.')
                     saveTextAs(format1, getFileName(e.settings));//alerts user to save txt file as xls
                     return true;
                 }
@@ -376,20 +377,21 @@
         if (bowser.msie && bowser.version >= 5) {
                 if (bowser.version >= 5) {
                     if (bowser.version <= 9) {
-                        Plugin.prototype = type.xlsExport;
+                        exportValue = type.xlsExport;
                     }else if (bowser.version >= 10) {
-                        Plugin.prototype = type.xlsxExport;
+                        exportValue = type.xlsxExport;
                     }
 
                 } else {
                     alert('IE 5 and lower not supported');
-                    Plugin.prototype = { init:function(){return true} }
+                    exportValue = { init:function(){return true} }
                 }
-            } else if (bowser.firefox || bowser.chrome || bowser.safari || bowser.iphone || bowser.android) {
-                Plugin.prototype = type.xlsxExport;
+            } else {//if (bowser.firefox || bowser.chrome || bowser.safari || bowser.iphone || bowser.android) {
+            exportValue = type.xlsxExport;
 
         }
 
+        Plugin.prototype = exportValue;
 
         function getFileName(settings) {
             return ( settings.filename ? settings.filename : "table2excel") + '.xls';//removed xlsx and it worked. bug
