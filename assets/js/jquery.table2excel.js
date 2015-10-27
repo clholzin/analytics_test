@@ -30,19 +30,6 @@
             init: function () {
                 var e = this;
 
-             /*   e.template = {
-                    head: "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>",
-                    sheet: {
-                        head: "<x:ExcelWorksheet><x:Name>",
-                        tail: "</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>"
-                    },
-                    mid: "</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>",
-                    table: {
-                        head: "<table>",
-                        tail: "</table>"
-                    },
-                    foot: "</body></html>"
-                };*/
 
                 e.convertHex = function(hex,opacity){
                     hex = hex.replace('#','');
@@ -74,13 +61,15 @@
                     var data = [];
 
                     $(o).find("tr").not(e.settings.exclude).each(function (i, o) {
-                        e.tableRows[i] = [];
+                        e.tableRows[i] = [], len = this.length;
                         $(o).children().each(function(k,value){
                             var obj = {};
                             obj.value = _.isNaN(Number(value.innerText)) ? value.innerText :   Number(value.innerText);
                             if(obj.value == 0 && String(obj.value).indexOf(".") == -1) obj.value = '';
                             var style = _.map(value.style,function(item){return item;});
-                            var parsedStyles = {}
+                            var parsedStyles = {},
+                                alignment = _.isUndefined(value.align) ? 'left' : value.align === '' ? 'left':value.align;
+                            if(i == 0 || i == 1 || i == len-1 && k == 0) alignment='center';//center first two rows and last row
                             parsedStyles =  $(value).css(style);
                             if(!_.isEmpty(parsedStyles)) {
                              var bgColor = _.has(parsedStyles, "background-color") ? parsedStyles['background-color'] != 'transparent' ? e.convertRGB(parsedStyles['background-color']) : "FFFFFFFF" : "FFFFFFFF"
@@ -101,7 +90,7 @@
                                     },
                                     "alignment":{
                                         "vertical":"center",
-                                        "horizontal":"center",
+                                        "horizontal":alignment,
                                         "wrapText":false
                                     },
                                     "font": {
@@ -151,7 +140,7 @@
                 e.sheet_from_array_of_arrays = function(data, opts) {
                     var ws = {};
                     var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
-                    ws['!merges'] = [];var colspan = [];
+                    ws['!merges'] = [],ws['!cols']=[];var colspan = [];
                     for(var R = 0; R != data.length; ++R) {
                         for(var C = 0; C != data[R].length; ++C) {
                             if(range.s.r > R) range.s.r = R;
@@ -174,17 +163,36 @@
                                 //cell.s.numFmt = "General";
                             } else cell.t = 's';
 
-                            var mergeCellPos = '',cell_ref={},added ='',cellPos={},Blankcell='',newCell='',newCell_ref='';
+                            var mergeCellPos = '',cell_ref={},
+                                added ='',cellPos={},
+                                Blankcell='',newCell='',newCell_ref='',
+                                lastArrayKey = (data[R][C].length -1),
+                                iteratee='';
+                                /*,wscols = [
+                                {wch:6},
+                                {wch:7},
+                                {wch:10},
+                                {wch:20}
+                            ];*/
+                            var stringLength = String(data[R][C].value).length;
+                            stringLength = (stringLength === 0 ? 10 : stringLength);
+                            if(stringLength > 15){
+                                stringLength = 15;
+                            }else if(stringLength < 5){
+                                stringLength = 10;
+                            }
+                            ws['!cols'].push({wch:stringLength});
 
                             if(C === 0){
                                 colspan = [];
-                                colspan.push(data[R][C].colSpan); //start over for new column
                                 cellPos = {s: {c:C,r:R}, e: {c:C,r:R}};
                                 mergeCellPos = cellPos;
-                                mergeCellPos.e.c = data[R][C].colSpan;
-                                 cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
+                                mergeCellPos.e.c = data[R][C].colSpan-1;
+                                colspan.push(mergeCellPos.e.c); //start over for new column
+                                cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
                                 ws[cell_ref] = cell;
-                                    for (var w = cellPos.s.c + 1; w < data[R][C].colSpan + 1; w++) {
+                                iteratee = data[R][C].colSpan;
+                                    for (var w = cellPos.s.c + 1; w < iteratee; w++) {
                                         Blankcell = {
                                             v: "", s: {
                                                 "border": {
@@ -207,12 +215,17 @@
                                 cellPos.s.c = (_.last(colspan)+1);
                                 mergeCellPos = cellPos;
                                 mergeCellPos.s.c = cellPos.s.c;//add last colspan to start
-                                mergeCellPos.e.c = (data[R][C].colSpan > 1 ? _.last(colspan)+data[R][C].colSpan : _.last(colspan)+1); //add current colspan to end
+                                if(lastArrayKey === C){
+                                    mergeCellPos.e.c = (data[R][C].colSpan > 1 ? (_.last(colspan)+data[R][C].colSpan)-1 : (_.last(colspan) -1)); //add current colspan to end
+                                }else{
+                                    mergeCellPos.e.c = (data[R][C].colSpan > 1 ? _.last(colspan)+data[R][C].colSpan : _.last(colspan)); //add current colspan to end
+                                }
+
                                 cell_ref = XLSX.utils.encode_cell({c:cellPos.s.c,r:cellPos.s.r});
                                 ws[cell_ref] = cell;
                                 if(data[R][C].colSpan > 1){
-                                    var len = (data[R][C].colSpan + cellPos.s.c);
-                                    for(var d = cellPos.s.c+1; d < len; d++){
+                                    iteratee = (data[R][C].colSpan + cellPos.s.c);
+                                    for(var d = cellPos.s.c+1; d < iteratee; d++){
                                         Blankcell = {v: "",s:{"border": {
                                             "top":{ style:'thin', color: {auto: 1} },
                                             "left":{ style:'thin', color:{auto: 1} },
