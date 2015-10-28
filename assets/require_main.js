@@ -39,6 +39,12 @@ requirejs.config({
             deps: ["jquery"],
             exports: "_"
         },
+        Blob: {
+            deps: ["typedArrays"]
+        },
+        FileSaver: {
+            deps: ["typedArrays"]
+        },
         moment: {
             exports: "moment"
         },
@@ -67,7 +73,7 @@ requirejs.config({
     }
 });
 //load the main app and events files
-requirejs(['events','typedArrays']);
+requirejs(['events','typedArrays','Blob']);
 
 /**
 define(['jquery','underscore','kendo','FileSaver',

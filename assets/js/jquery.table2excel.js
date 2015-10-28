@@ -65,7 +65,8 @@
                     var data = [];
 
                     $(o).find("tr").not(e.settings.exclude).each(function (i, o) {
-                        e.tableRows[i] = [], len = this.length;
+                        e.tableRows[i] = [];
+                        var len = this.length;
                         $(o).children().each(function(k,value){
                             var obj = {};
                             obj.value = _.isNaN(Number(value.innerText)) ? value.innerText :   (value.innerText === "" ? "" : Number(value.innerText) );
@@ -76,13 +77,12 @@
                             if(i == 0 || i == 1 || i == len-1 && k == 0) alignment='center';//center first two rows and last row
                             parsedStyles =  $(value).css(style);
                             if(!_.isEmpty(parsedStyles)) {
-                             var bgColor = _.has(parsedStyles, "background-color") ? parsedStyles['background-color'] != 'transparent' ? e.convertRGB(parsedStyles['background-color']) : "FFFFFFFF" : "FFFFFFFF"
                                 obj.style = {
                                     "numFmt": "General",
                                     "fill": {
                                         /*"patternType": "darkHorizontal",*/
                                         "fgColor": {
-                                             "rgb": bgColor
+                                             "rgb": ''
                                         }
                                        /* "bgColor": {
                                             "theme": 1,
@@ -105,13 +105,14 @@
                                         "bold":parsedStyles.bold === 'bold'? true : false,
                                         "name": "Calibri"
                                     },
-                                    "border": {
-                                        "top":{ style:'thin', color: {auto: 1} },
-                                         //"left":{ style:'thin', color:{auto: 1} },
-                                         "right":{ style:'thin', color: {auto: 1} },
-                                        "bottom":{ style:'thin', color:{auto: 1} }
-                                    }
+                                    "border": { }
                                 };
+                                obj.style.fill.fgColor['rgb'] = _.has(parsedStyles, "background-color") ? parsedStyles['background-color'] != 'transparent' ? e.convertRGB(parsedStyles['background-color']) : "FFFFFFFF" : "FFFFFFFF";
+                                obj.style.border.top = _.has(parsedStyles, "border-top-style") ? { style:'thin', color: {auto: 1} } : null;
+                                obj.style.border.left = _.has(parsedStyles, "border-left-style") ? { style:'thin', color: {auto: 1} } : null;
+                                obj.style.border.right = _.has(parsedStyles, "border-right-style") ? { style:'thin', color: {auto: 1} } : null;
+                                obj.style.border.bottom = _.has(parsedStyles, "border-bottom-style") ? { style:'thin', color: {auto: 1} } : null;
+
                             }
                             obj.colSpan = value.colSpan;
                             e.tableRows[i].push(obj);
@@ -125,16 +126,7 @@
 
             tableToExcel: function (table, name) {
                 var e = this, fullTemplate = "", i, link, a;
-                //e.uri = "data:application/vnd.ms-excel;base64,";
-                e.uri = "data:application/vnd.ms-excel;base64,";//application/vnd.ms-excel
-                e.base64 = function (s) {
-                    return Base64.encode(unescape(encodeURIComponent(s)));
-                };
-                e.format = function (s, c) {
-                    return s.replace(/{(\w+)}/g, function (m, p) {
-                        return c[p];
-                    });
-                };
+
                 e.datenum =  function (v, date1904) {
                     if(date1904) v+=1462;
                     var epoch = Date.parse(v);
@@ -199,16 +191,7 @@
                                 ws[cell_ref] = cell;
                                 iteratee = data[R][C].colSpan;
                                     for (var w = cellPos.s.c + 1; w < iteratee; w++) {
-                                        Blankcell = {
-                                            v: "", s: {
-                                                "border": {
-                                                    "top": {style: 'thin', color: {auto: 1}},
-                                                    "left": {style: 'thin', color: {auto: 1}},
-                                                    "right": {style: 'thin', color: {auto: 1}},
-                                                    "bottom": {style: 'thin', color: {auto: 1}}
-                                                }
-                                            }
-                                        };
+                                        Blankcell = { v: "", s: data[R][C].style };
                                         newCell = {c: w, r: R};
                                         newCell_ref = XLSX.utils.encode_cell(newCell);
                                         ws[newCell_ref] = Blankcell;
@@ -233,12 +216,7 @@
                                 if(data[R][C].colSpan > 1){
                                     iteratee = (data[R][C].colSpan + cellPos.s.c);
                                     for(var d = cellPos.s.c+1; d < iteratee; d++){
-                                        Blankcell = {v: "",s:{"border": {
-                                            "top":{ style:'thin', color: {auto: 1} },
-                                            "left":{ style:'thin', color:{auto: 1} },
-                                            "right":{ style:'thin', color: {auto: 1} },
-                                            "bottom":{ style:'thin', color:{auto: 1} }
-                                        }}};
+                                        Blankcell = {v: "",s:data[R][C].style};
                                         newCell = {c:d,r:R};
                                         newCell_ref = XLSX.utils.encode_cell(newCell);
                                         ws[newCell_ref] = Blankcell;
@@ -257,6 +235,7 @@
                     if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
                     return ws;
                 };
+
                 function Workbook () {
                     if(!(this instanceof Workbook)) return new Workbook();
                     this.SheetNames = [];
@@ -266,6 +245,7 @@
                     worksheet: name || "Worksheet",
                     table: table
                 };
+
                 e.s2ab  = function (s) {
                     var buf = new ArrayBuffer(s.length);
                     var view = new Uint8Array(buf);
@@ -277,12 +257,15 @@
                     ws =  e.sheet_from_array_of_arrays(e.ctx.table);
 
                 wb.SheetNames.push(e.ctx.worksheet);
+               // wb.SheetNames.push('Craig');
                 wb.Sheets[e.ctx.worksheet] = ws;
-                var wbOut = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
-
-
+                //wb.Sheets['Craig'] = ws;
+                var wbOut = XLSX.write(wb, {bookType:'xlsx',bookSST:true,  type: 'binary'});
                 console.log(bowser.version+ ' - userAgent ' + navigator.userAgent);
                 saveAs(new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"}), name+".xlsx");
+              /* var blobData = new Blob([e.s2ab(wbOut)],{type:"application/octet-stream"});
+                var ww = XLSX.utils.sheet_to_csv(blobData);
+                saveAs(new Blob([e.s2ab(ww)],{type:"application/octet-stream"}), name+".csv");*/
                 return true;
             }
         };
@@ -368,19 +351,21 @@
                     console.log(bowser.version+' '+bowser.msie+' - userAgent ' + navigator.userAgent);
 
                     var format1 = e.format(fullTemplate, e.ctx);
-                    alert('Save this file as: \n .XLS \n Replace .txt on SaveAs.')
-                    saveTextAs(format1, getFileName(e.settings));//alerts user to save txt file as xls
+                    alert('Save this file as: \n .XLS \n Replace .txt on SaveAs.');
+                   // var blob = new Blob([format1], {type:"application/octet-stream"});//{type: "application/vnd.ms-excel"}text/html
+                    saveTextAs(format1, getFileName(e.settings));//saves xls as usual for modern browsers
+
                     return true;
                 }
             };
 
         if (bowser.msie && bowser.version >= 5) {
                 if (bowser.version >= 5) {
-                    if (bowser.version <= 9) {
+                   if (bowser.version <= 9) {
                         exportValue = type.xlsExport;
                     }else if (bowser.version >= 10) {
                         exportValue = type.xlsxExport;
-                    }
+                   }
 
                 } else {
                     alert('IE 5 and lower not supported');

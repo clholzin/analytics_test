@@ -1370,3 +1370,62 @@ if (!Array.prototype.map) {
         return A;
     };
 }
+
+
+
+if (!String.prototype.replace)
+{
+    // Fix `String::replace()` for Safari. Based on work by John-David Dalton.
+    String.prototype.replace = (function (replace) {
+        // Returns an object's internal [[Class]] name.
+        var toString = Object.prototype.toString,
+        // Matches RegExp control characters.
+            escapable = /([.*+?\^=!:${}()|\[\]\/\\])/g;
+
+        return function (pattern, callback) {
+            var index, lastIndex, result, source, length, match;
+            // Non-function replacement; use the native method.
+            if (toString.call(callback) !== '[object Function]') {
+                return replace.call(this, pattern, callback);
+            }
+            if (toString.call(pattern) !== '[object RegExp]') {
+                // Escape all control characters.
+                pattern = new RegExp(replace.call(pattern, escapable, '\\$1'));
+            }
+            source = '' + this;
+            length = source.length;
+            // Reset the RegExp's `lastIndex` property before walking the string.
+            lastIndex = pattern.lastIndex = 0;
+            // Walk the source string.
+            while ((match = pattern.exec(source))) {
+                index = match.index;
+                // Append the portion of the source string before the match.
+                result += source.slice(lastIndex, index);
+                lastIndex = index + match[0].length;
+                // Pass the position and source string as arguments.
+                match.push(index, source);
+                // Call the replacement function and append the returned value.
+                result += callback.apply(null, match);
+                // Update the pattern's `lastIndex` property.
+                pattern.lastIndex = lastIndex;
+                if (!pattern.global) {
+                    // Avoid infinite loops for non-global patterns.
+                    break;
+                }
+                // Avoid infinite loops for empty patterns.
+                if (lastIndex === index) {
+                    if (lastIndex === length) {
+                        break;
+                    }
+                    pattern.lastIndex = lastIndex++;
+                    result += source.charAt(lastIndex);
+                }
+            }
+            // Append the remainder of the source string.
+            if (lastIndex < length) {
+                result += source.slice(lastIndex, length);
+            }
+            return result;
+        };
+    }(String.prototype.replace));
+}
